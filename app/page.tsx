@@ -324,8 +324,6 @@ export default function DocsPage() {
         </Link>
         <nav className={styles.topNav}>
           <span className={styles.topNavActive}>Docs</span>
-          <a className={styles.topNavLink} href="https://valendata.com">Home</a>
-          <a className={styles.topNavLink} href="https://app.valendata.com">Dashboard</a>
         </nav>
         <div className={styles.topRight}>
           <a href="https://app.valendata.com" className={styles.ctaBtn}>Get started →</a>
