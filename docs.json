@@ -3,97 +3,65 @@
   "theme": "mint",
   "name": "Valendata",
   "colors": {
-    "primary": "#2BDD66",
+    "primary": "#16a34a",
     "light": "#16a34a",
     "dark": "#2BDD66"
   },
   "favicon": "/favicon.ico",
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Documentation",
-        "groups": [
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "core-concepts/skills",
+          "core-concepts/workflows",
+          "core-concepts/schedules",
+          "core-concepts/remote-browsers",
+          "core-concepts/inbox",
+          "core-concepts/credits-and-billing"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/introduction",
+          "api-reference/authentication",
           {
-            "group": "Get Started",
+            "group": "Skills API",
             "pages": [
-              "quickstart"
+              "api-reference/skills/run",
+              "api-reference/skills/list",
+              "api-reference/skills/create"
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Workflows API",
             "pages": [
-              "core-concepts/skills",
-              "core-concepts/workflows",
-              "core-concepts/schedules",
-              "core-concepts/remote-browsers",
-              "core-concepts/inbox",
-              "core-concepts/credits-and-billing"
+              "api-reference/workflows/execute"
             ]
           },
           {
-            "group": "SDKs",
+            "group": "Sessions API",
             "pages": [
-              "sdks/python",
-              "sdks/typescript"
+              "api-reference/sessions/status",
+              "api-reference/sessions/recordings"
             ]
           }
         ]
       },
       {
-        "tab": "Documentation",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "introduction"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication",
-              {
-                "group": "Skills API",
-                "pages": [
-                  "api-reference/skills/run",
-                  "api-reference/skills/list",
-                  "api-reference/skills/create"
-                ]
-              },
-              {
-                "group": "Workflows API",
-                "pages": [
-                  "api-reference/workflows/execute"
-                ]
-              },
-              {
-                "group": "Sessions API",
-                "pages": [
-                  "api-reference/sessions/status",
-                  "api-reference/sessions/recordings"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Integrations",
-        "groups": [
-          {
-            "group": "Integrations & Connectors",
-            "pages": [
-              "integrations/mcp",
-              "integrations/webhooks",
-              "integrations/n8n"
-            ]
-          }
+        "group": "Integrations & Connectors",
+        "pages": [
+          "integrations/mcp",
+          "integrations/webhooks",
+          "integrations/n8n"
         ]
       }
     ]
@@ -103,10 +71,14 @@
     "dark": "/logo/light.png",
     "href": "https://valendata.com"
   },
+  "appearance": {
+    "default": "light",
+    "strict": false
+  },
   "background": {
     "color": {
-      "light": "#ffffff",
-      "dark": "#0d0e11"
+      "light": "#FFFFFF",
+      "dark": "#0B0F17"
     }
   },
   "navbar": {

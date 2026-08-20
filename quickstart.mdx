@@ -3,7 +3,6 @@ title: "Quickstart"
 description: "Run your first autonomous browser extraction in 2 minutes."
 ---
 
-# Quickstart Guide
 
 Get up and running with Valendata in just a few steps.
 
@@ -16,8 +15,8 @@ Get up and running with Valendata in just a few steps.
     ```
   </Step>
 
-  <Step title="Create or Run a Skill">
-    You can trigger a skill using our REST API, Python SDK, or TypeScript library.
+  <Step title="Run a Browser Automation Task">
+    Trigger an autonomous browser task directly via our REST API using standard HTTP requests:
 
     <CodeGroup>
     ```bash cURL
@@ -30,33 +29,40 @@ Get up and running with Valendata in just a few steps.
       }'
     ```
 
-    ```python Python
+    ```python Python (requests)
     import os
-    from valendata import ValendataClient
+    import requests
 
-    client = ValendataClient(api_key=os.environ["VALENDATA_API_KEY"])
-
-    result = client.skills.run(
-        task="Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
-        output_format="json"
+    response = requests.post(
+        "https://api.valendata.com/v1/skills/run",
+        headers={
+            "Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "task": "Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
+            "output_format": "json"
+        }
     )
 
-    print(result.data)
+    print(response.json())
     ```
 
-    ```typescript TypeScript
-    import { Valendata } from "@valendata/sdk";
-
-    const valendata = new Valendata({
-      apiKey: process.env.VALENDATA_API_KEY!,
+    ```javascript JavaScript (Fetch)
+    const response = await fetch("https://api.valendata.com/v1/skills/run", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.VALENDATA_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        task: "Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
+        output_format: "json"
+      })
     });
 
-    const run = await valendata.skills.run({
-      task: "Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
-      outputFormat: "json",
-    });
-
-    console.log(run.data);
+    const data = await response.json();
+    console.log(data);
     ```
     </CodeGroup>
   </Step>
@@ -97,5 +103,11 @@ Get up and running with Valendata in just a few steps.
   </Card>
   <Card title="Build Multi-Step Workflows" icon="diagram-project" href="/core-concepts/workflows">
     Chain scrapers, filters, and notifications together.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Full REST API endpoints, schemas, and error codes.
+  </Card>
+  <Card title="Model Context Protocol (MCP)" icon="plug" href="/integrations/mcp">
+    Connect Claude Code, Cursor, and AI agents directly to Valendata.
   </Card>
 </CardGroup>

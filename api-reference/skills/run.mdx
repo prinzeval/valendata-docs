@@ -1,35 +1,45 @@
 ---
 title: "Run a Skill"
 api: "POST https://api.valendata.com/v1/skills/run"
-description: "Execute a skill synchronously or asynchronously."
+description: "Execute a published or custom skill via REST API."
 ---
 
-# Run Skill
 
-Trigger an immediate browser automation execution with dynamic inputs.
+Trigger an immediate browser automation execution with dynamic parameter inputs.
+
+### Endpoints
+
+- **Run by Slug**: `POST https://api.valendata.com/v1/skills/{slug}/run`
+- **Run Ad-hoc Task**: `POST https://api.valendata.com/v1/skills/run`
 
 ### Headers
 
 <ParamField header="Authorization" type="string" required>
-  Bearer token: `Bearer val_live_...`
+  Bearer token: `Bearer YOUR_API_KEY`
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  `application/json`
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="max_results" type="number" default="10">
+  Maximum number of extracted records or items to return.
 </ParamField>
 
 ### Body
 
-<ParamField body="skill_id" type="string">
-  Optional ID of an existing saved skill. If omitted, `task` must be provided.
-</ParamField>
-
 <ParamField body="task" type="string">
-  Natural language instruction (required if `skill_id` is omitted).
+  Natural language instruction (required when running ad-hoc tasks without a saved skill slug).
 </ParamField>
 
 <ParamField body="inputs" type="object">
-  Key-value dictionary supplying parameters for `{{variable}}` interpolations.
+  Key-value dictionary supplying parameters for `{{variable}}` interpolations defined in the skill prompt.
 </ParamField>
 
 <ParamField body="browser_mode" type="string" default="remote">
-  Execution environment: `remote` (cloud container) or `local`.
+  Execution environment: `remote` (isolated cloud browser) or `local`.
 </ParamField>
 
 <ParamField body="output_format" type="string" default="json">
@@ -41,18 +51,17 @@ Trigger an immediate browser automation execution with dynamic inputs.
 {
   "session_id": "ses_4f89b102",
   "status": "completed",
-  "data": {
-    "products": [
-      {
-        "title": "Ergonomic Chair",
-        "price": "$299.00",
-        "in_stock": true
-      }
-    ]
-  },
+  "data": [
+    {
+      "title": "Senior AI Engineer",
+      "company": "Valendata",
+      "location": "Remote / San Francisco",
+      "url": "https://news.ycombinator.com/item?id=123456"
+    }
+  ],
   "metrics": {
-    "duration_seconds": 6.8,
-    "credits_used": 1.2
+    "duration_seconds": 4.8,
+    "credits_used": 1.0
   }
 }
 ```

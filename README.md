@@ -1,30 +1,21 @@
 # Valendata Documentation
 
-Official documentation for Valendata — built with [Mintlify](https://mintlify.com).
+Official documentation for [Valendata](https://valendata.com) — autonomous AI browser automation platform.
 
-## 🚀 Running Locally
+## Development
 
-To preview documentation changes locally:
+Run local preview using Mintlify CLI:
 
-1. Install Mintlify CLI:
-   ```bash
-   npm i -g mintlify
-   ```
+```bash
+npx mintlify dev
+```
 
-2. Run the development server:
-   ```bash
-   mintlify dev
-   ```
+Visit `http://localhost:3000` to preview docs in real time.
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## Structure
 
-## 📁 Structure
-
-- `mint.json`: Main Mintlify configuration (theme, navigation, branding).
-- `introduction.mdx`: Landing docs guide.
-- `quickstart.mdx`: Getting started in 2 minutes.
-- `core-concepts/`: Skills, Workflows, Schedules, Remote Browsers, Inbox, Credits.
-- `api-reference/`: REST API documentation and endpoints.
-- `integrations/`: MCP Server, Webhooks, n8n.
-- `sdks/`: Python and TypeScript SDKs.
-- `logo/`: Light and dark branding assets.
+- `introduction.mdx`: Platform overview and architecture.
+- `quickstart.mdx`: 2-minute quickstart guide.
+- `core-concepts/`: In-depth guides for Skills, Workflows, Schedules, Remote Browsers, Inbox, and Credits.
+- `api-reference/`: Full REST API specifications and endpoints.
+- `integrations/`: MCP, Webhooks, and n8n integrations.

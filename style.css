@@ -1,0 +1,107 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --font-sans: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+}
+
+/* Typography across all document elements */
+body,
+html,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+a,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans) !important;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono) !important;
+}
+
+/* Crisp Headings */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.025em !important;
+}
+
+/* High Contrast Light Mode */
+html:not(.dark) h1,
+html:not(.dark) h2,
+html:not(.dark) h3,
+html:not(.dark) h4,
+html:not(.dark) h5,
+html:not(.dark) h6 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) strong,
+html:not(.dark) b {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) p,
+html:not(.dark) li {
+  color: #334155 !important;
+}
+
+/* High Contrast Dark Mode */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f8fafc !important;
+}
+
+html.dark strong,
+html.dark b {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+html.dark p,
+html.dark li {
+  color: #cbd5e1 !important;
+}
+
+/* Fix sidebar top fade in Mintlify */
+div[class*="pointer-events-none"][class*="bg-gradient-to-b"] {
+  display: none !important;
+}
+
+/* Make the theme toggle switch prominent and clear */
+button[aria-label*="mode" i],
+button[aria-label*="theme" i],
+button[aria-label*="color" i],
+div[class*="theme-toggle"],
+div[class*="mode-toggle"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  cursor: pointer !important;
+}
+
+html.dark button[aria-label*="mode" i],
+html.dark button[aria-label*="theme" i],
+html.dark button[aria-label*="color" i] {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}

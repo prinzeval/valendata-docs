@@ -7,13 +7,17 @@
     "href": "https://valendata.com"
   },
   "favicon": "/favicon.ico",
+  "modeToggle": {
+    "default": "light",
+    "isHidden": false
+  },
   "colors": {
-    "primary": "#2BDD66",
+    "primary": "#16a34a",
     "light": "#16a34a",
     "dark": "#2BDD66",
     "background": {
-      "dark": "#0d0e11",
-      "light": "#ffffff"
+      "light": "#FFFFFF",
+      "dark": "#0B0F17"
     }
   },
   "topbarLinks": [
@@ -30,20 +34,6 @@
     "name": "Launch Console",
     "url": "https://app.valendata.com"
   },
-  "tabs": [
-    {
-      "name": "Documentation",
-      "url": "introduction"
-    },
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    },
-    {
-      "name": "Integrations",
-      "url": "integrations"
-    }
-  ],
   "navigation": [
     {
       "group": "Get Started",
@@ -97,13 +87,6 @@
         "integrations/mcp",
         "integrations/webhooks",
         "integrations/n8n"
-      ]
-    },
-    {
-      "group": "SDKs",
-      "pages": [
-        "sdks/python",
-        "sdks/typescript"
       ]
     }
   ],
