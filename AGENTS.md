@@ -1,5 +1,8 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Valendata Documentation Guide
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+This repository contains the official Mintlify documentation for Valendata.
+
+## Development & Validation
+
+- Preview locally: `npx mintlify dev`
+- Validate links: `npx mintlify broken-links`
