@@ -1,0 +1,60 @@
+---
+title: "Introduction"
+description: "AI-powered web automation platform that turns any website into an API."
+---
+
+# Welcome to Valendata
+
+Valendata is an autonomous AI browser automation platform. You describe what you want done in plain English — the agent launches a real cloud browser session, navigates complex dynamic web pages, bypasses anti-bot barriers, extracts structured data, and executes multi-step workflows.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Guide" icon="bolt" href="/quickstart">
+    Create and execute your first automated browser task in under 2 minutes.
+  </Card>
+  <Card title="Core Concepts" icon="cube" href="/core-concepts/skills">
+    Learn how Skills, Workflows, and Remote Browsers work under the hood.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Trigger automations, stream live CDP recordings, and retrieve structured results via REST.
+  </Card>
+  <Card title="Connectors & MCP" icon="plug" href="/integrations/mcp">
+    Connect your Claude Code, Cursor, or LangChain agents directly into Valendata.
+  </Card>
+</CardGroup>
+
+---
+
+## Why Valendata?
+
+Traditional web scrapers and automation tools rely on brittle CSS/XPath selectors that break whenever a website updates its DOM. Valendata eliminates selector maintenance using visual AI and natural language instructions.
+
+<Steps>
+  <Step title="Describe Your Task">
+    Write natural language instructions (e.g. *"Go to Google Flights, search for round-trip flights from JFK to LHR next month, and extract the top 5 cheapest options with baggage policies."*).
+  </Step>
+  <Step title="Autonomous Execution">
+    Valendata provisions an isolated Chromium instance, loads cookies, navigates pages, interacts with inputs, solves challenges, and captures screenshots.
+  </Step>
+  <Step title="Structured Output & APIs">
+    Receive clean, validated JSON or structured datasets, trigger webhooks, or chain results into external CRM and database pipelines.
+  </Step>
+</Steps>
+
+---
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion title="Real Cloud Browsers (CDP-Enabled)" icon="browser">
+    Every session runs inside an ephemeral, sandboxed Chromium instance with complete Chrome DevTools Protocol (CDP) control, headless/headful streaming, and profile persistence.
+  </Accordion>
+  <Accordion title="Stealth & Anti-Bot Protection" icon="shield-check">
+    Built-in fingerprint spoofing, residential proxy routing, and automatic CAPTCHA solving prevent bot detection.
+  </Accordion>
+  <Accordion title="Managed Verification Inbox" icon="envelope">
+    Job applications or sign-ups requiring email verification are automatically linked to disposable inbox addresses that extract OTP codes mid-session.
+  </Accordion>
+  <Accordion title="Transparent Pay-As-You-Go Billing" icon="receipt">
+    Server-metered token usage and browser session duration with auto-recharge triggers ensure high-reliability automation without surprise bills.
+  </Accordion>
+</AccordionGroup>

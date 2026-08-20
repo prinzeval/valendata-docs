@@ -1,0 +1,28 @@
+---
+title: "Python SDK"
+description: "Official Python client for the Valendata Automation API."
+---
+
+# Python SDK
+
+```bash
+pip install valendata
+```
+
+## Usage
+
+```python
+import os
+from valendata import ValendataClient
+
+client = ValendataClient(api_key=os.environ["VALENDATA_API_KEY"])
+
+# Run a task
+run = client.skills.run(
+    task="Go to producthunt.com and get top 5 products today",
+    output_format="json"
+)
+
+for product in run.data["products"]:
+    print(product["name"], product["tagline"])
+```

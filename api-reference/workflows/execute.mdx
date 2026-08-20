@@ -1,0 +1,21 @@
+---
+title: "Execute Workflow"
+api: "POST https://api.valendata.com/v1/workflows/{id}/execute"
+description: "Trigger a multi-step workflow pipeline."
+---
+
+# Execute Workflow
+
+Starts an asynchronous workflow execution.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  Unique workflow identifier (e.g. `wf_829bf10`).
+</ParamField>
+
+### Body
+
+<ParamField body="inputs" type="object">
+  Input parameters passed to the initial steps of the workflow.
+</ParamField>

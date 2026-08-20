@@ -1,0 +1,68 @@
+---
+title: "Skills"
+description: "Define, parameterize, and publish reusable browser automation tasks."
+---
+
+# Skills
+
+A **Skill** is a saved, reusable browser automation task. Rather than typing out instructions every time, you define the objective, parameterize dynamic inputs, and execute it on demand, on a schedule, or via API.
+
+## Defining a Skill
+
+When creating a Skill, you provide a clear title and natural language task prompt.
+
+```markdown
+Go to {{target_url}} and extract all job postings with:
+- Job Title
+- Company Name
+- Location
+- Salary Range (if visible)
+- Application URL
+
+Return the results as a JSON array.
+```
+
+### Parameter Syntax: `{{variable}}`
+
+Parameters allow you to vary inputs across executions without modifying the underlying prompt:
+
+- `{{target_url}}`: Target website or starting link.
+- `{{search_query}}`: Search keyword or query string.
+- `{{max_items}}`: Limiting count for data extraction.
+
+When triggering the skill from the console or API, you simply pass the corresponding JSON object:
+
+```json
+{
+  "inputs": {
+    "target_url": "https://news.ycombinator.com/jobs",
+    "max_items": 10
+  }
+}
+```
+
+<Tip>
+Be specific about the fields and format you need. Clear structural prompts reduce step count, shorten run duration, and minimize token costs.
+</Tip>
+
+---
+
+## Execution Modes
+
+<Tabs>
+  <Tab title="Remote Cloud Browser (Recommended)">
+    Runs in Valendata's isolated cloud infrastructure. Provides highest speed, automated CAPTCHA resolution, stealth proxy routing, and requires zero local machine resources.
+  </Tab>
+  <Tab title="Local Browser (Extension)">
+    Executes directly inside your local Chrome browser via the Valendata Chrome Extension. Useful for accessing local intranet pages or sessions requiring your active hardware authentication.
+  </Tab>
+</Tabs>
+
+---
+
+## Publishing & Marketplace
+
+Skills can be kept **Private** (accessible only within your workspace) or **Published**:
+
+- **Published Skills**: Get a unique slug (`valendata.com/skills/airbnb-scraper`) that allows teammates and external users to run your automation without viewing sensitive internal prompts.
+- **Marketplace**: Monetize or share popular workflows with the Valendata community.

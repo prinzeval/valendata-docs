@@ -1,0 +1,101 @@
+---
+title: "Quickstart"
+description: "Run your first autonomous browser extraction in 2 minutes."
+---
+
+# Quickstart Guide
+
+Get up and running with Valendata in just a few steps.
+
+<Steps>
+  <Step title="Get your API Key">
+    Log in to the [Valendata Console](https://app.valendata.com), navigate to **Settings → API Keys**, and generate a new key.
+    
+    ```bash
+    export VALENDATA_API_KEY="val_live_..."
+    ```
+  </Step>
+
+  <Step title="Create or Run a Skill">
+    You can trigger a skill using our REST API, Python SDK, or TypeScript library.
+
+    <CodeGroup>
+    ```bash cURL
+    curl -X POST https://api.valendata.com/v1/skills/run \
+      -H "Authorization: Bearer $VALENDATA_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "task": "Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
+        "output_format": "json"
+      }'
+    ```
+
+    ```python Python
+    import os
+    from valendata import ValendataClient
+
+    client = ValendataClient(api_key=os.environ["VALENDATA_API_KEY"])
+
+    result = client.skills.run(
+        task="Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
+        output_format="json"
+    )
+
+    print(result.data)
+    ```
+
+    ```typescript TypeScript
+    import { Valendata } from "@valendata/sdk";
+
+    const valendata = new Valendata({
+      apiKey: process.env.VALENDATA_API_KEY!,
+    });
+
+    const run = await valendata.skills.run({
+      task: "Go to quotes.toscrape.com, extract the first 3 quotes with authors, and return as JSON",
+      outputFormat: "json",
+    });
+
+    console.log(run.data);
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Inspect Execution & Output">
+    The response contains the final extracted data, session execution stats, and links to visual recording artifacts:
+
+    ```json
+    {
+      "session_id": "ses_9a8f2bc0",
+      "status": "completed",
+      "duration_seconds": 4.2,
+      "credits_used": 1,
+      "data": [
+        {
+          "quote": "The world as we have created it is a process of our thinking.",
+          "author": "Albert Einstein"
+        },
+        {
+          "quote": "It is our choices, Harry, that show what we truly are...",
+          "author": "J.K. Rowling"
+        },
+        {
+          "quote": "There are only two ways to live your life...",
+          "author": "Albert Einstein"
+        }
+      ]
+    }
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Learn about Skills" icon="wand-magic-sparkles" href="/core-concepts/skills">
+    Define reusable tasks with parameter interpolation.
+  </Card>
+  <Card title="Build Multi-Step Workflows" icon="diagram-project" href="/core-concepts/workflows">
+    Chain scrapers, filters, and notifications together.
+  </Card>
+</CardGroup>

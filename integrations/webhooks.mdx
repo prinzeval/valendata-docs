@@ -1,0 +1,27 @@
+---
+title: "Webhooks"
+description: "Receive instant HTTP POST callbacks when automations complete or fail."
+---
+
+# Webhooks
+
+Configure webhook endpoints in **Console → Settings → Connectors** to receive live execution events.
+
+## Payload Schema
+
+```json
+{
+  "event": "session.completed",
+  "timestamp": "2026-08-20T12:00:00Z",
+  "session_id": "ses_4f89b102",
+  "skill_id": "skl_92ab81c",
+  "status": "success",
+  "data": {
+    "results": [...]
+  },
+  "metrics": {
+    "duration_seconds": 5.4,
+    "credits_deducted": 1.0
+  }
+}
+```

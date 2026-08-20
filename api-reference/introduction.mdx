@@ -1,0 +1,24 @@
+---
+title: "API Overview"
+description: "REST API endpoints for triggering, monitoring, and retrieving browser automations."
+---
+
+# Valendata REST API
+
+All REST API endpoints are served over HTTPS with JSON request and response payloads.
+
+```http
+Base URL: https://api.valendata.com/v1
+```
+
+## Response Codes
+
+| Status Code | Description |
+| :--- | :--- |
+| `200 OK` | The request succeeded and returned requested data. |
+| `201 Created` | A new skill or session was successfully created. |
+| `400 Bad Request` | Invalid parameters or malformed payload. |
+| `401 Unauthorized` | Missing or invalid API key. |
+| `402 Payment Required` | Insufficient credit balance. |
+| `429 Too Many Requests` | Concurrency limit or rate limit exceeded. |
+| `500 Server Error` | Internal automation error. |

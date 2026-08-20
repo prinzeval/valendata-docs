@@ -1,0 +1,27 @@
+---
+title: "Credits & Billing"
+description: "Understanding usage metering, cost breakdown, and auto-recharge."
+---
+
+# Credits & Billing
+
+Valendata uses a transparent, credit-based metering system. You only pay for what your automations consume.
+
+## Cost Breakdown
+
+Every execution cost is calculated from three components:
+
+1. **LLM Tokens**: The model reasoning and vision analysis performed during the task.
+2. **Browser Execution Time**: The duration (in seconds) the Chromium session is active.
+3. **External Proxies / Captcha Solves**: High-tier residential proxy usage or automated challenge solving.
+
+```text
+Total Cost = (LLM Input + Output Tokens) + (Browser Seconds × Rate) + Add-ons
+```
+
+## Auto-Recharge
+
+To avoid task interruptions on high-volume schedules:
+
+- **Threshold**: Set a balance trigger (e.g. 500 credits).
+- **Top-up Amount**: Automatically charges your default card for your preferred bundle (e.g. 2,500 credits) whenever the balance drops below the threshold.

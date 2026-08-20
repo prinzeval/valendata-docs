@@ -1,0 +1,32 @@
+---
+title: "Model Context Protocol (MCP)"
+description: "Connect Valendata to Claude Code, Cursor, and AI agent frameworks via MCP."
+---
+
+# Model Context Protocol (MCP)
+
+Valendata implements an official MCP server, allowing any AI assistant (Claude Code, Cursor, Windsurf, LangChain) to browse the web, solve captchas, and scrape live web pages natively.
+
+## Claude Desktop / Cursor Setup
+
+Add the following configuration to your `claude_desktop_config.json` or Cursor MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "valendata": {
+      "command": "npx",
+      "args": ["-y", "@valendata/mcp-server"],
+      "env": {
+        "VALENDATA_API_KEY": "val_live_your_api_key"
+      }
+    }
+  }
+}
+```
+
+## Available MCP Tools
+
+- `valendata_run_task`: Spawns a cloud browser to execute an arbitrary natural language task.
+- `valendata_run_skill`: Runs a predefined saved skill with arguments.
+- `valendata_get_inbox_otp`: Fetches the latest 2FA/OTP code delivered to the active virtual inbox.

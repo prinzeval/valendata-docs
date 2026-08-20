@@ -1,0 +1,23 @@
+---
+title: "Create Skill"
+api: "POST https://api.valendata.com/v1/skills"
+description: "Programmatically define and save a new skill."
+---
+
+# Create Skill
+
+Saves a new skill configuration into your workspace.
+
+### Body
+
+<ParamField body="name" type="string" required>
+  Human-readable title of the skill.
+</ParamField>
+
+<ParamField body="task" type="string" required>
+  Natural language instruction template with parameter placeholders.
+</ParamField>
+
+<ParamField body="is_published" type="boolean" default="false">
+  Whether this skill is publicly discoverable via URL slug.
+</ParamField>

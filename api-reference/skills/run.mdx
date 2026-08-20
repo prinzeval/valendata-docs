@@ -1,0 +1,59 @@
+---
+title: "Run a Skill"
+api: "POST https://api.valendata.com/v1/skills/run"
+description: "Execute a skill synchronously or asynchronously."
+---
+
+# Run Skill
+
+Trigger an immediate browser automation execution with dynamic inputs.
+
+### Headers
+
+<ParamField header="Authorization" type="string" required>
+  Bearer token: `Bearer val_live_...`
+</ParamField>
+
+### Body
+
+<ParamField body="skill_id" type="string">
+  Optional ID of an existing saved skill. If omitted, `task` must be provided.
+</ParamField>
+
+<ParamField body="task" type="string">
+  Natural language instruction (required if `skill_id` is omitted).
+</ParamField>
+
+<ParamField body="inputs" type="object">
+  Key-value dictionary supplying parameters for `{{variable}}` interpolations.
+</ParamField>
+
+<ParamField body="browser_mode" type="string" default="remote">
+  Execution environment: `remote` (cloud container) or `local`.
+</ParamField>
+
+<ParamField body="output_format" type="string" default="json">
+  Format of returned extraction: `json`, `markdown`, or `raw`.
+</ParamField>
+
+<ResponseExample>
+```json 200 Response
+{
+  "session_id": "ses_4f89b102",
+  "status": "completed",
+  "data": {
+    "products": [
+      {
+        "title": "Ergonomic Chair",
+        "price": "$299.00",
+        "in_stock": true
+      }
+    ]
+  },
+  "metrics": {
+    "duration_seconds": 6.8,
+    "credits_used": 1.2
+  }
+}
+```
+</ResponseExample>
