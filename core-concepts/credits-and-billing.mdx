@@ -1,26 +1,45 @@
 ---
 title: "Credits & Billing"
-description: "Understanding usage metering, cost breakdown, and auto-recharge."
+description: "Understanding plans, credit metering, and platform capabilities."
 ---
 
 
-Valendata uses a transparent, credit-based metering system. You only pay for what your automations consume.
+Valendata operates on a simple, transparent credit system. All plans include full access to our entire browser automation feature suite.
 
-## Cost Breakdown
+## Subscription Plans
 
-Every execution cost is calculated from three components:
+| Plan | Monthly Price | Monthly Credits | Effective Cost / Credit | Features Included |
+| :--- | :--- | :--- | :--- | :--- |
+| **Starter** | **$10 / mo** | 1,000 | $0.0100 | All platform features included |
+| **Growth** *(Most Popular)* | **$45 / mo** | 5,000 | $0.0090 *(Save 10%)* | Everything in Starter + higher concurrency & priority queueing |
+| **Pro** | **$80 / mo** | 10,000 | $0.0080 *(Save 20%)* | Everything in Growth + maximum speed & dedicated support |
+| **Enterprise** | Custom | 50,000+ | Negotiated | Custom proxy pools, SLAs, and tailored workflows |
 
-1. **LLM Tokens**: The model reasoning and vision analysis performed during the task.
-2. **Browser Execution Time**: The duration (in seconds) the Chromium session is active.
-3. **External Proxies / Captcha Solves**: High-tier residential proxy usage or automated challenge solving.
+---
 
-```text
-Total Cost = (LLM Input + Output Tokens) + (Browser Seconds × Rate) + Add-ons
-```
+## What's Included in Every Plan
+
+Every Valendata plan gives you unconstrained access to:
+
+- 🌐 **Remote Cloud Browsers**: Isolated high-performance Chromium instances with live viewport streaming & Human-in-the-loop (HITL) handoff.
+- 🛡️ **Stealth Proxies**: Automatic residential & datacenter IP rotation to prevent bot bans and IP rate limits.
+- 🧩 **Automated CAPTCHA Solver**: Automatic resolution of Cloudflare Turnstile, reCAPTCHA, hCaptcha, and challenge interstitials.
+- 📬 **Artifacts Inbox**: Direct extraction downloads (JSON, CSV, Markdown, Screenshots, and MP4 screen recordings).
+- 🪄 **Skills & Parameterized Prompts**: Save natural language automations with reusable `{{variable}}` fields.
+- ⚡ **Multi-Step Workflows**: Visually build and execute complex chained automation pipelines.
+- ⏰ **Scheduled Automations**: Run tasks on cron schedules or custom periodic intervals.
+- 🔌 **Connectors & Integrations**: Sync outputs directly into Google Drive, Google Sheets, Slack, Webhooks, or MCP.
+- 🔑 **Bring Your Own Keys (BYOK)**: Use Valendata's default AI models or plug in your personal OpenAI, Anthropic, or Gemini API keys.
+
+---
+
+## Flexible Top-ups
+
+Need more credits mid-billing cycle? Paid subscribers can top up any custom amount of credits on demand ($1 = 100 credits) directly from the **Buy Credits** console.
 
 ## Auto-Recharge
 
 To avoid task interruptions on high-volume schedules:
 
 - **Threshold**: Set a balance trigger (e.g. 500 credits).
-- **Top-up Amount**: Automatically charges your default card for your preferred bundle (e.g. 2,500 credits) whenever the balance drops below the threshold.
+- **Top-up Amount**: Automatically charges your default payment method for your preferred bundle (e.g. 2,000 credits) whenever the balance drops below the threshold.
