@@ -1,0 +1,65 @@
+---
+title: "Integrations: Connect Valendata to Your Existing Stack"
+sidebarTitle: "Overview"
+description: "Connect Valendata to the tools your team already uses — push run results to any destination or trigger Skills from any platform via API."
+---
+
+Valendata is designed to fit inside the workflows your team already has, not replace them. Whether you want to push structured data into a database, fire a Slack alert when a run fails, or trigger a research Skill the moment a new lead lands in your CRM, there is a direct path to make it happen. Every integration falls into one of two patterns: you either push data **out** of Valendata to a destination, or you trigger Skills **from** an external tool via the API.
+
+## Two integration patterns
+
+Valendata supports two fundamental ways to connect with external systems:
+
+<CardGroup cols={2}>
+  <Card title="Push: send data out" icon="arrow-right-from-bracket">
+    Use Workflow sinks, webhook steps, or outbound HTTP actions to deliver run output to any destination the moment a run completes. Your downstream tools receive fresh, structured JSON — no polling required.
+  </Card>
+
+  <Card title="Trigger: call Skills in" icon="arrow-right-to-bracket">
+    Every published Skill is a versioned REST endpoint. Any tool that can make an HTTP request — Zapier, Make, your own backend, a cron job — can trigger a Skill and consume its output.
+  </Card>
+</CardGroup>
+
+## Popular integrations
+
+<CardGroup cols={2}>
+  <Card title="Zapier" icon="bolt" href="/integrations/zapier">
+    Trigger Skills from any of Zapier's 5,000\+ connected apps, or use Skill output to kick off downstream Zaps. No code required.
+  </Card>
+
+  <Card title="Webhooks" icon="webhook" href="/integrations/webhooks">
+    POST run result payloads to any HTTP endpoint the instant a run completes. Retry logic and HMAC-SHA256 signature validation are built in.
+  </Card>
+
+  <Card title="Postgres" icon="database">
+    Sink Workflow output directly into a Postgres table. Define the table schema once and Valendata maps each run's JSON output to the right columns automatically.
+  </Card>
+
+  <Card title="Slack" icon="slack">
+    Receive a Slack message whenever a run completes or fails. Wire up channel alerts in the Workflow editor so your team knows the moment fresh data is ready — or something went wrong.
+  </Card>
+
+  <Card title="HubSpot & Salesforce" icon="building">
+    Enrich CRM contact and company records with live data from the web. Run a research Skill on a new deal and push the results back into HubSpot or Salesforce fields automatically.
+  </Card>
+
+  <Card title="Google Sheets" icon="table">
+    Pipe scraped or extracted data into a spreadsheet. Each Skill run can append rows to an existing sheet, keeping your team's live dashboards and reports always up to date.
+  </Card>
+
+  <Card title="Notion" icon="n">
+    Populate Notion databases from web sources. Schedule a Skill to run nightly and watch your Notion workspace fill with fresh, structured records — no copy-paste required.
+  </Card>
+
+  <Card title="Airtable" icon="table-cells">
+    Sync live web data into your Airtable base. Map Skill output fields to Airtable columns and let Valendata keep your base current on any schedule you choose.
+  </Card>
+</CardGroup>
+
+## Using the REST API as a universal connector
+
+Every integration ultimately relies on Valendata's REST API. If your tool of choice is not listed above, you can connect it directly — any system capable of making an HTTP POST request can trigger a Skill and receive structured JSON output.
+
+<Note>
+  For tools not listed here, use the [REST API](/api-reference/skills/run) directly. Pass your API key in the `Authorization: Bearer` header, POST your parameters to `https://api.valendata.com/v1/skills/run`, and handle the JSON response however your system needs. If a tool supports custom HTTP requests — including low-code platforms, internal dashboards, or backend services — it already works with Valendata.
+</Note>

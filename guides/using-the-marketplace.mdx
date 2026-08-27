@@ -1,0 +1,75 @@
+---
+title: "Clone Ready-Made Skills from the Valendata Marketplace"
+sidebarTitle: "Marketplace"
+---
+
+Browse the public Skill library, clone a ready-made automation into your Workspace, and start shipping in minutes instead of hours.
+
+The Valendata Marketplace is a public library of Skills built on the platform. Instead of building a Skill from scratch, you can browse the Marketplace, find one that matches your use case, and clone it into your Workspace in a single click. The cloned Skill is yours to run and customize, changes you make do not affect the original, and updates to the original are not pushed to your copy automatically.
+
+## Browsing the Marketplace
+
+Open the Marketplace from the main sidebar. The Marketplace has two tabs:
+
+- **Skills** — individual automation endpoints you can run or clone
+- **Workflows** — multi-step pipelines shared by the community
+
+The Skills tab lists public Skills in a searchable grid, sorted by Trending, Most Runs, or Recent. Each card shows the Skill name, description, and creator. Click a card to open the full Skill detail page, which shows Total Runs, total Clones, Rating, and credits per run before you commit.
+
+<Tip>
+  Use the search bar to filter by keyword — try the site name, data type, or use case you have in mind.
+</Tip>
+
+## Cloning a Skill
+
+<Steps>
+  <Step title="Find a Skill in the Marketplace">
+    Browse or search the Marketplace until you find a Skill that matches what you need. Click the card to open the Skill detail page and review its parameter list, sample output, and rating before proceeding.
+  </Step>
+  <Step title="Click Clone skill">
+    On the Skill detail page, click the Clone skill button in the top-right corner. A confirmation dialog will appear — click Clone Skill to confirm. The Skill is cloned into your currently active Workspace.
+  </Step>
+  <Step title="Open your cloned Skill">
+    After cloning, you are taken directly to the Skill in My Skills. Because the Skill was cloned from the Marketplace, a Rate on Marketplace button appears in the header — use it after running the Skill to leave a review.
+  </Step>
+  <Step title="Customize and run">
+    The cloned Skill is a full independent copy. You can edit its name, parameters, and instructions via Edit skill. Run it from the Workspace tab to verify it works for your use case, then wire it into a schedule or call it via API.
+  </Step>
+</Steps>
+
+<Note>
+  Cloned Skills run against your own credit balance — not the original author's. Each run deducts credits from your account based on LLM token usage and browser session time.
+</Note>
+
+## Rating a cloned Skill
+
+After running a cloned Skill, click **Rate on Marketplace** from the Skill detail page to submit a star rating and written review. Only users who have cloned a Skill can rate it — this keeps reviews grounded in real usage. Your rating feeds into the Skill's aggregate score on its Marketplace listing.
+
+## Publishing your own Skills to the Marketplace
+
+Any Skill you have built can be shared with the Valendata community by making it public. There are two ways to do this:
+
+- **At publish time** — in the **Publish Skill** modal, set visibility to **Public** before clicking Publish. The Skill will appear in the Marketplace immediately.
+- **After publishing** — open the Skill, click **Edit skill**, and toggle visibility from Private to Public. The Skill moves to the Marketplace as soon as you save.
+
+Public Skills are discoverable by all Valendata users. Other users can run them directly or clone them into their own Workspace.
+
+## After cloning
+
+<CardGroup cols={2}>
+  <Card title="Schedule the Skill" icon="clock" href="/guides/scheduling-skills">
+    Set a cron to run the Skill automatically and wake up to fresh data every morning.
+  </Card>
+
+  <Card title="Call it via API" icon="code" href="/api-reference/skills/run">
+    Use your vd\_live\_... API key to call the Skill from any codebase, no-code tool, or workflow builder.
+  </Card>
+
+  <Card title="Chain it in a Workflow" icon="diagram-project" href="/concepts/workflows">
+    Compose the cloned Skill with transforms and HTTP steps to build end-to-end data pipelines.
+  </Card>
+
+  <Card title="Export the results" icon="download" href="/guides/exporting-data">
+    Download run output as JSON or CSV directly from the Runs tab.
+  </Card>
+</CardGroup>

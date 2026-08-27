@@ -1,0 +1,412 @@
+# Source: https://valendata.com/
+
+Everything you need
+
+## Built to handle real websites, 
+not demos
+
+Valendata handles the messy parts of real-world automation: CAPTCHAs, 2FA, extraction, replay, and full observability.
+
+I'm not a robot
+
+solved 
+natively
+
+Verification
+
+### CAPTCHA solved natively
+
+No third-party solving services and no extra fees — Valendata clears CAPTCHAs inline so your runs never stall.
+
+4
+
+8
+
+2
+
+·
+
+·
+
+·
+
+Authentication
+
+### 2FA & TOTP, end-to-end
+
+Log in with TOTP, email codes, or SMS. Valendata drives the full auth flow inside your existing stack.
+
+🇺🇸 us-east🇩🇪 eu-central🇯🇵 jp🇬🇧 uk🇸🇬 sg+42
+
+Infrastructure
+
+### Real Chromium, 47 regions
+
+Pin sessions to a country, rotate proxies, and run real browsers — never screenshot services.
+
+Observability
+
+### Every step replayable
+
+Scrub through any run. Watch the agent type, click, and scroll — then replay any frame.
+
+{ 
+  "price": 129.00, 
+  "in\_stock": true, 
+  "sku": "A-1182" 
+}
+
+Output
+
+### Strict JSON, every time
+
+Define your schema once — Valendata enforces it on every run, even when the page changes.
+
+REC
+
+Click through once
+
+→
+
+Auto-parametrize
+
+API
+
+Deploy as skill
+
+No-code recorder
+
+### Record once, replay forever
+
+Walk a workflow once and Valendata turns the recording into a deployable skill — parameters, schema, and endpoint included.
+
+How it works
+
+## From idea to a 
+production API in three steps
+
+1RECORD
+
+### Describe a goal or record a session
+
+Tell Valendata "extract every product on the bestsellers page", or walk through it yourself. The AI Brain plans the steps.
+
+```
+# prompt
+extract all products
+from /bestsellers
+→ name, price, url
+```
+
+2DEPLOY
+
+### One click to a live endpoint
+
+Publish your config as a Skill and get a versioned API endpoint with a key. Call it from anywhere — no infra, no scaling.
+
+```
+# curl
+curl -X POST \
+  api.valendata.com/v1/run \
+  -H "key: vd_live_..."
+```
+
+3SCALE
+
+### Chain & schedule
+
+Wire your skill into a Workflow with code, HTTP, and transforms. Schedule it on a cron. Wake up to fresh data.
+
+```
+# schedule
+cron: "0 6 * * *"
+sink: warehouse
+alerts: on
+```
+
+### Or clone a skill from the _Marketplace_
+
+Public skills built on Valendata. Clone, customize, and ship in minutes.
+
+[Browse all](https://app.valendata.com/skills)
+
+[![](https://unavatar.io/google.com?fallback=false)\\ \\ Google Maps SF Software Companies Scraper\\ \\ google-maps-sf-software-companies-scraper\\ \\ Scrapes software companies in San Francisco from Google Maps, including name, website, address, rating, and reviews.\\ \\ 0 clones](https://app.valendata.com/skills/skl_b281b8165a23)
+
+Integrations
+
+## Integrates with 
+your favorite tools
+
+Enhance productivity, streamline processes, and keep everything connected without disrupting your workflow.
+
+Explore integrations →
+
+![Notion](https://cdn.simpleicons.org/notion)
+
+![Slack](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/slack-icon.svg)
+
+![HubSpot](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/hubspot.svg)
+
+![Postgres](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/postgresql.svg)
+
+![Github](https://cdn.simpleicons.org/github)
+
+![Notion](https://cdn.simpleicons.org/notion)
+
+![Slack](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/slack-icon.svg)
+
+![HubSpot](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/hubspot.svg)
+
+![Postgres](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/postgresql.svg)
+
+![Github](https://cdn.simpleicons.org/github)
+
+![Salesforce](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/salesforce.svg)
+
+![Zapier](https://cdn.simpleicons.org/zapier)
+
+![Sheets](https://cdn.simpleicons.org/googlesheets)
+
+![Gmail](https://cdn.simpleicons.org/gmail)
+
+![Figma](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/figma.svg)
+
+![Salesforce](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/salesforce.svg)
+
+![Zapier](https://cdn.simpleicons.org/zapier)
+
+![Sheets](https://cdn.simpleicons.org/googlesheets)
+
+![Gmail](https://cdn.simpleicons.org/gmail)
+
+![Figma](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/figma.svg)
+
+![Shopify](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/shopify.svg)
+
+![Airtable](https://cdn.simpleicons.org/airtable)
+
+![Webflow](https://cdn.simpleicons.org/webflow)
+
+![Discord](https://cdn.simpleicons.org/discord)
+
+![Stripe](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/stripe.svg)
+
+![Shopify](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/shopify.svg)
+
+![Airtable](https://cdn.simpleicons.org/airtable)
+
+![Webflow](https://cdn.simpleicons.org/webflow)
+
+![Discord](https://cdn.simpleicons.org/discord)
+
+![Stripe](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/stripe.svg)
+
+![Trello](https://cdn.simpleicons.org/trello)
+
+![Zoom](https://cdn.simpleicons.org/zoom)
+
+![Mailchimp](https://cdn.simpleicons.org/mailchimp)
+
+![Notion](https://cdn.simpleicons.org/notion)
+
+![Slack](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/slack-icon.svg)
+
+![Trello](https://cdn.simpleicons.org/trello)
+
+![Zoom](https://cdn.simpleicons.org/zoom)
+
+![Mailchimp](https://cdn.simpleicons.org/mailchimp)
+
+![Notion](https://cdn.simpleicons.org/notion)
+
+![Slack](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/slack-icon.svg)
+
+![Dropbox](https://cdn.simpleicons.org/dropbox)
+
+![Jira](https://cdn.simpleicons.org/jira)
+
+![Github](https://cdn.simpleicons.org/github)
+
+![Gmail](https://cdn.simpleicons.org/gmail)
+
+![Shopify](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/shopify.svg)
+
+![Dropbox](https://cdn.simpleicons.org/dropbox)
+
+![Jira](https://cdn.simpleicons.org/jira)
+
+![Github](https://cdn.simpleicons.org/github)
+
+![Gmail](https://cdn.simpleicons.org/gmail)
+
+![Shopify](https://raw.githubusercontent.com/gilbarbara/logos/master/logos/shopify.svg)
+
+Valendata vs. the old way
+
+## Stop maintaining 
+brittle scrapers
+
+Hand-rolled scripts break the moment a site changes a class name. Valendata's AI sees pages like a human — even when the DOM doesn't.
+
+○ THE OLD WAY
+
+### Selenium, Playwright, BeautifulSoup — or your own scrapers
+
+- ✕Selectors break on every site change. Constant babysitting.
+- ✕CAPTCHAs and 2FA stop you cold — or cost per solve.
+- ✕You own the proxies, the browsers, and the scaling.
+- ✕No memory, no replay — debugging is guesswork.
+
+● VALENDATA
+
+### An AI agent driving a real browser — with full memory of every run
+
+- ✓Agents adapt when sites change layouts. Self-healing.
+- ✓CAPTCHAs, 2FA, and logins handled natively, no add-ons.
+- ✓Managed Chromium in 47 regions. Zero infra to run.
+- ✓Every step recorded and replayable. Full observability.
+
+Use cases
+
+## One platform. 
+Endless data problems
+
+From e-commerce to government portals, Valendata adapts to any extraction need — one platform for your entire stack.
+
+### E-commerce & Pricing
+
+Monitor competitor pricing, track listings, and capture review sentiment across Amazon, eBay, and Shopify.
+
+amazonebayshopify
+
+### Sales & Lead Enrichment
+
+Build custom lead lists with LinkedIn lookups, contact data, and outbound triggers — no per-lead fees.
+
+linkedincrunchbaseapollo
+
+### Operations & Monitoring
+
+Track status changes, watch portal updates, and ping when a government form goes live.
+
+gov-portalsstatusalerts
+
+### Finance & Risk
+
+Pull data from broker portals, KYC providers, and compliance databases. Structure financial data from any source.
+
+brokerskycaudit
+
+### Product Intelligence
+
+Analyze behavior, feature adoption, reviews, and changelogs across competitor pages — at any cadence.
+
+app-storeg2changelog
+
+### Back-office Automation
+
+Log into the 12 portals your ops team uses, pull invoices, fill forms, and generate reports. RPA that finally works.
+
+invoicesformsreports
+
+WHY WE BUILT VALENDATA
+
+## The story behind 
+Valendata
+
+Built by a founder tired of broken scrapers, fragile DOM selectors, and endless maintenance.
+
+VO
+
+Valentine Onuoha
+
+Founder & Architect of Valendata
+
+Founder's Note
+
+“I spent years building web scrapers and automation pipelines. Every single time, the same cycle happened: a website changed a CSS class, updated their layout, or added a bot check, and my code broke at 3 AM. Maintaining Playwright scripts felt like a never-ending game of whack-a-mole.”
+
+“I asked myself: _Why can't we treat any web page like a resilient, deterministic API endpoint?_ Human beings navigate sites effortlessly even when layouts change, because we understand intent. So I built Valendata to bring that human-level reasoning to web automation.”
+
+“Valendata is not just for engineers. It is built for non-technical users, GTM teams, growth marketers, and lead generators — anyone who needs web data without writing a single line of code. Whether you're searching for leads, pulling data from different sites, setting up audiences for LinkedIn or Reddit ads, or turning competitor sites into live feeds, as long as your work touches the web, Valendata solves it for you.”
+
+Built for GTM teams, growth marketers, developers & non-technical builders worldwide.
+
+Crafted with precision in 2026
+
+COMMUNITY FEEDBACK
+
+## What builders are saying
+
+![Precious Orjiude](https://unavatar.io/x/SOrjiude)PO
+
+Precious Orjiude
+
+@SOrjiude · Market Researcher & Builder
+
+“Research was done using @Valendata\_ — compared vendor platforms, extracted storefront data, and analyzed pricing structures automatically.”
+
+Verified TweetAug 13
+
+![silq](https://unavatar.io/x/silq_null)SQ
+
+silq
+
+@silq\_null · Tech & AI Builder
+
+“Just found a manus replacement → app.valendata.com @Valendata\_”
+
+Verified TweetAug 12
+
+![DesignCircuit](https://unavatar.io/x/DesignCircuit01)DC
+
+DesignCircuit
+
+@DesignCircuit01 · Ecommerce Funnels
+
+“I was actually curious about the story behind Valendata. With such a technical product, I think the 'why did you build this?' story can make it much more relatable and build trust.”
+
+Verified TweetAug 14
+
+![Jeroen van Welsenes](https://unavatar.io/x/Guronnimo)JW
+
+Jeroen van Welsenes
+
+@Guronnimo · Founder & Tech Lead
+
+“Great animations! One thing I would add is social proof and a story about you and why you as a founder are the best fit for this idea.”
+
+Verified TweetAug 13
+
+FROM THE JOURNAL
+
+## Insights & Updates
+
+[View all posts](https://www.valendata.com/blog)
+
+[![How Valendata Turns Any Website Into a Structured API](https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80)\\ \\ automationtutorial\\ \\ **How Valendata Turns Any Website Into a Structured API**\\ \\ A deep dive into how our browser automation engine extracts, transforms, and delivers web data, with zero maintenance.\\ \\ Valendata Team5 min · Aug 9, 2026](https://www.valendata.com/blog/how-valendata-turns-any-website-into-a-structured-api)
+
+## Stop scraping. 
+Start shipping
+
+Get your first skill live in under 10 minutes. 100 free credits to start — no card required.
+
+[Start free trial→](https://www.valendata.com/signup) [Book a demo](https://calendly.com/valendata-info/new-meeting)
+
+**Tweaks**✕
+
+Accent
+
+GreenVioletSky
+
+Ambient washes
+
+OnOff
+
+Corners
+
+RoundedSharp
+
+Theme
+
+LightDark

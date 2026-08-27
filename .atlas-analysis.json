@@ -1,0 +1,129 @@
+{
+  "projectType": "saas",
+  "projectName": "Valendata",
+  "projectDescription": "Valendata is an AI-powered browser automation platform that lets users build, run, and schedule web scraping and automation tasks as reusable API endpoints — no code, no brittle selectors, no infrastructure.",
+  "theme": "luma",
+  "primaryColor": "#ffffff",
+  "lightColor": "#848489",
+  "darkColor": "#13131b",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "credits-and-billing"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/skills",
+              "concepts/workflows",
+              "concepts/chrome-profiles",
+              "concepts/workspaces"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/recording-a-skill",
+              "guides/scheduling-skills",
+              "guides/using-the-marketplace",
+              "guides/exporting-data"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/overview",
+              "integrations/webhooks",
+              "integrations/zapier"
+            ]
+          },
+          {
+            "group": "Account & Security",
+            "pages": [
+              "account/two-factor-authentication",
+              "account/api-keys",
+              "account/data-export"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Skills",
+            "pages": [
+              "api-reference/skills/run",
+              "api-reference/skills/list",
+              "api-reference/skills/get"
+            ]
+          },
+          {
+            "group": "Workflows",
+            "pages": [
+              "api-reference/workflows/run",
+              "api-reference/workflows/list"
+            ]
+          },
+          {
+            "group": "Runs",
+            "pages": [
+              "api-reference/runs/get",
+              "api-reference/runs/list"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Release Notes",
+            "pages": [
+              "changelog/release-notes"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AI-driven browser automation with real Chromium — no selectors, no brittle scripts",
+    "Skills: named, reusable automation tasks deployable as versioned API endpoints",
+    "Workflows: chain skills with HTTP steps, transforms, and cron scheduling",
+    "No-code recorder: walk through a workflow once and auto-generate a deployable skill",
+    "Chrome Profiles: persist browser sessions so scheduled runs stay logged in",
+    "Native CAPTCHA solving and 2FA/TOTP handling — no third-party services",
+    "47 global regions with proxy rotation and real Chromium sessions",
+    "Full run observability: every step recorded, replayable frame-by-frame",
+    "Strict JSON schema enforcement on every run output",
+    "Marketplace of public, cloneable skills",
+    "Workspaces for team collaboration and role management",
+    "Credit-based pay-as-you-go billing (credits never expire)"
+  ],
+  "publicApiSurface": [
+    "POST api.valendata.com/v1/run — execute a skill by ID",
+    "GET api.valendata.com/v1/skills — list skills in a workspace",
+    "GET api.valendata.com/v1/skills/:id — get skill details",
+    "POST api.valendata.com/v1/workflows/run — trigger a workflow",
+    "GET api.valendata.com/v1/workflows — list workflows",
+    "GET api.valendata.com/v1/runs/:id — fetch run result and replay data",
+    "GET api.valendata.com/v1/runs — list run history",
+    "Authorization header: key: vd_live_..."
+  ]
+}

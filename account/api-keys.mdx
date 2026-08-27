@@ -1,0 +1,107 @@
+---
+title: "API Keys: Authenticate Valendata REST API Requests"
+sidebarTitle: "API Keys"
+description: "Create, use, and revoke Valendata API keys to authenticate REST API calls. Learn key scoping, secure storage, and rotation best practices."
+---
+
+API keys are the credentials your code uses to authenticate requests to the Valendata REST API. Every call to `https://api.valendata.com/v1` — whether you're running a Skill or invoking a Workflow — must include a valid API key. One key authenticates both Skill execution and Workflow invocation.
+
+## Key format
+
+All Valendata live keys follow the prefix pattern `vd_sk_` followed by a random string:
+
+```text
+vd_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Never expose keys in client-side code, public repositories, or browser environments.
+
+## Create an API key
+
+<Steps>
+  <Step title="Open API Keys settings">
+    Go to [app.valendata.com](https://app.valendata.com) and navigate to **Settings → API Keys**.
+  </Step>
+  <Step title="Create a new key">
+    Click **New API Key**. A dialog appears asking for a name.
+  </Step>
+  <Step title="Name your key">
+    Enter a descriptive name that identifies where this key will be used — for example, `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name makes it easy to audit and revoke the right key later.
+  </Step>
+  <Step title="Copy the key immediately">
+    After creation, Valendata shows the full key value **once**. Copy it now.
+
+    <Warning>
+      This is the only time the secret value is displayed. Valendata does not store it in recoverable form. If you lose it, you must revoke the key and create a new one.
+    </Warning>
+  </Step>
+  <Step title="Store the key securely">
+    Paste the key into your environment variables, secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault, Doppler), or CI/CD secret store. Never hardcode it in source files.
+  </Step>
+</Steps>
+
+## Use your API key
+
+Pass your API key in the `Authorization: Bearer` header on every API call:
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/run \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "skill_id": "YOUR_SKILL_ID" }'
+```
+
+For local development, store the key in a `.env` file and load it with your framework's environment tooling:
+
+```bash .env
+VALENDATA_API_KEY=vd_sk_YOUR_API_KEY
+```
+
+<Tip>
+  Add `.env` to your `.gitignore` immediately. A committed API key should be treated as compromised — revoke it and issue a new one right away.
+</Tip>
+
+## Revoke an API key
+
+To permanently invalidate a key:
+
+1. Go to **Settings → API Keys**.
+2. Find the key by its name and the prefix shown in the **Key** column.
+3. Click the **trash icon** on that row.
+4. Confirm when prompted.
+
+Revocation is immediate. All subsequent requests using the revoked key return `401 Unauthorized`.
+
+## Best practices
+
+<CardGroup cols={2}>
+  <Card title="One key per integration" icon="puzzle-piece">
+    Create a separate key for each service or environment (production, staging, CI). This lets you revoke a single integration without disrupting others.
+  </Card>
+
+  <Card title="Rotate keys regularly" icon="arrows-rotate">
+    Issue a new key, update your integration, verify it works, then revoke the old key. Rotate after any team member offboarding.
+  </Card>
+
+  <Card title="Never commit to source control" icon="code-branch">
+    Store keys in environment variables or a secrets manager. Use .gitignore and pre-commit hooks to prevent accidental commits.
+  </Card>
+
+  <Card title="Audit from the dashboard" icon="list-check">
+    The API Keys settings page lists every key by name, prefix, creation date, and last used date. Review it periodically and revoke any key no longer in use.
+  </Card>
+</CardGroup>
+
+## Frequently asked questions
+
+<Accordion title="What should I do if a key is accidentally exposed?">
+  Revoke it immediately from **Settings → API Keys** and create a replacement. Check your run history  for any unexpected activity.
+</Accordion>
+
+<Accordion title="How many API keys can I create?">
+  There is no hard limit on the number of keys per Workspace. Creating one key per integration is a recommended practice, not a forced constraint.
+</Accordion>
+
+<Accordion title="Do API key requests consume credits?">
+  The API key itself has no cost. Credits are consumed by the Skill runs, Workflow executions, and other operations that the key triggers — not by authentication itself.
+</Accordion>

@@ -105,3 +105,16 @@ html.dark button[aria-label*="color" i] {
   border-color: rgba(255, 255, 255, 0.15) !important;
   background: rgba(255, 255, 255, 0.06) !important;
 }
+
+/* Hide Mintlify Ask AI / AI Assistant buttons & sparkles icons */
+button[aria-label*="Ask AI" i],
+button[aria-label*="AI" i],
+button[aria-label*="Assistant" i],
+button:has(svg[data-icon="sparkles"]),
+button:has(svg[data-icon="wand-magic-sparkles"]),
+div[class*="ai-widget"],
+div[class*="ask-ai"],
+div[class*="ai-chat"] {
+  display: none !important;
+}
+

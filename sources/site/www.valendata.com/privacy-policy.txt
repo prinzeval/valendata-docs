@@ -1,0 +1,56 @@
+# Source: https://www.valendata.com/privacy-policy
+
+Legal
+
+# Privacy Policy
+
+How we collect, protect, and handle your data at Valendata.
+
+Last Updated: June 11, 2026Effective: Immediately
+
+## 1 Introduction
+
+Valendata Inc. ("Valendata", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains what data we collect, how we use it, and your rights regarding that data when you use the Valendata platform, website, or browser extension. By using our Service, you agree to the collection and use of information as described in this policy.
+
+## 2 Information We Collect
+
+We collect the following categories of information to provide and improve our service:
+
+- **Account Info:** Your name, email, and billing details are processed securely through payment merchants (e.g. Stripe, Dodpayments) to manage transactions.
+
+- **Session Metadata:** Log outputs, screenshot history, run durations, and credit balances are stored to let you audit and trace your account activities.
+
+- **Chrome Extension:** The Valendata browser extension stores your authentication token locally in your browser. When active, the extension attaches Chrome's DevTools Protocol (CDP) to browser tabs to enable AI-directed automation. Page content, network activity, and interaction events are transmitted solely to your Valendata backend and are not sent to any third-party server. No browsing data is collected or retained beyond what is needed to execute your active workflow.
+
+We do not sell, trade, or monetize your scraped data or session outputs. Your data is yours, and you can request the permanent deletion of your account, history, and stored profiles at any time.
+
+## 3 Secure Encryption & Session Storage
+
+To enable authenticated automation, Valendata allows users to securely sync browser profiles, cookies, and active login sessions to our managed cloud browsers. All local session tokens, cookies, and passwords synced to the cloud are encrypted both in transit and at rest using industry-standard AES-256 encryption keys.
+
+These credentials are used solely to run your authorized browser containers and are never decrypted or accessed by Valendata staff, partners, or third parties under any circumstances.
+
+## 4 How We Use Your Data
+
+We process data primarily to perform our contract with you and support the automation platform:
+
+- To authenticate your identity and maintain your session across the platform and browser extension.
+
+- To execute the browser automation workflows you configure and initiate.
+
+- To process billing and manage your credit balance safely.
+
+- To provide audit logs and activity history within your account dashboard.
+
+💡 We do not use your data for advertising, profiling, or any purpose unrelated to operating the Service on your behalf.
+
+## 5 Data Retention & Your Rights
+
+We retain your data for as long as your account is active or as needed to provide the Service. You may request the permanent deletion of your account, session history, stored credentials, and all associated data at any time by contacting us at [info@valendata.com](mailto:info@valendata.com). Deletion requests will be processed within 30 days. Note that some data may be retained for legal or compliance obligations as required by applicable law.
+
+## 6 Contact
+
+If you have any questions or concerns about this Privacy Policy or how your data is handled, please contact us at:
+
+**Valendata Inc.** 
+Email: [info@valendata.com](mailto:info@valendata.com)

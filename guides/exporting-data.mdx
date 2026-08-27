@@ -1,0 +1,90 @@
+---
+title: "Export Run Results and Account Data from Valendata"
+sidebarTitle: "Exporting Data"
+description: "Download run output as JSON or CSV, route data to external sinks, and export a full copy of your account data for backup or migration."
+---
+
+# Export Run Results and Account Data
+
+Download run output as JSON or CSV, or export a complete copy of your account data for backup or migration.
+
+## Run output
+
+### Consuming output via API
+
+Every Skill run returns its result directly in the API response as strict JSON.
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/run \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"skill_id": "skl_b281b8165a23", "parameters": {"query": "standing desk"}}'
+```
+
+A successful response looks like:
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "product_name": "Uplift V2 Standing Desk",
+      "price_usd": 549.00,
+      "in_stock": true,
+      "url": "https://example.com/products/uplift-v2"
+    }
+  ],
+  "count": 1,
+  "execution_time_ms": 7823
+}
+```
+
+### Downloading results from the dashboard
+
+After a Skill run completes, the output appears in the **Workspace** tab on the Skill detail page. Use the **Download CSV** or **Download JSON** buttons above the results table to save the output to your machine.
+
+### Routing data automatically with Workflows
+
+For ongoing pipelines, use a Workflow to push data to an external system automatically after every run:
+
+<CardGroup cols={2}>
+  <Card title="Postgres" icon="database">
+    Insert or upsert rows into a Postgres table on every run. Connect your database once in Integrations and map Skill output fields to table columns in the Workflow editor.
+  </Card>
+
+  <Card title="HTTP step" icon="globe">
+    Use a custom HTTP step inside a Workflow to forward data to any REST endpoint with full control over headers and body.
+  </Card>
+</CardGroup>
+
+---
+
+## Account data export
+
+You can download a complete copy of your account data at any time from **Settings → Profile → Data Controls**. Click **Export Account Data** and the file downloads immediately.
+
+The export is a single JSON file containing:
+
+<Accordion title="Profile">
+  Your display name, email address, plan, current credit balance, and account creation timestamp.
+</Accordion>
+
+<Accordion title="Workflows">
+  Every Workflow in your account including its steps, connections, run count, and schedule configuration.
+</Accordion>
+
+<Accordion title="Run history">
+  A log of every Workflow run — run ID, status, credits charged, execution time, and timestamps. Run output payloads are not included; download those individually from the Workspace tab.
+</Accordion>
+
+<Accordion title="Credential metadata">
+  The name, type, and description of every stored credential. Actual secrets are never included.
+</Accordion>
+
+<Accordion title="API key metadata">
+  The name, key prefix, creation date, and last-used timestamp of every active API key. Actual key values are not included.
+</Accordion>
+
+<Warning>
+  The export intentionally omits actual secrets, API key values, and credential payloads. If you are migrating to a new Workspace, you will need to re-enter credentials — your existing API keys will continue to work across Workspaces.
+</Warning>

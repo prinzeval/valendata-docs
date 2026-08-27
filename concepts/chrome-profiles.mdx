@@ -1,0 +1,100 @@
+---
+title: "Browser Profiles: Persist Login Sessions Across Runs"
+sidebarTitle: "Chrome Profiles"
+---
+
+Browser Profiles store your browser login state in the cloud so Skills stay authenticated on every run — no re-login, no manual intervention required.
+
+A Browser Profile captures your browser's login state — cookies, session tokens, and local storage — and stores it securely in the cloud. When you attach a Profile to a Skill, every subsequent run starts from an already-authenticated browser session. You log in once. After that, scheduled and API-triggered runs just work, even when your computer is off and even when the site requires complex authentication like SSO or 2FA.
+
+## Why Browser Profiles matter
+
+Most sites worth automating are behind a login. Without persistent sessions, each run would need to re-authenticate from scratch — burning credits on the auth flow, risking bot detection from rapid repeated logins, and failing entirely on sites that enforce rate limits or MFA prompts on every new session.
+
+Browser Profiles solve this by replaying a real, lived-in browser session. The site sees a session that has existed for days or weeks, with the cookies and history of a genuine user.
+
+Common use cases:
+
+- **LinkedIn** — Scrape profiles, job listings, or company data from your logged-in account
+- **Internal portals** — Extract invoices, reports, or status updates from portals without a public API
+- **Admin dashboards** — Automate back-office tasks on SaaS tools that require a logged-in user
+- **E-commerce seller panels** — Monitor inventory, pull order data, or update listings from seller dashboards
+- **Paywalled research sites** — Access content your organisation is subscribed to
+
+## Security
+
+Your browser session data is encrypted at rest and in transit. Credentials and session cookies stored inside a Profile are never exposed to the AI during Skill execution.
+
+<Warning>
+  You are responsible for ensuring your use of automated browser sessions complies with the terms of service of any third-party platform you connect. Valendata provides the infrastructure; how you use it is your responsibility. Review the platform's terms before automating activity on your account.
+</Warning>
+
+## How to create a Browser Profile
+
+<Steps>
+  <Step title="Open Browser Profiles">
+    In the Valendata sidebar, click Browser Profiles, then click Create.
+  </Step>
+  <Step title="Name your Profile">
+    Give the Profile a descriptive name that identifies the site and account — for example, LinkedIn — Growth Team or Acme Admin Portal. Click Set up login now to immediately attach a login session, or Create empty for now if you want to add the login later.
+  </Step>
+  <Step title="Add your login">
+    There are two ways to load your login into the Profile — choose whichever fits your setup:
+
+    **Option A — Terminal command (recommended)**
+
+    A terminal command is generated for you. Choose a capture mode:
+
+    | Mode | What it does |
+    | --- | --- |
+    | **Pick my browser** | Syncs an existing logged-in local browser (Chrome, Brave, or Edge) — no re-login needed |
+    | **Fresh login** | Opens a clean browser window, you log in once, and that login is saved |
+    | **Default Chrome** | Reads your default Chrome's saved cookies without requiring you to log in again |
+
+    Copy the command, paste it into Terminal, and follow the on-screen prompt. Your password is never seen — only the resulting session cookies are captured.
+
+    **Option B — Live browser session**
+
+    Click **Set up authentication** on the Profile card. A live Chromium browser opens inside the dashboard. Navigate to the site, complete the full login flow including any 2FA prompts, then click **Done — save session**. Valendata snapshots the authenticated state and stores it in your Profile.
+
+    <Note>
+      Every Workspace comes with a Default Profile. All remote-browser runs use it automatically unless you attach a different Profile to a specific Skill. To keep things clean, set up your Default Profile's login before running Skills that require authentication.
+    </Note>
+  </Step>
+</Steps>
+
+## How to attach a Profile to a Skill
+
+<Steps>
+  <Step title="Open the Skill">
+    Navigate to Skills and click the Skill you want to authenticate.
+  </Step>
+  <Step title="Find the Browser Profile selector">
+    In the Workspace tab, look for the Browser Profile section in the right-hand settings panel.
+  </Step>
+  <Step title="Select a Profile">
+    Open the dropdown and select the saved Profile you want to attach. The change saves automatically. All future runs — manual, scheduled, or API-triggered — will start from that authenticated session.
+  </Step>
+</Steps>
+
+<Note>
+  You can also attach a Browser Profile to individual steps inside a Workflow, so different steps can run under different authenticated accounts.
+</Note>
+
+## Keeping sessions fresh
+
+Browser sessions naturally expire over time — most sites rotate session tokens after a period of inactivity or on a fixed schedule. When a Profile's session expires, runs will start failing with login-page errors.
+
+To re-authenticate an expired Profile, go to **Browser Profiles**, find the expired Profile, and click **Update authentication**. This reopens the live browser session so you can log in again. Click **Done — save session** when finished. All Skills attached to this Profile will use the refreshed session on their next run.
+
+## Exit IP and proxy
+
+Each Profile has a configurable exit IP — the network identity that sites see when your runs execute. You can assign a country-specific proxy to a Profile from the Profile card. The exit IP should match the country where the Profile's logins were originally created; a mismatch can cause sites to invalidate the session.
+
+<Tip>
+  If you imported logins from your own Chrome using the terminal command, leave the proxy set to No proxy so runs exit from the cloud browser's own IP. Only set a country proxy if you originally logged in from that country.
+</Tip>
+
+## Profile scoping
+
+Browser Profiles are scoped to the Workspace where they are created. A Profile created in your `Client A` Workspace is not visible to Skills in your `Client B` Workspace. This keeps credential boundaries clean across projects and teams.

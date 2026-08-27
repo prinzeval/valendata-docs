@@ -1,23 +1,124 @@
 ---
-title: "API Overview"
-description: "REST API endpoints for triggering, monitoring, and retrieving browser automations."
+title: "Valendata REST API"
+sidebarTitle: "Overview"
+description: "Trigger Skills, manage Workflows, retrieve Runs, and stream structured results from any language using JSON over HTTPS."
 ---
 
+The Valendata REST API gives you programmatic access to every resource on the platform (Skills, Workflows, Runs, Browser Profiles, and more). Every request and response uses JSON, over HTTPS.
 
-All REST API endpoints are served over HTTPS with JSON request and response payloads.
+## Base URL
 
-```http
-Base URL: https://api.valendata.com/v1
+Valendata uses two path prefixes depending on the operation:
+
+- `/v1/skills`: Skill execution endpoints (run a Skill, run by slug)
+- `/api/*`: All other resources including Workflows, Browser Profiles, credentials, API key management, and Marketplace
+
+For example:
+
+```text
+POST https://api.valendata.com/v1/skills/run
+POST https://api.valendata.com/api/workflows/{workflow_id}/run
 ```
 
-## Response Codes
+## Request & Response Format
 
-| Status Code | Description |
-| :--- | :--- |
-| `200 OK` | The request succeeded and returned requested data. |
-| `201 Created` | A new skill or session was successfully created. |
-| `400 Bad Request` | Invalid parameters or malformed payload. |
-| `401 Unauthorized` | Missing or invalid API key. |
-| `402 Payment Required` | Insufficient credit balance. |
-| `429 Too Many Requests` | Concurrency limit or rate limit exceeded. |
-| `500 Server Error` | Internal automation error. |
+Every request body must be JSON, and every response body is JSON. Set the `Content-Type` header to `application/json` on all requests that include a body.
+
+```http
+Content-Type: application/json
+```
+
+Successful responses return the requested data at the top level of the JSON object. The exact shape of each response is documented on the relevant endpoint page.
+
+## Authentication
+
+Every request to the Valendata API must include your API key in the `Authorization` header as a Bearer token. Keys are prefixed with `vd_sk_`.
+
+```http
+Authorization: Bearer vd_sk_YOUR_API_KEY
+```
+
+See the [Authentication](/api-reference/authentication) page for full details on obtaining a key, handling auth errors, and security best practices.
+
+## Rate Limiting
+
+Rate limits are enforced per API key on a fixed one-minute window.
+
+| Plan | Limit |
+| :-- | :-- |
+| Free | 30 requests / minute |
+| Pro | 120 requests / minute |
+
+Every API response includes headers so you can track your usage:
+
+```http
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 12
+X-RateLimit-Reset: 1720000060
+```
+
+`X-RateLimit-Reset` is a Unix timestamp indicating when the current window expires and the counter resets.
+
+If you exceed the limit, the API returns HTTP `429 Too Many Requests`:
+
+```json
+{
+  "detail": "Rate limit exceeded. Retry after 34 seconds."
+}
+```
+
+The response also includes a `Retry-After` header with the number of seconds to wait before retrying.
+
+<Warning>
+  Rate limit responses do not consume credits. Credits are only deducted for completed Skill or Workflow Runs.
+</Warning>
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes to communicate the outcome of every request.
+
+| Code | Meaning | When you see it |
+| --- | --- | --- |
+| `200` | OK | The request succeeded. The response body contains the result. |
+| `400` | Bad Request | The request body is malformed, missing required fields, or invalid. |
+| `401` | Unauthorized | The `key` header is missing or the key format is invalid. |
+| `403` | Forbidden | The key is valid but lacks permission for the requested resource. |
+| `404` | Not Found | The requested resource does not exist in your Workspace. |
+| `429` | Too Many Requests | Your Workspace has exceeded its rate limit. Retry after backoff. |
+| `500` | Internal Server Error | An unexpected error occurred on Valendata's side. |
+
+## Error Format
+
+When a request fails, the API returns a JSON body with a `detail` field:
+
+<ResponseField name="detail" type="string | object" required>
+  A message describing what went wrong. For most errors this is a plain string. For structured errors (such as a credit limit response) it may be an object with additional fields.
+</ResponseField>
+
+Here is a representative error response:
+
+```json
+{
+  "detail": "Skill not found"
+}
+```
+
+## Explore the API
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Learn how API keys work, where to create them, and how to keep them secure.
+  </Card>
+
+  <Card title="Skills API" icon="bolt" href="/api-reference/skills/run">
+    Trigger, list, and retrieve your reusable automation Skills via API.
+  </Card>
+
+  <Card title="Workflows API" icon="diagram-project" href="/api-reference/workflows/run">
+    Build and trigger multi-step Workflows that chain Skills, HTTP calls, and transforms.
+  </Card>
+
+  <Card title="Runs API" icon="circle-play" href="/api-reference/runs/list">
+    Retrieve run history and inspect the result of any Skill or Workflow execution.
+  </Card>
+</CardGroup>

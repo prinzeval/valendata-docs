@@ -1,0 +1,108 @@
+# Source: https://www.valendata.com/release-notes
+
+Changelog
+
+# Release Notes
+
+Discover the latest updates, improvements, and fixes in Valendata.
+
+1.0.7
+
+2026-07-25
+
+### Persona
+
+Persona now comes with ready-made templates for the most common application types. Pick the one that fits your goal, fill in your details, and your agent knows exactly how to represent you, whether you're applying for a job, a university programme, or startup funding.
+
+What's new
+
+- 3 ready-made templates: Job Application, University Admission, and Startup Funding & Grants
+- Templates pre-fill the right fields for each application type
+- CV upload and auto-fill works across all templates
+- Fully editable: every template is a starting point, not a constraint
+
+1.0.6
+
+2026-07-11
+
+### Workspaces
+
+Organize your work across teams and projects with Workspaces, a dedicated space for each context you work in, with its own members, workflows, skills, and credentials
+
+What's new
+
+- Create and switch between multiple workspaces
+- Invite team members to a workspace and manage their roles
+- Workflows, skills, and vault credentials are scoped to each workspace
+- Transfer Skills and workflows between workspaces
+
+1.0.5
+
+2026-06-30
+
+### System Status Page
+
+Real-time visibility into Valendata service health. So you always know what's running and what's not.
+
+What's new
+
+- Live status for all services; Database, Cache, Browser Agent, Code Sandbox, Cloud Storage, and AI
+- 90-day uptime history per service
+- Incident history with severity levels and timestamped update threads
+- Public status page at status.valendata.com
+
+1.0.4
+
+2026-06-29
+
+### Scheduled Skills
+
+Run any skill automatically on a recurring schedule
+
+What's new
+
+- Schedule any skill to run automatically
+- Supports hourly, daily, weekly, and custom cron expressions
+- Attach a Chrome Profile so scheduled runs stay logged in
+- Full run history and health status per schedule
+
+1.0.3
+
+2026-06-27
+
+### Chrome Profiles
+
+Save your browser session once and reuse it across every run
+
+What's new
+
+- Log in once, stay logged in forever
+- Profile is securely stored in the cloud, works even when your computer is off
+- Attach a profile to any skill or workflow step
+
+1.0.2
+
+2026-06-26
+
+### Data Portability & Export
+
+You can now export a complete copy of your Valendata account data at any time.
+
+What's new
+
+- Export all your account data as a JSON file from Settings -> Profile -> Data Controls
+- Export includes your profile, skills, run history, API keys (metadata only), and credentials (metadata only)
+
+1.0.1
+
+2026-06-25
+
+### Security & Account Controls
+
+This release strengthens account security with two-factor authentication, giving users a second layer of protection beyond their password.
+
+What's new
+
+- Two-factor authentication (TOTP): Enable 2FA from Settings -> Profile using any authenticator app (Google Authenticator, Authy, etc.)
+- 2FA is verified at login, accounts with 2FA enabled require a 6-digit code after password entry
+- Disable 2FA at any time using a confirmation code from your authenticator app

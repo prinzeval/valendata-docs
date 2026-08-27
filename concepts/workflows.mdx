@@ -1,0 +1,93 @@
+---
+title: "Workflows: Chain and Schedule Automation Pipelines"
+sidebarTitle: "Workflows"
+description: "Workflows connect Skills, browser agents, HTTP calls, and data transforms into a single ordered pipeline you can trigger on demand, on a cron schedule, or via webhook."
+---
+
+Instead of calling automation steps one by one and writing glue code between them, a Workflow defines the sequence once. The output of each step flows automatically into the next. Trigger the whole pipeline with a single action and inspect every step's output in one run history view.
+
+## How Workflows are structured
+
+A Workflow is an ordered list of steps. Each step type has a distinct role:
+
+<CardGroup cols={2}>
+  <Card title="Agent Step" icon="robot">
+    Runs an autonomous browser agent that navigates a site, fills forms, clicks through pages, and extracts data. This is the browser-automation core of any Workflow.
+  </Card>
+
+  <Card title="Code Step" icon="terminal">
+    Runs Python in a secure cloud sandbox. Use it to process, transform, or enrich data returned by an Agent step — or to call any library that doesn't need a browser.
+  </Card>
+
+  <Card title="HTTP Step" icon="globe">
+    Makes an outbound REST call — GET, POST, PUT, or DELETE — to any external endpoint. Use it to call webhooks, write to third-party APIs, or trigger downstream services.
+  </Card>
+
+  <Card title="Transform Step" icon="code-branch">
+    Reshapes or filters data between steps using built-in operations: map, filter, pick, or wrap. Runs entirely in Valendata's runtime — no external calls, no side effects.
+  </Card>
+
+  <Card title="Skill Step" icon="wand-magic-sparkles">
+    Executes a published Skill and passes parameters to it. Use when you have already recorded and published the automation as a reusable Skill.
+  </Card>
+
+  <Card title="dfuse Step" icon="plug">
+    Connects to Slack, Gmail, Notion, and Postgres through the dfuse integration layer. Use it to read or write to these services without building custom HTTP calls.
+  </Card>
+</CardGroup>
+
+## Building a Workflow
+
+Workflows are built on a visual canvas. Open **Workflows** in the sidebar, create a new Workflow, and use the Brain agent chat to describe what you want to build. The Brain adds, configures, and tests steps for you. You can also add steps manually from the canvas toolbar and configure each step's settings directly.
+
+The Brain agent can:
+
+- Add any step type to the canvas
+- Write and test code for Code steps
+- Configure HTTP steps with the correct URL, method, and body
+- Wire step outputs into downstream step parameters
+
+## Passing data between steps
+
+Steps communicate through a simple template syntax: `{{path.to.value}}`. Any step config field can reference the output of a previous step or a Workflow-level input.
+
+| Reference | What it resolves to |
+| :-- | :-- |
+| `{{inputs.search_term}}` | A value passed in when the Workflow was triggered |
+| `{{step_1.output.items}}` | The `items` field from `step_1`'s output |
+| `{{step_2.output.0.price}}` | The `price` field of the first element in `step_2`'s output array |
+
+Each step's `id` is set when the step is created. Reference any previous step by that `id` — the Brain sets these automatically when building your Workflow.
+
+## Credentials in HTTP steps
+
+To authenticate HTTP steps without hardcoding secrets, store your credentials in **Credentials** (in the sidebar), then reference the credential by its ID in the step config via the `credential_id` field. Valendata injects the credential into the request headers at run time — the value is never logged or exposed in the run history.
+
+## Triggering a Workflow
+
+**From the dashboard** — open the Workflow and click **Run**. Fill in any input values and watch step outputs appear as each step completes.
+
+**On a schedule** — go to the **Schedules** page and create a new schedule, selecting the Workflow as the target. Choose a preset cadence or enter a custom one. The Workflow runs automatically at each scheduled time and results appear in the Run history.
+
+**Via webhook** — each Workflow can be given an inbound webhook URL. POST to the URL with a JSON body and Valendata runs the Workflow using the body as its inputs. Configure the webhook and its secret in the Workflow's trigger settings.
+
+## Step output and run history
+
+Every execution creates a Run record. Open a Workflow, go to the **Runs** tab, and click any run to inspect:
+
+- Overall status (`success`, `failed`, `partial`)
+- Per-step output and execution time
+- Full browser replay for any Agent step that opened a browser session
+
+<Note>
+  Skill steps inside a Workflow consume credits independently — once per Skill execution. HTTP and Transform steps do not consume credits. Agent and Code steps consume credits based on browser session time and sandbox usage respectively.
+</Note>
+
+## A realistic example
+
+A competitive pricing pipeline that runs every morning:
+
+1. **Agent step** — navigates competitor product pages and extracts an array of prices
+2. **Transform step** (`filter` operation) — keeps only products where the competitor price is below your threshold, passed in as `{{inputs.your_price}}`
+3. **HTTP step** — POSTs the filtered list to a Slack webhook for immediate review
+4. **HTTP step** — writes every price record to an internal API endpoint, referencing a stored credential via `credential_id`

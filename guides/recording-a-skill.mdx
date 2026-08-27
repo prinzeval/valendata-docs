@@ -1,0 +1,66 @@
+---
+title: "Recording a Skill with the No-Code Browser Recorder"
+sidebarTitle: "Recording a Skill"
+description: "The fastest way to build a Skill on Valendata is to record a live session. Enable the Record Skill toggle in the chat input area, walk through the task yourself in the managed browser, and Valendata captures your actions as a reusable Config — which you then publish as a callable API endpoint."
+---
+
+## Before you start
+
+- A Valendata account at [app.valendata.com](http://app.valendata.com)
+- The URL of the site you want to automate
+- Any login credentials the task requires
+
+## Recording walkthrough
+
+<Steps>
+  <Step title="Enable recording">
+    Open a new session from the main dashboard. In the chat input area, find the **Record Skill** toggle and switch it on. It will show **Recording...** to confirm it is active.
+  </Step>
+  <Step title="Walk through the workflow">
+    Type your task or navigate the browser yourself. Perform every action that makes up the workflow — logging in, navigating, filling forms, clicking through pagination, and reaching the data you want extracted. Valendata records every interaction in real time.
+
+    <Note>
+      If the site uses CAPTCHA or 2FA, Valendata handles both natively during recording and on every subsequent run.
+    </Note>
+  </Step>
+  <Step title="End the session">
+    When you have completed the full workflow, stop the session. Valendata saves your recording as a **Config** automatically.
+  </Step>
+  <Step title="Publish the Config as a Skill">
+    Navigate to **Configs** in the sidebar and open the Config you just recorded. Click **Publish as skill**, give your Skill a name and description, set visibility, and click **Publish Skill**. Your Skill is now live as a versioned API endpoint.
+  </Step>
+  <Step title="Review parameters and output schema">
+    Open the published Skill and go to the **Workspace** tab. Use the **Suggest** button to auto-detect input parameters and output fields from the recording. Review, rename, and adjust them as needed before making your first API call.
+  </Step>
+</Steps>
+
+## Calling your Skill via API
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/run \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"skill_id": "YOUR_SKILL_ID", "parameters": {"query": "standing desk"}}'
+```
+
+Find your API key under **Settings → API Keys**.
+
+## After publishing
+
+<CardGroup cols={2}>
+  <Card title="Schedule it" icon="clock">
+    Run the Skill automatically on a cron — hourly, daily, weekly, or a custom expression.
+  </Card>
+
+  <Card title="Chain it in a Workflow" icon="diagram-project">
+    Compose your Skill with HTTP steps, transforms, and other Skills to build end-to-end data pipelines.
+  </Card>
+
+  <Card title="Attach a Chrome Profile" icon="user-shield">
+    Save your logged-in browser session so every run starts already authenticated.
+  </Card>
+
+  <Card title="Share to Marketplace" icon="store">
+    Publish your Skill to the public Marketplace so others can clone and build on it.
+  </Card>
+</CardGroup>

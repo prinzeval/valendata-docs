@@ -1,59 +1,87 @@
 ---
-title: "Introduction"
-description: "AI-powered web automation platform that turns any website into an API."
+title: "What Is Valendata? "
+sidebarTitle: "Introduction"
+description: "Valendata is an AI-powered browser automation platform that turns plain-English tasks into reusable API endpoints returning strict, structured JSON."
 ---
 
+Valendata is an AI-powered browser automation platform that lets you describe what you want a browser to do — in plain English — and receive structured JSON back. No brittle selectors, no headless-Chrome boilerplate, no scraper maintenance. You write a task, Valendata drives a real Chromium browser in the cloud, and your data comes back in exactly the shape you defined.
 
-Valendata is an autonomous AI browser automation platform. You describe what you want done in plain English — the agent launches a real cloud browser session, navigates complex dynamic web pages, bypasses anti-bot barriers, extracts structured data, and executes multi-step workflows.
+## The three core primitives
 
-<CardGroup cols={2}>
-  <Card title="Quickstart Guide" icon="bolt" href="/quickstart">
-    Create and execute your first automated browser task in under 2 minutes.
+Everything in Valendata is built on three concepts you'll use every day.
+
+<CardGroup cols={3}>
+  <Card title="Skills" icon="bolt">
+    A **Skill** is a named, reusable automation task with optional parameters. Write it once, publish it as a versioned API endpoint, and call it from anywhere. Skills are the atomic unit — everything else builds on top of them.
   </Card>
-  <Card title="Core Concepts" icon="cube" href="/core-concepts/skills">
-    Learn how Skills, Workflows, and Remote Browsers work under the hood.
+
+  <Card title="Workflows" icon="diagram-project">
+    A **Workflow** chains Skills together with HTTP steps and data transforms. Wire the output of one Skill into the input of the next, add conditional logic, and schedule the whole pipeline on a cron.
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Trigger automations, stream live CDP recordings, and retrieve structured results via REST.
-  </Card>
-  <Card title="Connectors & MCP" icon="plug" href="/integrations/mcp">
-    Connect your Claude Code, Cursor, or LangChain agents directly into Valendata.
+
+  <Card title="Credits" icon="coins">
+    Credits are what you spend when you run Skills, covering AI tokens, browser time, and web searches in one unit.<br /><br />Purchased credits never expire. Subscription credits refresh monthly; Pro\+ plans carry unused credits forward, others reset.
   </Card>
 </CardGroup>
 
----
+## What problems does Valendata solve?
 
-## Why Valendata?
+Hand-rolling scrapers is painful. Pages change, selectors break, CAPTCHAs block you, logins expire, and infrastructure bills pile up before you ship a single line of business logic. Valendata eliminates that entire class of problem.
 
-Traditional web scrapers and automation tools rely on brittle CSS/XPath selectors that break whenever a website updates its DOM. Valendata eliminates selector maintenance using visual AI and natural language instructions.
+<CardGroup cols={2}>
+  <Card title="Self-healing agents" icon="rotate">
+    Valendata's AI Brain re-plans on the fly when a page changes. If a product listing moves to a new URL or a checkout form adds a new field, the agent adapts without you touching a config file.
+  </Card>
 
-<Steps>
-  <Step title="Describe Your Task">
-    Write natural language instructions (e.g. *"Go to Google Flights, search for round-trip flights from JFK to LHR next month, and extract the top 5 cheapest options with baggage policies."*).
-  </Step>
-  <Step title="Autonomous Execution">
-    Valendata provisions an isolated Chromium instance, loads cookies, navigates pages, interacts with inputs, solves challenges, and captures screenshots.
-  </Step>
-  <Step title="Structured Output & APIs">
-    Receive clean, validated JSON or structured datasets, trigger webhooks, or chain results into external CRM and database pipelines.
-  </Step>
-</Steps>
+  <Card title="Native CAPTCHA & 2FA" icon="shield-check">
+    CAPTCHAs are solved inline — no third-party solving services, no extra fees. Full 2FA and TOTP flows are driven end-to-end inside the same managed browser session.
+  </Card>
 
----
+  <Card title="Managed infrastructure" icon="server">
+    Real Chromium browsers run across 47 global regions. Pin sessions to a country, rotate proxies, and scale to hundreds of parallel runs — all without a single line of infra code.
+  </Card>
 
-## Key Features
+  <Card title="Full observability" icon="eye">
+    Every run is fully replayable. Scrub through screenshots frame-by-frame to see exactly where the agent clicked, typed, and scrolled. Debug in seconds, not hours.
+  </Card>
+</CardGroup>
 
-<AccordionGroup>
-  <Accordion title="Real Cloud Browsers (CDP-Enabled)" icon="browser">
-    Every session runs inside an ephemeral, sandboxed Chromium instance with complete Chrome DevTools Protocol (CDP) control, headless/headful streaming, and profile persistence.
-  </Accordion>
-  <Accordion title="Stealth & Anti-Bot Protection" icon="shield-check">
-    Built-in fingerprint spoofing, residential proxy routing, and automatic CAPTCHA solving prevent bot detection.
-  </Accordion>
-  <Accordion title="Managed Verification Inbox" icon="envelope">
-    Job applications or sign-ups requiring email verification are automatically linked to disposable inbox addresses that extract OTP codes mid-session.
-  </Accordion>
-  <Accordion title="Transparent Pay-As-You-Go Billing" icon="receipt">
-    Server-metered token usage and browser session duration with auto-recharge triggers ensure high-reliability automation without surprise bills.
-  </Accordion>
-</AccordionGroup>
+<Note>
+  Output schema enforcement means Valendata validates every response against your defined schema before returning it. Even when the underlying page changes, you get clean, consistent JSON — or a clear error instead of silent garbage data.
+</Note>
+
+## Who is Valendata for?
+
+Valendata is designed for a broad range of users — you don't need to be an engineer to get value from the platform.
+
+<Accordion title="Developers & engineers">
+  Use the REST API to trigger runs programmatically, embed Skills into your backend, and pipe structured output directly into your database or data warehouse. Valendata handles the browser layer so you can focus on what you do with the data.
+</Accordion>
+
+<Accordion title="GTM & revenue teams">
+  Extract competitor pricing, monitor product availability, enrich CRM leads with live data from LinkedIn or company websites, and deliver fresh intelligence to your stack — without filing an engineering ticket.
+</Accordion>
+
+<Accordion title="Growth marketers">
+  Automate repetitive research workflows: track rankings, harvest contact data, monitor review sites, and push results directly to Sheets, HubSpot, or Slack. Schedule it once and wake up to fresh data every morning.
+</Accordion>
+
+<Accordion title="Non-technical builders">
+  Use the no-code recorder to walk through a task once — Valendata turns your session into a deployable Skill with parameters, a schema, and a live API endpoint included. No code required.
+</Accordion>
+
+## Ready to build?
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Go from sign-up to a live API call in under 10 minutes. Build your first Skill and see real JSON output.
+  </Card>
+
+  <Card title="Skills" icon="bolt" href="/concepts/skills">
+    Learn how Skills work — parameters, versioning, Chrome Profiles, and how to deploy your first endpoint.
+  </Card>
+
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Browse the full REST API. Explore endpoints, request schemas, and live response examples.
+  </Card>
+</CardGroup>

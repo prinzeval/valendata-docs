@@ -1,103 +1,143 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
   "name": "Valendata",
+  "theme": "maple",
+  "favicon": "https://media.brand.dev/9368dd59-b624-47ee-837e-7118bdeeca4e.png",
   "colors": {
-    "primary": "#16a34a",
-    "light": "#16a34a",
-    "dark": "#2BDD66"
+    "primary": "#12b981",
+    "light": "#12b981",
+    "dark": "#12b981"
   },
-  "favicon": "/favicon.ico",
+  "fonts": {
+    "heading": {
+      "family": "Plus Jakarta Sans"
+    },
+    "body": {
+      "family": "Plus Jakarta Sans"
+    }
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Website",
+      "href": "https://valendata.com"
+    },
+    "links": [
+      {
+        "href": "mailto:info@valendata.com",
+        "label": "Support"
+      }
+    ]
+  },
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Get Started",
-        "pages": [
-          "introduction",
-          "quickstart"
-        ]
-      },
-      {
-        "group": "Core Concepts",
-        "pages": [
-          "core-concepts/skills",
-          "core-concepts/workflows",
-          "core-concepts/schedules",
-          "core-concepts/remote-browsers",
-          "core-concepts/inbox",
-          "core-concepts/credits-and-billing"
-        ]
-      },
-      {
-        "group": "API Reference",
-        "pages": [
-          "api-reference/introduction",
-          "api-reference/authentication",
+        "tab": "Documentation",
+        "groups": [
           {
-            "group": "Skills API",
+            "group": "Get Started",
             "pages": [
-              "api-reference/skills/run",
-              "api-reference/skills/list",
-              "api-reference/skills/create"
-            ]
+              "introduction",
+              "quickstart",
+              "credits-and-billing"
+            ],
+            "icon": "rocket"
           },
           {
-            "group": "Workflows API",
+            "group": "Core Concepts",
             "pages": [
-              "api-reference/workflows/execute"
-            ]
+              "concepts/skills",
+              "concepts/workflows",
+              "concepts/chrome-profiles",
+              "concepts/workspaces"
+            ],
+            "icon": "lightbulb"
           },
           {
-            "group": "Sessions API",
+            "group": "Guides",
             "pages": [
-              "api-reference/sessions/status",
-              "api-reference/sessions/recordings"
-            ]
+              "guides/recording-a-skill",
+              "guides/scheduling-skills",
+              "guides/using-the-marketplace",
+              "guides/exporting-data"
+            ],
+            "icon": "book-open"
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/overview"
+            ],
+            "icon": "plug"
+          },
+          {
+            "group": "Account & Security",
+            "pages": [
+              "account/two-factor-authentication",
+              "account/api-keys",
+              "account/data-export"
+            ],
+            "icon": "shield"
           }
         ]
       },
       {
-        "group": "Integrations & Connectors",
-        "pages": [
-          "integrations/mcp",
-          "integrations/webhooks",
-          "integrations/n8n"
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "book-open",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Skills",
+            "icon": "sparkles",
+            "pages": [
+              "api-reference/skills/run-by-id",
+              "api-reference/skills/run-by-slug",
+              "api-reference/skills/list",
+              "api-reference/skills/get"
+            ]
+          },
+          {
+            "group": "Workflows",
+            "icon": "diagram-project",
+            "pages": [
+              "api-reference/workflows/list",
+              "api-reference/workflows/run"
+            ]
+          },
+          {
+            "group": "Runs",
+            "icon": "clock-rotate-left",
+            "pages": [
+              "api-reference/runs/list",
+              "api-reference/runs/get"
+            ]
+          }
         ]
-      }
-    ]
-  },
-  "logo": {
-    "light": "/logo/dark.png",
-    "dark": "/logo/light.png",
-    "href": "https://valendata.com"
-  },
-  "appearance": {
-    "default": "light",
-    "strict": false
-  },
-  "background": {
-    "color": {
-      "light": "#FFFFFF",
-      "dark": "#0B0F17"
-    }
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Website",
-        "href": "https://valendata.com"
-      },
-      {
-        "label": "Community",
-        "href": "https://app.valendata.com/community"
       }
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/Valendata_",
-      "github": "https://github.com/valendata-software",
-      "discord": "https://discord.gg/valendata"
+      "website": "https://valendata.com"
+    }
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "logo": {
+    "light": "/images/logo-light.png",
+    "dark": "/images/logo-dark.png",
+    "href": "https://valendata.com/"
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
     }
   }
 }

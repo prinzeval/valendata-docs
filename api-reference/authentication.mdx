@@ -1,15 +1,149 @@
 ---
-title: "Authentication"
-description: "Authenticate API requests using Bearer tokens."
+title: "Authenticating Valendata API Requests with API Keys"
+sidebarTitle: "Authentication"
+description: "Learn how to authenticate every Valendata API request using your API key, and follow best practices to keep your keys secure."
 ---
 
+## API Key Format
 
-Authenticate all API requests by passing your API key in the `Authorization` header:
+Valendata API keys follow a fixed prefix pattern so you can identify them at a glance:
 
-```bash
-Authorization: Bearer val_live_your_api_key_here
+```text
+vd_sk_YOUR_API_KEY
 ```
 
+All keys begin with `vd_sk_`. Pass the key exactly as shown when it was created. Never shorten or modify it.
+
+## Adding the Authorization Header
+
+Include the `Authorization` header on every request:
+
+```http
+Authorization: Bearer vd_sk_YOUR_API_KEY
+```
+
+A minimal curl example that runs a Skill by slug:
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/your-skill-slug/run \
+  -H "Authorization: Bearer vd_sk_YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+## Authentication Errors
+
+The API returns one of two HTTP error codes when authentication fails:
+
+| Code | Meaning | Cause |
+| :-- | :-- | :-- |
+| `401` | Unauthorized | The `Authorization` header is missing, malformed, or the key is invalid. |
+| `403` | Forbidden | The key is valid but does not have permission for the requested resource. |
+
+Error responses use a `detail` field:
+
+```json
+{
+  "detail": "Invalid or expired API key"
+}
+```
+
+## Code Examples
+
+<Tabs>
+  <Tab title="curl">
+    ```bash
+    curl -X POST https://api.valendata.com/v1/skills/your-skill-slug/run \
+      -H "Authorization: Bearer vd_sk_YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"url": "https://example.com"}'
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import os
+    import requests
+    
+    api_key = os.environ["VALENDATA_API_KEY"]
+    
+    response = requests.post(
+        "https://api.valendata.com/v1/skills/your-skill-slug/run",
+        headers={"Authorization": f"Bearer {api_key}"},
+        json={"url": "https://example.com"},
+    )
+    
+    response.raise_for_status()
+    print(response.json())
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const apiKey = process.env.VALENDATA_API_KEY;
+    
+    const response = await fetch("https://api.valendata.com/v1/skills/your-skill-slug/run", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url: "https://example.com" }),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`API error ${response.status}: ${error.detail}`);
+    }
+    
+    const data = await response.json();
+    console.log(data);
+    ```
+  </Tab>
+</Tabs>
+
+## Getting Your API Key
+
+<Steps>
+  <Step title="Open Settings">
+    Go to [app.valendata.com](https://app.valendata.com), sign in, and navigate to **Settings → API Keys** (`/settings/api-keys`).
+  </Step>
+  <Step title="Create a new key">
+    Click **Create key**, give it a descriptive name (for example, `production-scraper` or `ci-pipeline`), then click **Create secret key**.
+  </Step>
+  <Step title="Copy and store the key">
+    The full key value is shown **once** immediately after creation. Copy it now and store it securely. After closing the dialog only the short prefix (e.g. `vd_sk_xxxxxxx...`) is visible in the table.
+  </Step>
+</Steps>
+
+## Revoking a Key
+
+To revoke a key, click the trash icon next to it in the **Settings → API Keys** table and confirm. Revocation is instant: all requests using that key will return `401` immediately.
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Store keys in environment variables">
+    Never hard-code an API key in your source files. Read it from an environment variable at runtime:
+
+    ```bash
+    export VALENDATA_API_KEY="vd_sk_YOUR_API_KEY"
+    ```
+
+    Access it as `process.env.VALENDATA_API_KEY` (Node.js) or `os.environ["VALENDATA_API_KEY"]` (Python).
+  </Accordion>
+
+  <Accordion title="Never commit keys to source control">
+    Add your `.env` file to `.gitignore` before your first commit. If you suspect a key was ever committed, treat it as compromised, revoke it and generate a new one immediately.
+  </Accordion>
+
+  <Accordion title="Rotate keys regularly">
+    Create a replacement key in the dashboard, update your environment, then revoke the old key. The transition takes under a minute and causes no downtime if done in that order.
+  </Accordion>
+
+  <Accordion title="Use separate keys per environment">
+    Issue one key for local development, one for staging, and one for production. This limits exposure if a key leaks and lets you revoke a single environment without affecting others.
+  </Accordion>
+</AccordionGroup>
+
 <Warning>
-Never expose your live API key in client-side applications (such as frontend web apps). Always make calls from your backend server or secure edge functions.
+  If you believe a key has been compromised, revoke it immediately from **Settings → API Keys**. Revocation is instant and permanent.
 </Warning>

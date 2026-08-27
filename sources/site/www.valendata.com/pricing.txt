@@ -1,0 +1,67 @@
+# Source: https://www.valendata.com/pricing
+
+Pricing Plans
+
+# Simple, transparent pricing
+
+Credits never expire and roll over automatically. Pay only for what you run.
+
+### Starter
+
+Perfect for topping up or trying new automations
+
+$10
+
+Credits1,000
+
+Per Credit$0.0100
+
+Get Started
+
+Most Popular
+
+Save 10%
+
+### Growth
+
+Great for regular automation workflows
+
+$45
+
+Save $5.00
+
+Credits5,000
+
+Per Credit$0.0090
+
+Get Started
+
+Save 20%
+
+### Pro
+
+Best for power users and heavy workloads
+
+$80
+
+Save $20.00
+
+Credits10,000
+
+Per Credit$0.0080
+
+Get Started
+
+### Enterprise
+
+Custom volume, SLAs, invoicing, and dedicated support.
+
+Custom
+
+Negotiated pricing
+
+Credits50,000+
+
+Per CreditCustom
+
+Contact Us

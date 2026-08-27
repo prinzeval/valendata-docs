@@ -1,0 +1,84 @@
+---
+title: "Workspaces: Organize Skills, Teams, and Credentials"
+sidebarTitle: "Workspaces"
+description: "Workspaces are isolated containers for Skills, Workflows, and credentials. Create one per client or project and invite team members with role-based access."
+---
+
+A Workspace is the top-level organizational container in Valendata. Every resource you create — Skills, Workflows, Browser Profiles, API keys, and Vault secrets — belongs to exactly one Workspace. Team members are invited per Workspace, and the credit balance is owned by the Workspace owner and shared across everyone working inside it. Multiple Workspaces let you maintain hard boundaries between unrelated projects, different clients, or separate environments.
+
+## What lives inside a Workspace
+
+<CardGroup cols={2}>
+  <Card title="Skills" icon="wand-magic-sparkles">
+    All Skills you build and publish are scoped to the Workspace. Skills in one Workspace are not visible or callable from another.
+  </Card>
+
+  <Card title="Workflows" icon="diagram-project">
+    Workflows and their schedules are Workspace-scoped. A Workflow can only reference Skills that exist in the same Workspace.
+  </Card>
+
+  <Card title="Browser Profiles" icon="browser">
+    Saved browser sessions are tied to the Workspace where they were created and are not accessible from other Workspaces.
+  </Card>
+
+  <Card title="API Keys" icon="key">
+    API keys are associated with the account that created them. A private Skill can only be called by the key owner — use the key that matches the Skill's owner.
+  </Card>
+
+  <Card title="Vault" icon="lock">
+    Credentials stored in the Vault — webhook tokens, database passwords, third-party API keys — are scoped to the Workspace and available only to steps running inside it.
+  </Card>
+
+  <Card title="Credit Balance" icon="coins">
+    The Workspace owner's credit pool funds all runs. Any run triggered by any member or scheduled job draws from the owner's balance — not from the individual member's account.
+  </Card>
+</CardGroup>
+
+## Creating a Workspace
+
+In the sidebar, click your current Workspace name to open the workspace switcher dropdown. At the bottom of the dropdown, click **New workspace**. A modal appears — enter a name and click **Create workspace**. The dashboard reloads scoped to the new Workspace, starting empty.
+
+<Tip>
+  If you manage multiple clients, create one Workspace per client. Each client gets isolated Skills, Workflows, credentials, and billing visibility with no risk of cross-contamination.
+</Tip>
+
+## Switching between Workspaces
+
+Click your Workspace name in the sidebar at any time. The dropdown lists every Workspace you belong to along with your role in each. Click any name to switch — the dashboard reloads showing only that Workspace's resources.
+
+## Managing team members
+
+Member management lives on the **Team** page, accessible from the sidebar. From there you can view all current members, send invites, change roles, and set per-member spend caps.
+
+<Steps>
+  <Step title="Open the Team page">
+    Click Team in the sidebar.
+  </Step>
+  <Step title="Invite a member">
+    Enter the invitee's email address, select a role, and send the invite. The invitee receives an email with an acceptance link. If they don't have a Valendata account, they are prompted to create one before joining.
+  </Step>
+  <Step title="Set a spend cap (optional)">
+    Once a member has joined, you can set a monthly credit cap on their account. Runs they trigger will stop being charged to the Workspace once they hit their cap for the month. Leave it unset to allow unlimited draw from the Workspace pool.
+  </Step>
+</Steps>
+
+## Roles
+
+| Role | What they can do |
+| :-- | :-- |
+| **Owner** | Full access. Manages members, billing, and all resources. Only the Owner can delete a Workspace. |
+| **Admin** | Can create, edit, and delete Skills, Workflows, Browser Profiles, and Vault credentials. Can invite and remove members. Cannot manage billing. |
+| **Member** | Can create and run Skills and Workflows. Cannot delete resources created by others or manage members. |
+| **Viewer** | Read-only access. Can view Skills, Workflows, and run history but cannot trigger runs or create resources. |
+
+## Moving a Skill to another Workspace
+
+If you build a Skill in one Workspace and need to move it to another, open the Skills page, find the Skill, and use the **Move to Workspace** option from the Skill's action menu. Select the destination Workspace — only Workspaces where you hold an Admin or Owner role appear in the list. The Skill is removed from the source Workspace immediately.
+
+<Warning>
+  Moving a Skill removes it from the source Workspace. Any schedules or Workflow steps that reference it there will stop working. Update those before moving.
+</Warning>
+
+## Shared credit balance
+
+All runs inside a Workspace draw from the Workspace owner's credit pool — subscription credits and purchased top-ups included. When a member triggers a run or a scheduled job fires, the deduction comes from the owner's balance. The owner can set per-member monthly spend caps from the Team page to control how much any individual member can consume.

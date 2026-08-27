@@ -1,0 +1,33 @@
+# Source: https://www.valendata.com/docs
+
+Overview
+
+# Introduction
+
+Valendata is an AI-powered browser automation platform. You describe what you want done — the agent opens a real browser, navigates the web, and returns structured results.
+
+## What is Valendata?
+
+Valendata lets you build, run, and schedule browser automations without writing brittle selectors or maintaining scraper code. You write a plain-English task — the AI figures out how to do it using a real browser session.
+
+Everything runs in the cloud. You get live screenshots, structured output, and a full credit-based usage ledger so you always know what each run costs.
+
+## How it works
+
+1\. You write a **Skill** — a named, reusable task description with optional parameters.
+
+2\. You run the Skill — either manually from the dashboard, on a cron schedule, or chained inside a **Workflow**.
+
+3\. The agent uses a managed browser session, executes the task step-by-step, and returns the result. Credits are deducted based on LLM usage and browser session time.
+
+Skills
+
+Named, reusable automation tasks
+
+Workflows
+
+Chain multiple skills together
+
+Credits
+
+Pay-as-you-go usage billing

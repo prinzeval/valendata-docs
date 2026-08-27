@@ -1,0 +1,75 @@
+---
+title: "Export Your Account Data"
+sidebarTitle: "Data Export"
+---
+
+Download a complete copy of your account data at any time — no waiting periods or support tickets required. The file is delivered as a direct JSON download from **Settings → Data Controls**.
+
+What's included in your export Your export is a single structured JSON file. The table below details exactly what is and is not included.
+
+<Tabs>
+  <Tab title="Included">
+    | Data type | What you receive |
+    | --- | --- |
+    | Profile | Name, email, auth provider, plan, and current credit balance |
+    | Workflows | Names, descriptions, steps, connections, and run counts for every Workflow you own |
+    | Workflow runs | Status, credits charged, execution time, and timestamps for every run |
+    | API key metadata | Key names, prefixes, creation dates, and last-used dates |
+    | Credential metadata | Vault entry names, types, descriptions, and creation dates |
+  </Tab>
+  <Tab title="Not included">
+    | Data type | Reason |
+    | --- | --- |
+    | Published Skills | Skills are derived from Workflows — Workflow steps and configs are what's exported |
+    | Credential secrets | Passwords, tokens, and API keys stored in the Vault are never exported in plain text |
+    | API key secret values | Full key strings are not stored in recoverable form after creation |
+    | Billing and payment details | Payment information is held by Valendata's payment processor |
+    | Run inputs and outputs | Step-level input/output data is not included in the export |
+  </Tab>
+</Tabs>
+
+## Export your data
+
+<Steps>
+  <Step title="Open Data Controls">
+    Navigate to Settings → Data Controls.
+  </Step>
+  <Step title="Download your data">
+    Click Download .json. Your browser downloads the file immediately — there is no queue and no email link.
+  </Step>
+  <Step title="Save the file securely">
+    Move the JSON file to a secure location. It contains your account metadata, Workflow definitions, and run history.
+  </Step>
+</Steps>
+
+## Working with the exported JSON
+
+The file is plain JSON with the following top-level keys: profile, workflows, workflow\_runs, credentials, api\_keys. Each section is an array of objects with consistent field names.
+
+# Count your total workflow runs
+
+jq '.workflow\_runs | length' valendata-export.json
+
+# List all Workflow names
+
+jq '\[.workflows\[\].name\]' valendata-export.json
+
+# Find failed runs
+
+jq '\[.workflow\_runs\[\] | select(.status == "failed")\]' valendata-export.json
+
+## Account deletion
+
+To permanently delete your Valendata account and all associated data, contact support:
+
+**Email:** [info@valendata.com](mailto:info@valendata.com)
+
+Include the email address associated with your account. Once deletion is complete, your data is removed from Valendata's systems and cannot be recovered.
+
+<Tip>
+  Export your data before submitting a deletion request.
+</Tip>
+
+<Warning>
+  Deleting your account permanently deletes all Skills, Workflows, Browser Profiles, and run history in every Workspace you own. Workspaces where you are a member but not the owner are not affected.
+</Warning>

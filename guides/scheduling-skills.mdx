@@ -1,0 +1,80 @@
+---
+title: "Schedule a Skill for Automatic Recurring Execution"
+sidebarTitle: "Scheduling Skills"
+description: "Automate recurring data pulls, change monitors, and pipeline feeds by attaching a cron schedule to any published Skill in your Workspace."
+---
+
+Scheduled Skills let Valendata do the work while you sleep. Instead of triggering a run manually every time you need fresh data, you attach a schedule to a published Skill and Valendata executes it on your chosen cadence. Results appear in the **Runs** tab the moment each run completes, ready to query or forward to a downstream system.
+
+## Why schedule a Skill
+
+Scheduling is the right tool whenever you need:
+
+- **Recurring data pulls** — price monitoring, inventory checks, SERP tracking
+- **Change detection** — watch a page for updates and alert downstream systems when something new appears
+- **Pipeline feeds** — push fresh structured data into a database or HTTP endpoint on a fixed cadence
+- **Compliance snapshots** — capture a page state at a known timestamp for audit or archiving purposes
+
+## Prerequisites
+
+Before setting up a schedule, make sure you have:
+
+- A **published Skill** in your Workspace
+- Sufficient **credit balance** to cover the expected number of runs
+- (Optional) A **Chrome Profile** attached to the Skill if the target site requires authentication
+
+<Tip>
+  If the Skill needs to log into a site, attach a Chrome Profile during schedule setup. The profile stores your browser session in the cloud so every scheduled run starts already authenticated — even if your own computer is off.
+</Tip>
+
+## Setting up a schedule
+
+<Steps>
+  <Step title="Open the Schedules page">
+    In the main sidebar, click Schedules. This page lists all Skills that have an active schedule. Click New Schedule to create one.
+  </Step>
+  <Step title="Select a Skill">
+    Choose the Skill you want to schedule from the dropdown. Only Skills without an existing schedule are listed.
+  </Step>
+  <Step title="Choose your run frequency">
+    Select one of the built-in presets or choose Custom for more control:
+
+    | Preset | Runs at |
+    | --- | --- |
+    | **Every 5 minutes** | Every 5 minutes |
+    | **Every 15 minutes** | Every 15 minutes |
+    | **Every 30 minutes** | Every 30 minutes |
+    | **Every hour** | Top of every hour |
+    | **Daily at 9:00 AM** | 9:00 AM UTC daily |
+    | **Daily at 12:00 PM** | 12:00 PM UTC daily |
+    | **Daily at 6:00 PM** | 6:00 PM UTC daily |
+    | **Daily at midnight** | 00:00 UTC daily |
+    | **Weekly (Mon midnight)** | 00:00 UTC every Monday |
+
+    Selecting **Custom** lets you set a specific daily time, an interval in minutes, a specific weekday, or a raw cron expression.
+  </Step>
+  <Step title="Attach a Chrome Profile (optional)">
+    If the Skill targets a site that requires a logged-in session, select a Chrome Profile from the dropdown. If you have not created one yet, set one up first from the Profiles page.
+  </Step>
+  <Step title="Create the schedule">
+    Click Create Schedule. The schedule is live immediately — no further action required. The Schedules page will show the Skill with its next scheduled run time.
+  </Step>
+</Steps>
+
+## Monitoring scheduled runs
+
+Every execution appears in the Runs tab on the Skill detail page. Each entry shows the status, duration, credits used, and the full structured output downloadable as JSON or CSV.
+
+## Pausing or removing a schedule
+
+To temporarily pause a schedule without losing its configuration, open the Schedules page and toggle the **Active** switch off on the Skill's schedule row. Toggle it back on to resume — runs that occurred while paused are not backfilled.
+
+To remove a schedule entirely, click the delete icon on the schedule row. Your Skill remains published and callable via API. You can create a new schedule for it at any time.
+
+<Warning>
+  If your credit balance reaches zero, scheduled runs will fail at execution time. Top up your balance before the next scheduled run to avoid missed executions.
+</Warning>
+
+## Credit cost estimation
+
+The cost of a scheduled run covers AI tokens consumed and browser session time. Check the Runs tab on the Skill for past run costs before setting an aggressive schedule — start with a daily cadence, verify the credit spend, then increase frequency if the budget allows.

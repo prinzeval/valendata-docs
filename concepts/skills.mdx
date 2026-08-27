@@ -1,0 +1,117 @@
+---
+title: "Skills: Build and Deploy Browser Automation Endpoints"
+sidebarTitle: "Skills"
+description: "Skills are named browser automation tasks that run on demand, on a schedule, or inside a Workflow — and deploy automatically as live API endpoints.
+
+A Skill packages a recorded browser session into a versioned, callable unit. It has typed input parameters that let you vary what it targets at runtime, and a structured output schema that guarantees consistent data back on every run. Once published, a Skill works from the dashboard, from a cron schedule, from a Workflow, or from a raw HTTP call — all without you touching browser code."
+---
+
+## What makes up a Skill
+
+| Piece | What it does |
+| :-- | :-- |
+| **Name** | Human-readable identifier used in the dashboard, the API, and Workflow steps |
+| **Description** | Plain-English summary of what the Skill does |
+| **Parameters** | Typed inputs (strings, numbers, booleans, arrays) auto-detected from your recording and editable in the Skill editor |
+| **Output schema** | The fields the Skill returns on every run, AI-suggested from your recording and customisable in the Developer Settings tab |
+
+## How to create a Skill
+
+Skills are published from **Configs**. A Config is a saved recording of a browser session — you perform the task once, Valendata captures every action, and the recording becomes the source of truth the Skill replays.
+
+<Steps>
+  <Step title="Record a session">
+    Open any workflow, find the chat input area, and toggle Record Skill on. The toggle label changes to Recording... while active. Describe your task to the AI as you normally would and complete the full flow in the live browser. When you are done, turn the toggle off. Valendata saves the session as a Config.
+  </Step>
+  <Step title="Publish the Config as a Skill">
+    Go to Skills in the sidebar and click \+ Create. The Publish Skill modal opens. Select the Config you just recorded from the dropdown. Give the Skill a name and description. Valendata auto-detects parameters from the recording — review and adjust them if needed, then click Publish Skill.
+  </Step>
+  <Step title="Your Skill is live">
+    The Skill appears in your Skills list with an API endpoint ready to call. Open it to run it manually, adjust its settings, or grab the API details from the Developer Settings tab.
+
+    <Note>
+      Before building a Skill from scratch, check the Marketplace — a public library of pre-built Skills contributed by the community. You can clone any Skill into your Workspace and customise it without recording anything.
+    </Note>
+  </Step>
+</Steps>
+
+## The Workspace tab
+
+The Workspace tab is where you run the Skill manually and refine its output.
+
+- **Run** — fill in parameter values and trigger the Skill. Output appears inline as structured data.
+- **Suggest** — generates example input values and defines the output contract based on the Skill's recording, so you can validate what the Skill is expected to return.
+- **Enrich** — if the run returns incomplete data, use Enrich to fill gaps using additional AI-powered extraction passes.
+- **Refine** — adjusts and cleans the output shape after a run, without re-executing the full browser session.
+
+## Running a Skill
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="browser">
+    Open the Skill and use the Workspace tab to run it manually. Fill in parameter values and inspect the structured output directly in the dashboard.
+  </Card>
+
+  <Card title="API" icon="code">
+    Call the Skill's endpoint with your API key. Works from any script, backend service, or no-code tool.
+  </Card>
+
+  <Card title="Schedule" icon="clock">
+    Attach a cron schedule to the Skill from the Schedules page. The Skill runs automatically on your chosen cadence and results appear in the Runs tab.
+  </Card>
+
+  <Card title="Workflow" icon="diagram-project">
+    Add the Skill as a step inside a Workflow, where it receives the previous step's output as its input parameters.
+  </Card>
+</CardGroup>
+
+## Calling a Skill via the API
+
+There are two endpoints — use whichever suits your setup:
+
+**By Skill ID** — the stable option. Find the ID on the Developer Settings tab.
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/run \
+  -H "Authorization: Bearer vd_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill_id": "skl_b281b8165a23",
+    "parameters": {
+      "product_url": "https://example.com/products/widget-pro"
+    }
+  }'
+```
+
+**By slug** — the readable option. Find the slug in the URL when viewing the Skill.
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/competitor-price-check/run \
+  -H "Authorization: Bearer vd_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_url": "https://example.com/products/widget-pro"
+  }'
+```
+
+Both endpoints return the same response shape:
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "price": 129.00,
+      "in_stock": true,
+      "seller": "Acme Store"
+    }
+  ],
+  "count": 1,
+  "execution_time_ms": 4821
+}
+```
+
+`status` is `success`, `failed`, or `partial`. `data` is always an array. `count` is the number of records returned.
+
+<Warning>
+  All Skill endpoints require authentication. Pass your API key as Authorization: Bearer vd\_sk\_.... Running a Skill without a valid key returns a 401.
+</Warning>

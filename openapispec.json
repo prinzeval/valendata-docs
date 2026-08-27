@@ -1,0 +1,500 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Valendata REST API",
+    "version": "1.0.0",
+    "description": "Trigger Skills, manage Workflows, retrieve Runs, and stream structured results from any language using JSON over HTTPS."
+  },
+  "servers": [
+    { "url": "https://api.valendata.com", "description": "Production" }
+  ],
+  "security": [{ "ApiKeyAuth": [] }],
+  "tags": [
+    { "name": "Skills", "description": "Execute and inspect published Skills." },
+    { "name": "Workflows", "description": "Trigger multi-step Workflows and list them." },
+    { "name": "Runs", "description": "Read past Workflow run history." }
+  ],
+  "paths": {
+    "/v1/skills/run": {
+      "post": {
+        "operationId": "runSkill",
+        "summary": "Run a Skill by ID",
+        "description": "Execute a published Skill by ID and receive strict JSON output enforced against the Skill's defined output schema.",
+        "tags": ["Skills"],
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["skill_id"],
+                "properties": {
+                  "skill_id": {
+                    "type": "string",
+                    "description": "The unique identifier of the published Skill to execute. Skill IDs follow the format skl_...",
+                    "example": "skl_b281b8165a23"
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "description": "Key-value map of parameter values to pass to the Skill. Parameter names must match those defined in the Skill's configuration.",
+                    "additionalProperties": true,
+                    "example": { "page": "/bestsellers", "max_results": 50 }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Skill executed successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SkillRunResult" },
+                "example": {
+                  "status": "completed",
+                  "data": [
+                    { "name": "Widget Pro", "price": 129.00, "in_stock": true },
+                    { "name": "Widget Lite", "price": 49.00, "in_stock": false }
+                  ],
+                  "count": 2,
+                  "execution_time_ms": 18400,
+                  "error": null
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/v1/skills/{slug}/run": {
+      "post": {
+        "operationId": "runSkillBySlug",
+        "summary": "Run a Skill by slug",
+        "description": "Execute a published Skill using its slug in the URL path. The request body is the parameter map directly.",
+        "tags": ["Skills"],
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "URL-safe slug of the Skill to run.",
+            "example": "bestsellers-scraper"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Key-value map of parameter values to pass to the Skill.",
+                "additionalProperties": true,
+                "example": { "page": "/bestsellers" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Skill executed successfully",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SkillRunResult" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/skills": {
+      "get": {
+        "operationId": "listSkills",
+        "summary": "List all Skills",
+        "description": "Retrieve a paginated list of every published Skill scoped to your current Workspace, including IDs, names, versions, and timestamps.",
+        "tags": ["Skills"],
+        "security": [{ "SessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1, "minimum": 1 },
+            "description": "One-based page number to return."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "minimum": 1, "maximum": 100 },
+            "description": "Number of Skill objects per page. Accepts values between 1 and 100."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of Skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "skills": { "type": "array", "items": { "$ref": "#/components/schemas/SkillSummary" } },
+                    "total": { "type": "integer", "description": "Total number of Skills in your Workspace." },
+                    "page": { "type": "integer" },
+                    "page_size": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/skills/{skill_id}": {
+      "get": {
+        "operationId": "getSkill",
+        "summary": "Get a Skill",
+        "description": "Fetch complete details for one Skill by ID, including its full parameter schema and the JSON Schema that governs its output structure.",
+        "tags": ["Skills"],
+        "security": [{ "SessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The unique identifier of the Skill to retrieve (format skl_...).",
+            "example": "skl_b281b8165a23"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Skill details",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SkillDetail" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/workflows": {
+      "get": {
+        "operationId": "listWorkflows",
+        "summary": "List all Workflows",
+        "description": "Retrieve every Workflow in your account, including IDs, names, step configurations, run counts, and timestamps. Returns a flat array ordered by created_at descending.",
+        "tags": ["Workflows"],
+        "security": [{ "SessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Array of Workflow objects",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Workflow" } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/workflows/{workflow_id}/run": {
+      "post": {
+        "operationId": "runWorkflow",
+        "summary": "Run a Workflow",
+        "description": "Trigger a multi-step Workflow by ID, pass input parameters into the first step, and receive the full run result with per-step output.",
+        "tags": ["Workflows"],
+        "security": [{ "SessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The UUID of the Workflow to run.",
+            "example": "3f2a1bc4-e89b-12d3-a456-426614174000"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "inputs": {
+                    "type": "object",
+                    "description": "Key-value map of input parameters to pass into the first step. Reference these in step configs with {{inputs.field_name}}.",
+                    "additionalProperties": true,
+                    "default": {},
+                    "example": { "target_url": "https://example.com/pricing" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow run result",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/workflows/{workflow_id}/runs": {
+      "get": {
+        "operationId": "listWorkflowRuns",
+        "summary": "List Workflow runs",
+        "description": "Retrieve the 50 most recent runs for a specific Workflow, ordered most recent first, including status, outputs, credits, and per-step results.",
+        "tags": ["Runs"],
+        "security": [{ "SessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The UUID of the Workflow whose run history you want to retrieve."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of up to 50 WorkflowRun objects",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/WorkflowRun" } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/workflows/{workflow_id}/runs/{run_id}": {
+      "get": {
+        "operationId": "getWorkflowRun",
+        "summary": "Get a Workflow run",
+        "description": "Retrieve the full result of a specific Workflow run by ID, including status, outputs, credits charged, and per-step execution details.",
+        "tags": ["Runs"],
+        "security": [{ "SessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The UUID of the Workflow."
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "The UUID of the specific run to retrieve."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow run",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/WorkflowRun" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "vd_sk_...",
+        "description": "API key with the `vd_sk_` prefix. Create keys from Settings, API Keys in the dashboard."
+      },
+      "SessionAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Session token (JWT) obtained by calling `POST /api/auth/login` with your email and password."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "object", "additionalProperties": true }
+            ],
+            "description": "Error message. Usually a plain string; may be a structured object for some errors."
+          }
+        },
+        "example": { "detail": "Invalid or expired API key" }
+      },
+      "SkillRunResult": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["completed", "failed"], "description": "Terminal state of the run." },
+          "data": {
+            "type": "array",
+            "nullable": true,
+            "items": { "type": "object", "additionalProperties": true },
+            "description": "Structured JSON output produced by the Skill, validated against the Skill's output schema. Null if the run failed."
+          },
+          "count": { "type": "integer", "description": "Number of items in `data`." },
+          "execution_time_ms": { "type": "integer", "description": "Total wall-clock execution time in milliseconds." },
+          "error": { "type": "string", "nullable": true, "description": "Error message if the run failed, otherwise null." }
+        }
+      },
+      "SkillSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Unique identifier (`skl_...`)." },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "version": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SkillDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SkillSummary" },
+          {
+            "type": "object",
+            "properties": {
+              "parameters": {
+                "type": "array",
+                "description": "Parameter definitions accepted by the Skill.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "type": { "type": "string", "enum": ["string", "number", "boolean", "array"] },
+                    "required": { "type": "boolean" },
+                    "description": { "type": "string" }
+                  }
+                }
+              },
+              "output_schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "JSON Schema that defines the structure of the `data` array returned by every run."
+              }
+            }
+          }
+        ]
+      },
+      "Workflow": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "visibility": { "type": "string", "enum": ["private", "public"] },
+          "steps": {
+            "type": "array",
+            "nullable": true,
+            "items": { "type": "object", "additionalProperties": true },
+            "description": "Workflow step definitions in order. Each step includes its type (`agent`, `code`, `http`, `transform`, `dfuse`, `skill`), name, and configuration."
+          },
+          "total_runs": { "type": "integer" },
+          "last_run_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "creator_name": { "type": "string", "nullable": true },
+          "target_domains": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "StepResult": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "step_id": { "type": "string" },
+          "step_name": { "type": "string" },
+          "step_type": { "type": "string", "enum": ["agent", "code", "http", "transform", "dfuse", "skill"] },
+          "sequence_order": { "type": "integer" },
+          "status": { "type": "string", "enum": ["completed", "failed"] },
+          "inputs": { "type": "object", "nullable": true, "additionalProperties": true },
+          "output": { "nullable": true },
+          "error": { "type": "string", "nullable": true },
+          "execution_time_ms": { "type": "integer", "nullable": true },
+          "started_at": { "type": "string", "format": "date-time", "nullable": true },
+          "completed_at": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "WorkflowRun": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "workflow_id": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "enum": ["completed", "failed", "waiting_for_human"] },
+          "inputs": { "type": "object", "nullable": true, "additionalProperties": true },
+          "outputs": { "nullable": true },
+          "error": { "type": "string", "nullable": true },
+          "credits_charged": { "type": "number", "format": "float" },
+          "execution_time_ms": { "type": "integer", "nullable": true },
+          "started_at": { "type": "string", "format": "date-time", "nullable": true },
+          "completed_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "step_results": { "type": "array", "items": { "$ref": "#/components/schemas/StepResult" } }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request. The request body is malformed, missing required fields, or invalid.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized. The Authorization header is missing, malformed, or the credential is invalid or expired.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NotFound": {
+        "description": "Resource not found in your Workspace.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "RateLimited": {
+        "description": "Too many requests, or insufficient credits to start this run.",
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "InternalError": {
+        "description": "Internal server error on Valendata's side.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    }
+  }
+}
+

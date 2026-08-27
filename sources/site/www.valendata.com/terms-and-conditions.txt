@@ -1,0 +1,92 @@
+# Source: https://www.valendata.com/terms-and-conditions
+
+Legal
+
+# Terms of Service
+
+The agreement governing your use of the Valendata platform and services.
+
+Last Updated: June 11, 2026Effective: Immediately
+
+## 1 Acceptance of Terms
+
+Welcome to **Valendata** (the "Platform", "Service", or "we"), operated by Valendata Inc. By creating an account, running automation tasks, accessing our API, or browsing our website, you agree to be bound by these Terms of Service, all applicable laws, and our Privacy Policy (valendata.com/privacy-policy).
+
+If you are entering into this agreement on behalf of a company, group, or legal entity, you represent that you have the authority to bind such entity. If you do not agree to all of these terms, you must not use our Service.
+
+## 2 Description of Service & Metering System
+
+Valendata provides an AI-powered managed browser automation, agentic web navigation, and data extraction platform. Users describe tasks in plain language, which are then compiled and executed inside virtual browser sessions in our cloud environment or locally via the Valendata extension.
+
+Our Service relies on a pay-as-you-go credit-based billing system:
+
+- **LLM Tokens:** Credits are consumed based on the inputs and outputs of the Large Language Models guiding the agent.
+
+- **Browser Session Time:** Virtual container runtime is metered on a per-second basis while browsers are active.
+
+- **Web Searches:** Incremental credits are charged if your active prompt triggers live internet search indexing.
+
+## 3 Non-Deterministic Nature of AI Agents
+
+Because Valendata utilizes Generative AI to interact dynamically with web pages, the agent's behavior is inherently non-deterministic. The Platform does not guarantee 100% accuracy, completion, or error-free execution of automated tasks, forms, or data extraction.
+
+⚠️ **AS IS Service:** Valendata is not liable for credits consumed by failed runs resulting from non-deterministic agent choices, page layout shifts, CAPTCHAs, bot-protection walls, or network timeouts. Users are strongly encouraged to test their Skills manually with limited loop counts before launching scheduled Workflows or massive batch runs.
+
+## 4 Responsible Scraping & Acceptable Use
+
+You are solely and fully responsible for the compliance of all prompts, websites navigated, and data extracted using Valendata. By utilizing the Platform, you warrant and agree that:
+
+- You will not use the Service to harvest personally identifiable information (PII) in violation of GDPR, CCPA, or applicable data protection regulations.
+
+- You will not conduct Denial of Service (DoS/DDoS) actions, spamming, brute-force attacks, or malicious transactions on third-party websites.
+
+- You will comply with the terms of service of the third-party platforms you automate.
+
+## 5 Third-Party Accounts & Banning Risks
+
+If you instruct the AI agent to log into your personal or corporate accounts on third-party platforms (e.g. LinkedIn, Salesforce, social networks) to perform actions on your behalf, you assume all risks related to account restrictions or bans.
+
+Many platforms actively forbid automated access or web scraping. Valendata has no control over, and is entirely free of any liability for, any account bans, suspensions, rate-limits, or blocks placed on your third-party profiles due to automated browsing activities.
+
+## 6 Limitation of Liability
+
+In no event shall Valendata Inc., its directors, employees, or partners, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from (i) your access to or use of the Service; (ii) any conduct or content of any third party on the Service; (iii) any content obtained from the Service; and (iv) unauthorized access, use, or alteration of your transmissions or content.
+
+## 7 Indemnification
+
+You agree to defend, indemnify, and hold harmless Valendata Inc., its officers, directors, employees, contractors, agents, licensors, and partners from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses arising from: (i) your use of and access to the Service; (ii) your violation of any provision of these Terms; (iii) your violation of any third-party right, including without limitation any copyright, privacy, or contractual right; (iv) any scraping, automation, or data extraction you conduct using the Platform that violates the terms of service, robots.txt directives, or applicable laws of any third-party website or platform; or (v) any claim that your use of the Service caused damage to a third party.
+
+## 8 Neutral Infrastructure & No Monitoring
+
+Valendata operates as a neutral automation infrastructure provider. We provide the tools, compute, and browser environments — we do not direct, control, or participate in the specific tasks, websites, or data you choose to interact with. Valendata is not responsible for, and does not endorse, any particular use of the Platform by its users.
+
+Valendata has no obligation to monitor, review, or audit user-initiated automation tasks, prompts, or the data extracted therefrom. However, we reserve the right to investigate and take action (including account suspension or termination) if we have reasonable grounds to believe a user is violating these Terms.
+
+## 9 Termination & Cooperation with Authorities
+
+Valendata reserves the right to suspend or permanently terminate your account for violations of our Acceptable Use Policy, conducting illegal activity, circumvention of anti-bot protections, or upon receipt of a valid legal request or court order.
+
+Upon termination, your right to use the Service immediately ceases. Any unused credits at the time of termination for cause are non-refundable. Valendata will cooperate fully with law enforcement, regulatory authorities, and rights holders where legally required to do so.
+
+## 10 Safe Harbor & Copyright (DMCA)
+
+Valendata respects intellectual property rights and operates in accordance with applicable safe harbor provisions for neutral platform providers (including the Digital Millennium Copyright Act in the United States).
+
+If you believe content extracted or actions performed via a user's automation infringe your copyright or other intellectual property rights, please submit a written notice to [info@valendata.com](mailto:info@valendata.com).
+
+## 11 Governing Law & Dispute Resolution
+
+These Terms shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions.
+
+Any dispute, claim, or controversy arising out of or relating to these Terms or the use of the Service shall first be attempted to be resolved through good-faith negotiation. If unresolved within 30 days, disputes shall be submitted to binding arbitration administered under the rules of the American Arbitration Association (AAA), conducted in English. You waive any right to participate in a class-action lawsuit or class-wide arbitration against Valendata.
+
+## 12 Modifications to These Terms
+
+Valendata reserves the right to update or modify these Terms of Service at any time. When we make material changes, we will notify you by email and by displaying a prominent notice on the Platform at least 14 days before the changes take effect. Your continued use of the Service after the effective date of any modification constitutes your acceptance of the revised Terms.
+
+## 13 Contact & Support
+
+If you have any questions, compliance concerns, or support inquiries regarding these Terms of Service, please contact our legal and support team at:
+
+**Valendata Inc.** 
+Email: [info@valendata.com](mailto:info@valendata.com)
