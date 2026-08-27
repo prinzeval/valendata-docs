@@ -1,0 +1,5 @@
+{
+  "buildCommand": "echo 'Mintlify docs - no Vercel build needed'",
+  "outputDirectory": ".",
+  "framework": null
+}
