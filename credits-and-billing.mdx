@@ -1,22 +1,51 @@
 ---
 title: "Credits and Billing: Valendata Pricing Plans Explained"
 sidebarTitle: "Credits & Billing"
-description: "Valendata uses a credit-based billing model. Credits cover LLM tokens, browser session time, and web searches."
+description: "Valendata's exact credit pricing — every model, browser and proxy time, web search, sandbox execution, and CAPTCHA cost, listed in full."
 ---
 
-Valendata uses a credit-based billing model. You buy credits and spend them only when your automations actually run, no charges for idle time. Credits cover everything a run uses: AI tokens, browser session time, and web searches.
+Valendata uses a credit-based, pay-for-what-you-use billing model. Every action a run takes is metered separately and priced in credits, listed exactly below — no bundled flat fees, no hidden categories.
 
 ## What credits cover
 
-Every time you trigger a Skill or Workflow, Valendata deducts credits based on the resources consumed during that run.
+Every time you trigger a Skill or Workflow, Valendata deducts credits based on the exact resources that run consumed. A session held open (including idle gaps between steps) is billed for the time it's reserved, not just moments of active output — this is metered the same way whether a workflow step, a Skill run, or an interactive chat session holds the browser open.
 
-| Resource | What it measures |
+### AI model usage
+
+Cost depends on which model you (or your automation) selects, and scales with tokens used:
+
+| Model | Input (credits / 1k tokens) | Output (credits / 1k tokens) |
+| --- | --- | --- |
+| Gemini 3 Flash *(default — fast & smart)* | 0.125 | 0.75 |
+| Gemini 3.1 Pro *(most capable Gemini)* | 0.50 | 3.00 |
+| Claude Sonnet 4.6 *(balanced Claude)* | 0.75 | 3.75 |
+| Claude Opus 4.6 *(advanced reasoning)* | 1.25 | 6.25 |
+| Claude Opus 4.7 *(maximum intelligence)* | 1.25 | 6.25 |
+
+Bring-your-own-key (BYOK) users pay their own provider directly for tokens; the model picker still applies for capability, but token cost is between you and your provider.
+
+### Browser & proxy time
+
+| Resource | Cost |
 | --- | --- |
-| \*\*LLM tokens\*\* | AI planning, decision-making, and output parsing |
-| \*\*Browser session time\*\* | Active browser session time while the agent runs |
-| \*\*Web searches\*\* | Search queries the agent issues during execution |
-| \*\*Sandbox executions\*\* | Code runs executed in the cloud sandbox |
-| \*\*Proxy data\*\* | Data transferred through residential proxies (per MB) |
+| Browser session time | 2.0 credits / minute |
+| + Sticky Identity proxy *(stays logged into one site as a stable IP)* | +2.2 credits / minute, on top of browser time |
+| + Rotating Residential proxy *(avoids bot bans / rate limits)* | +2.9 credits / minute, on top of browser time |
+
+Not every task needs a proxy — Valendata decides automatically based on what the task requires, and the surcharge only applies for the actual minutes a proxy tier is in use.
+
+### Other metered actions
+
+| Resource | Cost |
+| --- | --- |
+| Web search query | 2.0 credits / query |
+| Sandbox code execution | 1.0 credit / execution |
+| Extracted data row | 0.1 credit / row (10 rows = 1 credit) |
+| CAPTCHA solve — reCAPTCHA v2 | 0.20 credits / solve |
+| CAPTCHA solve — reCAPTCHA v3 | 0.25 credits / solve |
+| CAPTCHA solve — Cloudflare Turnstile | 0.30 credits / solve |
+
+CAPTCHA solves only happen (and only bill) when a task actually hits one — most tasks never touch this line at all.
 
 Every new Valendata account receives **100 free credits** at sign-up, no credit card required. Use them to build and test your first Skills before choosing a plan.
 
@@ -66,7 +95,7 @@ Credits are sold in bundles. The more you buy at once, the lower the per-credit 
 
 **Purchased credits never expire.** If you buy 5,000 credits today and use 1,200 over the next month, your remaining 3,800 are still there, no deadlines, no cut-off dates. You can buy in bulk whenever it suits your budget.
 
-Subscription plan credits work differently: they refresh each month. Pro\+ plans carry unused credits forward (up to 2× your monthly amount); all other plans reset to your monthly grant each cycle.
+Subscription plan credits work differently: they refresh each month on your billing date. Unused monthly credits do not carry over — every plan resets to its monthly grant each cycle. (Purchased top-up credits are separate from this and never expire, as above.)
 
 ## Checking your credit balance
 
