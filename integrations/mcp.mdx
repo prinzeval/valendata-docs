@@ -1,31 +1,128 @@
 ---
 title: "Model Context Protocol (MCP)"
-description: "Connect Valendata to Claude Code, Cursor, and AI agent frameworks via MCP."
+sidebarTitle: "MCP"
+description: "Give Claude, Cursor, or any MCP client your workflows, skills, and knowledge base — through a hosted server you authorise once."
 ---
 
+Valendata runs a hosted MCP server. Connect it to Claude, Cursor, VS Code, or any MCP client and that assistant can list your published workflows, run them, read the results, run your skills, and read and write your knowledge base — as you, with the permissions you grant.
 
-Valendata implements an official MCP server, allowing any AI assistant (Claude Code, Cursor, Windsurf, LangChain) to browse the web, solve captchas, and scrape live web pages natively.
+There is nothing to install. The server is remote, and you authorise it in the browser the same way you would connect any other app to your account.
 
-## Claude Desktop / Cursor Setup
+## Connect
 
-Add the following configuration to your `claude_desktop_config.json` or Cursor MCP configuration:
+The server URL is:
+
+```
+https://api.valendata.com/mcp/sse
+```
+
+<Note>
+  Settings → Connectors has this URL along with copy-paste configuration for Claude, Cursor, and VS Code. Use that page if you would rather not hand-write the config.
+</Note>
+
+For a client that takes a remote MCP server directly:
 
 ```json
 {
   "mcpServers": {
     "valendata": {
-      "command": "npx",
-      "args": ["-y", "@valendata/mcp-server"],
-      "env": {
-        "VALENDATA_API_KEY": "val_live_your_api_key"
-      }
+      "url": "https://api.valendata.com/mcp/sse"
     }
   }
 }
 ```
 
-## Available MCP Tools
+The first time the client connects, your browser opens a Valendata consent screen listing exactly what the client is asking for. You approve or decline, and the client stores the resulting token itself.
 
-- `valendata_run_task`: Spawns a cloud browser to execute an arbitrary natural language task.
-- `valendata_run_skill`: Runs a predefined saved skill with arguments.
-- `valendata_get_inbox_otp`: Fetches the latest 2FA/OTP code delivered to the active virtual inbox.
+<Warning>
+  Valendata's MCP server does not take an API key. Authorisation is OAuth 2.1 with PKCE, so a client never holds your password and you can withdraw its access at any time from Settings → Connectors without rotating anything else. Your `val_live_…` API key is for the [REST API](/api-reference/introduction), not for MCP.
+</Warning>
+
+A client that speaks Streamable HTTP rather than SSE can use `https://api.valendata.com/mcp` instead. Both serve the same tools.
+
+## Permissions
+
+You grant scopes at the consent screen, and each tool checks the one it needs. Grant only what the assistant actually has to do.
+
+| Scope | What it allows |
+| --- | --- |
+| `workflows:read` | See your published workflows and read run results |
+| `workflows:invoke` | Start a workflow. Spends credits |
+| `skills:read` | See your skills and their details |
+| `skills:invoke` | Run a skill. Spends credits |
+| `knowledge:read` | Read facts from your knowledge base |
+| `knowledge:write` | Save and update facts in your knowledge base |
+
+The two `invoke` scopes are the ones that cost money. Everything they run is billed to your account exactly as if you had pressed Run yourself.
+
+## Tools
+
+### Workflows
+
+<ResponseField name="list_workflows" type="no arguments">
+  Your published workflows, with the id each one is invoked by. Needs `workflows:read`.
+</ResponseField>
+
+<ResponseField name="invoke_workflow" type="workflow_id, inputs?">
+  Starts a workflow and returns a `run_id` straight away rather than waiting. A workflow can take anywhere from seconds to minutes, so the assistant polls `get_run_status` for the outcome. Needs `workflows:invoke`.
+</ResponseField>
+
+<ResponseField name="get_run_status" type="run_id">
+  Status, per-step output, errors and timings for one run. Needs `workflows:read`.
+</ResponseField>
+
+<ResponseField name="list_recent_runs" type="limit?">
+  The most recent runs across all your workflows, newest first. Defaults to 10, maximum 50. Needs `workflows:read`.
+</ResponseField>
+
+### Skills
+
+<ResponseField name="list_skills" type="no arguments">
+  Every skill you own, public and private. Needs `skills:read`.
+</ResponseField>
+
+<ResponseField name="invoke_skill" type="skill_id, params?">
+  Runs a skill and returns the extracted rows directly, capped at 50 per call. Pass the skill's inputs as key/value pairs in `params`. Needs `skills:invoke`.
+</ResponseField>
+
+### Knowledge base
+
+<ResponseField name="get_knowledge" type="tags?">
+  Facts from your knowledge base, optionally filtered by tag. Needs `knowledge:read`.
+</ResponseField>
+
+<ResponseField name="save_knowledge" type="key, value, tags?">
+  Saves or updates one fact under `key`. `value` is any JSON object. Needs `knowledge:write`.
+</ResponseField>
+
+## Resources
+
+Each published workflow is also exposed as an MCP resource, so a client can read its most recent results without running anything:
+
+```
+valendata://workflows/{workflow_id}/latest
+```
+
+Reading one returns the rows from that workflow's last completed run as JSON. This costs no credits — it is the run you already paid for. Resources need `workflows:read`.
+
+## A typical exchange
+
+Asking Claude for fresh data from a workflow you already built usually goes like this:
+
+<Steps>
+  <Step title="It finds the workflow">
+    `list_workflows` returns your published workflows and their ids.
+  </Step>
+  <Step title="It starts a run">
+    `invoke_workflow` returns a `run_id` immediately. Credits are consumed at this point.
+  </Step>
+  <Step title="It waits for the result">
+    `get_run_status` is polled until the run reaches a terminal status, then the rows come back as JSON.
+  </Step>
+</Steps>
+
+If yesterday's data would do, reading the workflow's `latest` resource skips the run and the cost entirely.
+
+## Revoking access
+
+Settings → Connectors lists every client you have authorised. Revoking one invalidates its token immediately; the client will ask for consent again the next time it connects. Nothing else about your account changes, and no other integration is affected.
