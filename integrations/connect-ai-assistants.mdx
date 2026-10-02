@@ -1,0 +1,256 @@
+---
+title: "Connect Valendata to your AI assistant"
+sidebarTitle: "Connect your AI assistant"
+description: "Add Valendata to Claude, ChatGPT, Meta Muse, Cursor, or any MCP client. Sign in once, choose what the assistant may do, and your skills show up as tools."
+---
+
+Valendata runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server. When you connect it to an AI assistant, the assistant can run the skills and workflows you built in Valendata, create new skills from a task you describe, and read or save facts in your knowledge base. It does this as you, only with the permissions you approve, and you can disconnect it at any time.
+
+Each skill runs a task you set up, on a website you choose. It runs either in your own logged-in browser through the Valendata extension, or in a Valendata cloud browser. Nothing runs until you or your assistant asks for it, and every run is billed to your account in the same way as when you press **Run** yourself.
+
+<Note>
+  You are responsible for making sure you may access the sites and data your skills use. Follow each site's terms of use and rate limits. See the [Terms of Service](https://www.valendata.com/terms-and-conditions).
+</Note>
+
+## Before you start
+
+- A Valendata account at [www.valendata.com](https://www.valendata.com).
+- At least one published skill or workflow, or credits to create a skill from your assistant (see [Credits and billing](/credits-and-billing)).
+- An assistant that supports remote MCP servers.
+
+## Server URL
+
+| Transport | URL | Use it for |
+| --- | --- | --- |
+| Streamable HTTP (recommended) | `https://api.valendata.com/mcp` | Claude, ChatGPT, Meta Muse, Cursor, and most current clients |
+| Server-Sent Events (SSE) | `https://api.valendata.com/mcp/sse` | Older clients that only support SSE |
+
+Both URLs serve the same tools. You can also copy them from **Settings → Connectors** in the Valendata app.
+
+## Sign-in and consent
+
+Valendata uses OAuth 2.1 with PKCE. You never give your password to the assistant.
+
+<Steps>
+  <Step title="Add the server URL in your assistant">
+    Follow the steps for your assistant below. Choose **OAuth** if the assistant asks for an authentication type.
+  </Step>
+  <Step title="Sign in to Valendata">
+    Your browser opens Valendata. Sign in if you are not already signed in.
+  </Step>
+  <Step title="Review the consent screen">
+    The consent screen shows the name of the app that is asking and the permissions (scopes) it requested. Untick any permission you do not want to grant, then click **Allow access**. Click **Deny** to refuse.
+  </Step>
+  <Step title="Start using the tools">
+    You return to your assistant. Its tool list now includes your Valendata tools.
+  </Step>
+</Steps>
+
+The assistant registers itself with Valendata automatically the first time it connects (OAuth dynamic client registration). You do not need to create a client ID or secret.
+
+### Permissions (scopes)
+
+Each tool checks for the scope it needs. Grant only what the assistant has to do.
+
+| Scope | Label on the consent screen | What it allows |
+| --- | --- | --- |
+| `workflows:read` | Read workflows | View your published workflows and their run results |
+| `workflows:invoke` | Invoke workflows | Run your published workflows. Uses credits |
+| `skills:read` | Read skills | View your skills and their details |
+| `skills:invoke` | Invoke skills | Run your skills, and create new skills. Uses credits |
+| `knowledge:read` | Read knowledge base | Read facts stored in your knowledge base |
+| `knowledge:write` | Write knowledge base | Save and update facts in your knowledge base |
+
+The two `invoke` scopes are the only ones that spend credits.
+
+### Tokens
+
+- The assistant receives an access token and a refresh token. Valendata stores only a hash of each token, never the token itself.
+- Access tokens are short-lived. The assistant uses the refresh token to get a new pair without asking you again.
+- Each refresh token works once. If a used refresh token is presented again, Valendata treats it as stolen and revokes every token from that sign-in. You then sign in again.
+
+## Connect your assistant
+
+Menu names in these apps change from time to time. If a label below does not match exactly, look for the option to add a custom connector or a remote MCP server.
+
+<Tabs>
+  <Tab title="Claude">
+    Works in Claude on the web and in the Claude desktop app.
+
+    1. In Claude, open **Settings → Connectors**.
+    2. Click **Add custom connector**.
+    3. Enter a name, such as `Valendata`, and the URL `https://api.valendata.com/mcp`.
+    4. Click **Add**, then **Connect**. Sign in to Valendata and approve access.
+    5. In a chat, open the tools menu and make sure Valendata is turned on.
+
+    On Claude Team and Enterprise plans, an organization owner may need to add the connector before members can connect it.
+  </Tab>
+  <Tab title="ChatGPT">
+    1. In ChatGPT, open **Settings → Apps & Connectors → Advanced settings** and turn on **Developer mode**.
+    2. Back in **Apps & Connectors**, click **Create**.
+    3. Enter a name, such as `Valendata`. Set **MCP Server URL** to `https://api.valendata.com/mcp` and **Authentication** to **OAuth**.
+    4. Click **Create**. Sign in to Valendata and approve access.
+    5. In a chat, choose Valendata from the tools or connectors menu.
+
+    Developer mode availability depends on your ChatGPT plan and workspace settings.
+  </Tab>
+  <Tab title="Meta Muse">
+    1. In Meta Muse, open the connector settings and choose to add a custom MCP connector.
+    2. Enter a name, such as `Valendata`, and the server URL `https://api.valendata.com/mcp`.
+    3. Choose OAuth sign-in if asked. Sign in to Valendata and approve access.
+    4. Turn on the Valendata connector in your conversation.
+  </Tab>
+  <Tab title="Cursor">
+    Add Valendata to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project):
+
+    ```json
+    {
+      "mcpServers": {
+        "valendata": {
+          "url": "https://api.valendata.com/mcp"
+        }
+      }
+    }
+    ```
+
+    Save the file. Cursor opens the Valendata sign-in page the first time it connects. You can also add the server from **Cursor Settings → Tools & MCP**.
+  </Tab>
+  <Tab title="Other MCP clients">
+    Any client that supports remote MCP servers with OAuth works. Point it at `https://api.valendata.com/mcp` (or `/mcp/sse` for SSE-only clients).
+
+    Clients discover the sign-in endpoints from these standard metadata documents:
+
+    - `https://api.valendata.com/.well-known/oauth-protected-resource` (RFC 9728)
+    - `https://api.valendata.com/.well-known/oauth-authorization-server` (RFC 8414)
+
+    An unauthenticated request to the MCP endpoint returns `401` with a `WWW-Authenticate` header that points to the protected-resource document.
+  </Tab>
+</Tabs>
+
+## Use an API key instead of OAuth
+
+If your client or agent runtime cannot do an OAuth sign-in, send a Valendata API key as the bearer token:
+
+```http
+Authorization: Bearer vd_sk_YOUR_API_KEY
+```
+
+For example, in a client that accepts custom headers:
+
+```json
+{
+  "mcpServers": {
+    "valendata": {
+      "url": "https://api.valendata.com/mcp",
+      "headers": {
+        "Authorization": "Bearer vd_sk_YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+<Warning>
+  An API key carries **every** scope, including the two that spend credits. You cannot limit it at a consent screen. Use OAuth when you want to limit what an assistant can do. Keep keys out of shared config files, and revoke a key from **Settings → API Keys** if it leaks. See [API keys](/account/api-keys).
+</Warning>
+
+## Tools
+
+### Your skills: `skill_<slug>`
+
+Every skill you can run appears as its own tool, named `skill_` plus the skill's slug. For example, a skill with the slug `austin-dentists` becomes `skill_austin-dentists`. These tools include:
+
+- Skills you own.
+- Skills shared into a workspace you belong to.
+
+Public marketplace skills appear only after you clone them into your account. Only skills that are published or active are listed.
+
+Each skill tool includes:
+
+- **A description**: what the skill does, plus a short, honest track record (total runs, recent success rate, typical time and row count, the last error if there was one, and its fast path if it has one).
+- **An input schema**: the skill's own typed inputs, plus two optional controls:
+  - `max_results` (0–500, where `0` returns the whole list).
+  - `version` (replay a specific recipe version; see [How Valendata keeps skills working](/concepts/keeping-skills-working)).
+- **An output schema**: the shape of the result, so the assistant can rely on the field names.
+
+Listing these tools needs `skills:read`. Calling them needs `skills:invoke`. The tool list is rebuilt each time the assistant refreshes it, so a skill you publish shows up on the next refresh.
+
+A call that breaks the input schema is rejected before anything runs. The error lists each problem and the inputs the skill accepts. If too many of your runs are already in progress, the call returns at once with a message that tells you when to retry.
+
+### Create a skill from a task
+
+| Tool | Arguments | Scope |
+| --- | --- | --- |
+| `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:invoke` |
+| `get_skill_creation` | `creation_id` | `skills:invoke` |
+
+`create_skill` does the task once in a Valendata cloud browser, records it, and publishes it as a private skill with typed inputs and output columns. It returns a `creation_id` straight away. Recording takes a few minutes. The assistant calls `get_skill_creation` until `status` is `ready` (the new `skill_<slug>` tool then appears) or `failed` (`error` says why). Skill creation uses credits and cannot sign in to websites. See the [Web to API guide](/guides/web-to-api#1-create-a-skill-from-a-task) for limits.
+
+### Improve a skill
+
+| Tool | Arguments | Scope |
+| --- | --- | --- |
+| `improve_skill` | `skill` (the slug, or the `skill_<slug>` tool name), optional `mode` (`fix`, `add_fields`, or `relearn_details`), `feedback`, optional `fields`, `example_input`, `idempotency_key` | `skills:invoke` |
+| `get_skill_improvement` | `improvement_id` | `skills:invoke` |
+
+`improve_skill` has three modes:
+
+- **`fix`** (default): when a skill run comes back short, its result carries a `diagnosis`: for each missing field, how many rows had it, where the skill looked, and example hints. The assistant passes a plain-English hint, for example "the phone is on the details page — click the place name, the panel opens, the number is next to the phone icon".
+- **`add_fields`**: capture new fields described in plain English, for example "also capture the star rating and review count". A field the skill already has under another name is merged into it, and an unclear one comes back as a question.
+- **`relearn_details`**: rebuild how the skill opens each result, when the site changed or detail fields come back empty. `feedback` is optional here.
+
+A cloud browser relearns the skill, and a short check run (up to 5 rows) tests the new version. If it is better, the new version goes live. If not, it is kept as a candidate and the old version stays live. `improve_skill` returns an `improvement_id` straight away; the assistant calls `get_skill_improvement` until `status` is `done` (`result`, `changes`, and `details` say what changed) or `failed`. Only the skill's owner or a workspace editor can improve it, and it uses credits. See [Improve a skill](/guides/web-to-api#5-improve-a-skill).
+
+### Generic skill tools
+
+| Tool | Arguments | Scope | What it does |
+| --- | --- | --- | --- |
+| `list_skills` | none | `skills:read` | Lists the active skills you own, with their IDs |
+| `invoke_skill` | `skill_id`, optional `params`, `max_results` | `skills:invoke` | Runs a skill by ID. Prefer the `skill_<slug>` tools, which carry typed schemas |
+
+### Workflows
+
+| Tool | Arguments | Scope | What it does |
+| --- | --- | --- | --- |
+| `list_workflows` | none | `workflows:read` | Lists your published workflows and their IDs |
+| `invoke_workflow` | `workflow_id`, optional `inputs` | `workflows:invoke` | Starts a workflow and returns a `run_id` at once |
+| `get_run_status` | `run_id` | `workflows:read` | Status, per-step output, and errors for one workflow run |
+| `list_recent_runs` | optional `limit` (default 10, max 50) | `workflows:read` | Your most recent workflow runs, newest first |
+
+Each published workflow is also an MCP resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows from that workflow's last completed run. This uses no credits. Resources need `workflows:read`.
+
+### Knowledge base
+
+| Tool | Arguments | Scope | What it does |
+| --- | --- | --- | --- |
+| `get_knowledge` | optional `tags` | `knowledge:read` | Reads facts from your knowledge base |
+| `save_knowledge` | `key`, `value` (a JSON object), optional `tags` | `knowledge:write` | Saves or updates one fact |
+
+## Disconnect and revoke access
+
+You can cut off an assistant from either side.
+
+- **In Valendata**: open **Settings → Connectors**. Under connected apps, click **Revoke** next to the app. All of that app's access and refresh tokens stop working at once. The assistant asks you to sign in again the next time it connects.
+- **In your assistant**: remove or disconnect the Valendata connector. This stops the assistant from calling Valendata, but it does not revoke tokens on Valendata's side. Revoke in Valendata as well if you want to be sure.
+- **API keys**: if you connected with an API key, revoke that key in **Settings → API Keys**.
+
+Clients can also revoke a token themselves by sending it to `POST https://api.valendata.com/oauth/revoke` (RFC 7009). Revoking a refresh token also revokes every token from the same sign-in.
+
+Revoking an assistant does not delete your skills, workflows, runs, or knowledge base, and does not affect your other connections.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The assistant shows no skill tools">
+    Check that you granted `skills:read`, and that you have at least one published or active skill. Then refresh the tool list or reconnect.
+  </Accordion>
+  <Accordion title="A tool returns &quot;missing ... scope&quot;">
+    You did not grant that scope at sign-in. Revoke the app in **Settings → Connectors**, reconnect, and tick the scope on the consent screen.
+  </Accordion>
+  <Accordion title="A skill needs me to sign in to a website">
+    A run cannot sign in to a website for you. If a skill runs in your browser profile and the site has logged you out, Valendata stops the run and tells you. Sign in on that profile, then run the skill again.
+  </Accordion>
+  <Accordion title="Calls fail with insufficient credits">
+    Running and creating skills uses credits. Top up from the billing page. See [Credits and billing](/credits-and-billing).
+  </Accordion>
+</AccordionGroup>

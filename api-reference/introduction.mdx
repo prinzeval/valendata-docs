@@ -10,7 +10,7 @@ The Valendata REST API gives you programmatic access to every resource on the pl
 
 Valendata uses two path prefixes depending on the operation:
 
-- `/v1/skills`: Skill execution endpoints (run a Skill, run by slug)
+- `/v1/*`: Skill endpoints: create a Skill from a task, read its contract and health, run it (sync or async), read async runs, and manage recipe versions. See the [Web to API guide](/guides/web-to-api).
 - `/api/*`: All other resources including Workflows, Browser Profiles, credentials, API key management, and Marketplace
 
 For example:
@@ -81,10 +81,12 @@ The API uses standard HTTP status codes to communicate the outcome of every requ
 | --- | --- | --- |
 | `200` | OK | The request succeeded. The response body contains the result. |
 | `400` | Bad Request | The request body is malformed, missing required fields, or invalid. |
-| `401` | Unauthorized | The `key` header is missing or the key format is invalid. |
+| `401` | Unauthorized | The `Authorization` (or `x-api-key`) header is missing, or the key is invalid, revoked, or expired. |
+| `402` | Payment Required | Not enough credits to start (for example, creating a Skill needs at least 10). |
 | `403` | Forbidden | The key is valid but lacks permission for the requested resource. |
 | `404` | Not Found | The requested resource does not exist in your Workspace. |
-| `429` | Too Many Requests | Your Workspace has exceeded its rate limit. Retry after backoff. |
+| `422` | Unprocessable Entity | The inputs do not match the Skill's `input_schema`, the requested `version` does not exist, or `webhook_url` is not allowed. |
+| `429` | Too Many Requests | Too many requests for your key, too many runs in progress, or too many recordings in progress. Wait for `Retry-After` when present. |
 | `500` | Internal Server Error | An unexpected error occurred on Valendata's side. |
 
 ## Error Format

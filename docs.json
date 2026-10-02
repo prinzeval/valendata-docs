@@ -49,13 +49,15 @@
               "concepts/skills",
               "concepts/workflows",
               "concepts/chrome-profiles",
-              "concepts/workspaces"
+              "concepts/workspaces",
+              "concepts/keeping-skills-working"
             ],
             "icon": "lightbulb"
           },
           {
             "group": "Guides",
             "pages": [
+              "guides/web-to-api",
               "guides/recording-a-skill",
               "guides/scheduling-skills",
               "guides/using-the-marketplace",
@@ -67,6 +69,7 @@
             "group": "Integrations",
             "pages": [
               "integrations/overview",
+              "integrations/connect-ai-assistants",
               "integrations/mcp"
             ],
             "icon": "plug"
@@ -97,10 +100,39 @@
             "group": "Skills",
             "icon": "sparkles",
             "pages": [
-              "api-reference/skills/run-by-id",
+              "api-reference/skills/contract",
+              "api-reference/skills/health",
               "api-reference/skills/run-by-slug",
+              "api-reference/skills/run-by-id",
               "api-reference/skills/list",
               "api-reference/skills/get"
+            ]
+          },
+          {
+            "group": "Skill creation",
+            "icon": "wand-magic-sparkles",
+            "pages": [
+              "api-reference/skills/create",
+              "api-reference/skill-creations/get"
+            ]
+          },
+          {
+            "group": "Skill improvement",
+            "icon": "wand-magic",
+            "pages": [
+              "api-reference/skills/improve",
+              "api-reference/skill-improvements/get",
+              "api-reference/skill-improvements/list"
+            ]
+          },
+          {
+            "group": "Versions",
+            "icon": "code-branch",
+            "pages": [
+              "api-reference/versions/list",
+              "api-reference/versions/diff",
+              "api-reference/versions/restore",
+              "api-reference/versions/pin"
             ]
           },
           {
@@ -115,8 +147,17 @@
             "group": "Runs",
             "icon": "clock-rotate-left",
             "pages": [
+              "api-reference/runs/start",
+              "api-reference/runs/get-skill-run",
               "api-reference/runs/list",
               "api-reference/runs/get"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "icon": "webhook",
+            "pages": [
+              "api-reference/webhooks/secret"
             ]
           }
         ]

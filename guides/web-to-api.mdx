@@ -1,0 +1,790 @@
+---
+title: "Web to API: turn a website task into a reliable endpoint"
+sidebarTitle: "Web to API"
+description: "Describe a task on a website, get back a typed, versioned API endpoint. Create a skill, inspect its contract, run it sync or async, pin versions, and watch its health."
+---
+
+A **skill** is a website task you can call like an API. You describe the task once, for example "search for dentists in Austin and list them". Valendata does it in a browser, records how, and publishes it as an endpoint with typed inputs and a fixed output shape. After that, every call runs the same task with your inputs and returns rows in the same shape.
+
+Skills run on your behalf, with your permission. A skill runs either in your own logged-in browser through the Valendata extension, or in a Valendata cloud browser. When a site changes, Valendata repairs the skill and saves the repair as a new version. You can see every version and roll back. See [How Valendata keeps skills working](/concepts/keeping-skills-working).
+
+<Note>
+  You are responsible for having the right to access the sites and data your skills use. Follow each site's terms of use and robots rules, and keep your request rates reasonable. See the [Terms of Service](https://www.valendata.com/terms-and-conditions).
+</Note>
+
+## Before you start
+
+- An API key from **Settings → API Keys**. Keys start with `vd_sk_`. See [API keys](/account/api-keys).
+- Credits on your account. See [Credits and billing](/credits-and-billing).
+
+Every request in this guide goes to `https://api.valendata.com`. Send your key in either header:
+
+```http
+Authorization: Bearer vd_sk_YOUR_API_KEY
+```
+
+```http
+x-api-key: vd_sk_YOUR_API_KEY
+```
+
+The examples read the key from the `VALENDATA_API_KEY` environment variable.
+
+## 1. Create a skill from a task
+
+`POST /v1/skills` starts recording your task in a cloud browser. It answers at once with `202 Accepted` and a `creation_id`. Recording usually takes a few minutes.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `task` | string | Yes | What the skill does, in plain words. 3–2,000 characters. |
+| `start_url` | string | Yes | The `http` or `https` page the task starts on. |
+| `name` | string | No | Skill name, up to 100 characters. Made from the task if you leave it out. |
+| `inputs` | object | No | Up to 5 inputs, each mapped to the example value the recording uses, for example `{"city": "Austin"}`. Each example value must appear in what the browser types or opens. Inferred from the task if you leave it out. |
+| `output_fields` | object or array | No | Up to 25 columns, as `{"name": "description"}` or `["name", "rating"]`. Inferred from the task if you leave it out. |
+| `visibility` | string | No | `private` (default) or `public`. |
+
+Input and output names are converted to `snake_case`. For example, `Phone number` becomes `phone_number`.
+
+Send an `Idempotency-Key` header so a retried request does not start a second recording. The same key from the same account returns the creation that is already running, with `idempotent_replay: true`.
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/skills \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: dentists-austin-001" \
+  -d '{
+    "task": "Search for dentists in Austin and list them",
+    "start_url": "https://www.google.com/maps",
+    "inputs": {"city": "Austin"},
+    "output_fields": {"name": "business name", "rating": "star rating", "phone": "phone number"}
+  }'
+```
+
+```python Python
+import os
+import requests
+
+API = "https://api.valendata.com"
+HEADERS = {"Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}"}
+
+resp = requests.post(
+    f"{API}/v1/skills",
+    headers={**HEADERS, "Idempotency-Key": "dentists-austin-001"},
+    json={
+        "task": "Search for dentists in Austin and list them",
+        "start_url": "https://www.google.com/maps",
+        "inputs": {"city": "Austin"},
+        "output_fields": {"name": "business name", "rating": "star rating", "phone": "phone number"},
+    },
+)
+resp.raise_for_status()
+creation = resp.json()
+print(creation["creation_id"], creation["status"])
+```
+
+```typescript TypeScript
+const API = "https://api.valendata.com";
+const headers = {
+  Authorization: `Bearer ${process.env.VALENDATA_API_KEY}`,
+  "Content-Type": "application/json",
+};
+
+const resp = await fetch(`${API}/v1/skills`, {
+  method: "POST",
+  headers: { ...headers, "Idempotency-Key": "dentists-austin-001" },
+  body: JSON.stringify({
+    task: "Search for dentists in Austin and list them",
+    start_url: "https://www.google.com/maps",
+    inputs: { city: "Austin" },
+    output_fields: { name: "business name", rating: "star rating", phone: "phone number" },
+  }),
+});
+if (!resp.ok) throw new Error(`${resp.status} ${await resp.text()}`);
+const creation = await resp.json();
+console.log(creation.creation_id, creation.status);
+```
+
+</CodeGroup>
+
+```json 202 Accepted
+{
+  "creation_id": "sc_3f9a1c2b7d4e5f60",
+  "status": "queued",
+  "status_url": "/v1/skill-creations/sc_3f9a1c2b7d4e5f60",
+  "skill_id": null,
+  "slug": null,
+  "skill_url": null,
+  "run_url": null,
+  "error": null,
+  "inputs": {"city": "Austin"},
+  "output_fields": {"name": "business name", "rating": "star rating", "phone": "phone number"},
+  "credits_charged": 0,
+  "created_at": "2026-10-01T12:00:00Z",
+  "updated_at": "2026-10-01T12:00:00Z",
+  "idempotent_replay": false
+}
+```
+
+### Poll until it is ready
+
+Call `GET /v1/skill-creations/{creation_id}` every few seconds. `status` moves through these values:
+
+| Status | Meaning |
+| --- | --- |
+| `queued` | Waiting to start. |
+| `recording` | The cloud browser is doing the task. |
+| `validating` | The recording was saved as a skill. Valendata is running it once more to check that it works. `skill_id` and `slug` are now set. |
+| `ready` | The skill passed its check. `run_url` is set. |
+| `failed` | It did not work. `error` says why, and `diagnosis` says what was tried and gives example hints. |
+
+<CodeGroup>
+
+```python Python
+import time
+
+while creation["status"] not in ("ready", "failed"):
+    time.sleep(5)
+    creation = requests.get(f"{API}{creation['status_url']}", headers=HEADERS).json()
+
+if creation["status"] == "failed":
+    raise RuntimeError(creation["error"])
+slug = creation["slug"]
+```
+
+```typescript TypeScript
+let status = creation;
+while (!["ready", "failed"].includes(status.status)) {
+  await new Promise((r) => setTimeout(r, 5000));
+  status = await (await fetch(`${API}${status.status_url}`, { headers })).json();
+}
+if (status.status === "failed") throw new Error(status.error);
+const slug: string = status.slug;
+```
+
+</CodeGroup>
+
+**Limits on skill creation:**
+
+- You can have up to 2 recordings in progress at once. A third returns `429`.
+- You need at least 10 credits to start. Otherwise you get `402`.
+- A recording that has not finished within 30 minutes is marked `failed`. Start it again.
+- Recordings run in a fresh cloud browser and cannot sign in to websites. For a task that needs your login, record it in the app with your own browser. See [Recording a skill](/guides/recording-a-skill).
+
+## 2. Inspect the skill
+
+`GET /v1/skills/{slug}` returns the skill and its contract. A public skill needs no key. A private skill is visible only to people who may run it, and returns `404` to everyone else.
+
+```bash
+curl https://api.valendata.com/v1/skills/austin-dentists \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+The fields you need most:
+
+| Field | What it is |
+| --- | --- |
+| `input_schema` | JSON Schema (draft 2020-12) for the inputs. Lists each input's `type` (`string`, `number`, `integer`, or `boolean`), `description`, `default`, and an example. `required` lists the inputs you must send. Unknown inputs are refused (`additionalProperties: false`). |
+| `output_json_schema` | JSON Schema for the whole run result, including the shape of each row. |
+| `reliability` | `success_rate`, `health_status`, `total_runs`, `last_run_at`, `success_rate_20` and `heals_20` (over the last 20 runs), `last_success_at`, `last_failure_kind`. |
+| `recipe_version` / `pinned_recipe_version` | The live recipe version, and the version you pinned (or `null`). |
+| `fast_path` | A short description of the skill's fast path, for example `fast path: direct HTTP, ~0.3s`. `null` if the skill always uses the browser. |
+| `tiers` | Recent attempts, successes, and typical time for each way the skill can run. |
+| `api_endpoint`, `runs_endpoint`, `versions_endpoint` | The paths for sync runs, async runs, and versions. |
+
+```json Excerpt
+{
+  "slug": "austin-dentists",
+  "input_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "city": {"type": "string", "default": "Austin", "examples": ["Austin"]}
+    },
+    "required": [],
+    "additionalProperties": false
+  },
+  "reliability": {
+    "success_rate": 96.0,
+    "health_status": "healthy",
+    "total_runs": 50,
+    "success_rate_20": 95.0,
+    "heals_20": 1,
+    "last_failure_kind": "site_down"
+  },
+  "recipe_version": 3,
+  "pinned_recipe_version": null,
+  "fast_path": null
+}
+```
+
+## 3. Run it and wait for rows (sync)
+
+`POST /v1/skills/{slug}/run` runs the skill and answers when it finishes. Use it for quick skills and interactive use.
+
+Put the skill's inputs at the top level of the JSON body. You can also pass them as query parameters. These keys are run settings, not inputs:
+
+| Setting | Where | Notes |
+| --- | --- | --- |
+| `max_results` | Query | 0–500. `0` returns the whole list. Leave it out to use the skill's saved default. |
+| `max_pages` | Query or body | Page limit for skills that page through results. `0` means all pages. |
+| `version` | Query or body | Run a specific recipe version. See [Versions](#versions). |
+| `browser_type` | Body | `remote` (cloud browser), `extension` (your own browser through the Valendata extension), `local_profile`, or `none`. Leave it out to use the skill's saved setting. |
+| `profile_id` | Body | The browser profile to use for this run. |
+| `proxy_config` | Body | Region for this run (a country code, `random`, or `none`). |
+| `scrape_mode` | Body | `deep` or `flash`, for skills that support it. |
+
+Inputs are checked against `input_schema` before anything runs. A missing required input, a value of the wrong type, or an unknown key returns `422`, and the response lists every problem.
+
+<CodeGroup>
+
+```bash curl
+curl -X POST "https://api.valendata.com/v1/skills/austin-dentists/run?max_results=20" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"city": "Dallas"}'
+```
+
+```python Python
+resp = requests.post(
+    f"{API}/v1/skills/{slug}/run",
+    headers=HEADERS,
+    params={"max_results": 20},
+    json={"city": "Dallas"},
+    timeout=600,
+)
+resp.raise_for_status()
+result = resp.json()
+for row in result["data"]:
+    print(row)
+```
+
+```typescript TypeScript
+const run = await fetch(`${API}/v1/skills/${slug}/run?max_results=20`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({ city: "Dallas" }),
+});
+if (!run.ok) throw new Error(`${run.status} ${await run.text()}`);
+const result = await run.json();
+console.log(result.count, result.data);
+```
+
+</CodeGroup>
+
+```json 200 OK
+{
+  "status": "success",
+  "data": [
+    {"name": "Lone Star Dental", "rating": 4.8, "phone": "+1 214-555-0100"}
+  ],
+  "count": 1,
+  "execution_time_ms": 8400,
+  "error": null,
+  "credits_charged": 3,
+  "cost_usd": 0.03,
+  "drifted_fields": {},
+  "unverified_fields": {},
+  "rejected_values": [],
+  "truncated_sections": [],
+  "scrape_mode_used": null,
+  "triage_kind": "ok",
+  "recipe_version": 3,
+  "heal_kind": null,
+  "tier_used": "replay",
+  "tier_timings": [{"tier": "replay", "ok": true, "seconds": 8.4, "reason": null}]
+}
+```
+
+`status` is `success`, `partial`, or `failed`. The other fields tell you how much to trust the rows:
+
+| Field | Meaning |
+| --- | --- |
+| `drifted_fields` | Fields that look wrong this run, with the reason. |
+| `unverified_fields` | Fields Valendata has not yet proven it reads correctly. |
+| `rejected_values` | Values that did not appear on the page and were removed rather than returned. |
+| `truncated_sections` | Sections that had more data than this run collected. |
+| `triage_kind` | Why a run failed (`ok` if it did not). See [failure kinds](/concepts/keeping-skills-working#why-runs-fail). |
+| `heal_kind` | `fp` or `ai` if a repair became the skill's recipe during this run. |
+| `recipe_version` | The recipe version this run replayed. |
+| `tier_used`, `tier_timings` | Which way the skill ran (`fetch_direct`, `fetch_browser`, or `replay`), and every way it tried. |
+| `diagnosis` | Present when the run failed, or when a field came back on fewer than half the rows. See [Improve a skill](#5-improve-a-skill). |
+
+If your account already has as many runs in progress as it is allowed, a sync call does not wait. It returns `429` with a `Retry-After` header. Use an async run when you would rather queue.
+
+## 4. Run it in the background (async)
+
+`POST /v1/skills/{slug}/runs` starts a run and answers at once with `202 Accepted` and a `run_id`. If your account is at its limit of runs in progress, the run waits in a queue instead of failing. A run that waits longer than about an hour fails, and you are not charged.
+
+Body fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `inputs` | object | The skill's inputs. `parameters` is accepted as another name for it. |
+| `max_results` | integer | 0–500. `0` returns the whole list. |
+| `max_pages` | integer | `0` means all pages. |
+| `version` | integer | Recipe version to replay. Must exist, or you get `422`. |
+| `webhook_url` | string | A public URL that receives the finished run. See [Webhooks](#webhooks). |
+| `browser_type`, `profile_id`, `proxy_config`, `scrape_mode` | string | Same as for sync runs. |
+
+Send an `Idempotency-Key` header to make retries safe. The same key from the same account returns the run that already started, with `idempotent_replay: true`.
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/runs \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: order-1234" \
+  -d '{"inputs": {"city": "Houston"}, "max_results": 50, "webhook_url": "https://example.com/hooks/valendata"}'
+
+# → 202 {"run_id": "run_8c1d2e3f4a5b", "status": "queued", "poll_url": "/v1/runs/run_8c1d2e3f4a5b", "idempotent_replay": false}
+
+curl https://api.valendata.com/v1/runs/run_8c1d2e3f4a5b \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+```python Python
+start = requests.post(
+    f"{API}/v1/skills/{slug}/runs",
+    headers={**HEADERS, "Idempotency-Key": "order-1234"},
+    json={"inputs": {"city": "Houston"}, "max_results": 50},
+)
+start.raise_for_status()
+poll_url = start.json()["poll_url"]
+
+while True:
+    run = requests.get(f"{API}{poll_url}", headers=HEADERS).json()
+    if run["status"] not in ("queued", "running"):
+        break
+    time.sleep(3)
+
+print(run["status"], run["count"], run["rows"][:3])
+```
+
+```typescript TypeScript
+const start = await fetch(`${API}/v1/skills/${slug}/runs`, {
+  method: "POST",
+  headers: { ...headers, "Idempotency-Key": "order-1234" },
+  body: JSON.stringify({ inputs: { city: "Houston" }, max_results: 50 }),
+});
+const { poll_url } = await start.json();
+
+let runStatus: any;
+do {
+  await new Promise((r) => setTimeout(r, 3000));
+  runStatus = await (await fetch(`${API}${poll_url}`, { headers })).json();
+} while (["queued", "running"].includes(runStatus.status));
+
+console.log(runStatus.status, runStatus.count, runStatus.rows);
+```
+
+</CodeGroup>
+
+`GET /v1/runs/{run_id}` returns `status` (`queued`, `running`, `success`, `partial`, `failed`, or `cancelled`). When the run is finished, it also returns the result. The result has the same fields as a sync run, except that the rows are in **`rows`** (not `data`). It also includes `run_id`, `skill_id`, `skill_slug`, and `created_at`. You can read a run if you started it or if you own the skill.
+
+### Webhooks
+
+If you set `webhook_url`, Valendata sends the finished run to it as a `POST` request with a JSON body. The body is the run result: `run_id`, `status`, `rows`, `count`, `execution_time_ms`, `error`, `credits_charged`, `cost_usd`, and the trust and version fields described above.
+
+- `webhook_url` must use `http` or `https` and point to a public host. Private, loopback, and internal addresses are refused with `422`. Use `https`.
+- Delivery times out after 15 seconds. Redirects are not followed.
+- A network error or a `5xx` response is retried up to two more times, a few seconds apart. A `4xx` response is not retried.
+- Return any `2xx` status quickly, then do your work.
+
+Each delivery is signed. Get your signing secret once with `GET /v1/webhooks/secret`:
+
+```bash
+curl https://api.valendata.com/v1/webhooks/secret \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+# → {"secret": "…", "signature_header": "X-Valendata-Signature", "algorithm": "HMAC-SHA256 over '<timestamp>.<raw body>'"}
+```
+
+Every delivery has these headers:
+
+```http
+X-Valendata-Timestamp: 1759320000
+X-Valendata-Signature: v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+```
+
+The signature is `v1=` followed by the hex HMAC-SHA256 of `"<timestamp>.<raw body>"`, keyed with your secret. To verify a delivery:
+
+1. Compute the signature over the **raw** request body. Do not parse and re-serialize the JSON first.
+2. Compare it with the header using a constant-time comparison.
+3. Reject deliveries whose timestamp is more than 5 minutes away from now. This stops replays.
+
+<CodeGroup>
+
+```python Python
+import hashlib
+import hmac
+import time
+
+
+def verify_valendata(secret: str, timestamp: str, raw_body: bytes, signature: str, tolerance_s: int = 300) -> bool:
+    try:
+        ts = int(timestamp)
+    except (TypeError, ValueError):
+        return False
+    if abs(int(time.time()) - ts) > tolerance_s:
+        return False
+    digest = hmac.new(secret.encode(), f"{ts}.".encode() + raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"v1={digest}", signature or "")
+
+
+# Flask example
+# @app.post("/hooks/valendata")
+# def hook():
+#     ok = verify_valendata(
+#         SECRET,
+#         request.headers.get("X-Valendata-Timestamp"),
+#         request.get_data(),
+#         request.headers.get("X-Valendata-Signature"),
+#     )
+#     if not ok:
+#         abort(401)
+#     run = request.get_json()
+#     ...
+#     return "", 204
+```
+
+```typescript TypeScript
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+export function verifyValendata(
+  secret: string,
+  timestamp: string | null,
+  rawBody: Buffer,
+  signature: string | null,
+  toleranceS = 300,
+): boolean {
+  const ts = Number(timestamp);
+  if (!Number.isInteger(ts) || !signature) return false;
+  if (Math.abs(Math.floor(Date.now() / 1000) - ts) > toleranceS) return false;
+  const digest = createHmac("sha256", secret)
+    .update(Buffer.concat([Buffer.from(`${ts}.`), rawBody]))
+    .digest("hex");
+  const expected = Buffer.from(`v1=${digest}`);
+  const given = Buffer.from(signature);
+  return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+// Express example: use express.raw() so you get the exact bytes that were signed.
+// app.post("/hooks/valendata", express.raw({ type: "application/json" }), (req, res) => {
+//   if (!verifyValendata(SECRET, req.get("X-Valendata-Timestamp") ?? null, req.body, req.get("X-Valendata-Signature") ?? null)) {
+//     return res.sendStatus(401);
+//   }
+//   const run = JSON.parse(req.body.toString("utf8"));
+//   res.sendStatus(204);
+// });
+```
+
+</CodeGroup>
+
+## 5. Improve a skill
+
+You can change a skill the way you would coach a person: tell it, in plain English, what you want. One request, `POST /v1/skills/{slug}/improve`, does three jobs. Pick one with `mode`:
+
+| `mode` | Use it when | `feedback` |
+| --- | --- | --- |
+| `fix` (default) | A field comes back empty, for example `phone` is blank on every row because the number is only on each place's details page. | Required. Where the data is. |
+| `add_fields` | You want the skill to capture new fields, for example "also capture the star rating and review count". | Required. The fields you want. |
+| `relearn_details` | The site changed, or the fields the skill reads from each result's details page or panel come back empty. It rebuilds how the skill opens each result. | Optional. A note. |
+
+### Read the diagnosis
+
+A run that failed, or that came back with a field on fewer than half the rows, carries a `diagnosis`. It is on the sync result, on `GET /v1/runs/{run_id}`, on a failed `GET /v1/skill-creations/{creation_id}`, and on the MCP tool result.
+
+```json
+"diagnosis": {
+  "rows": 5,
+  "missing_fields": ["phone"],
+  "per_field": {
+    "phone": {
+      "filled": "0/5",
+      "filled_count": 0,
+      "total": 5,
+      "where_tried": ["the result cards"],
+      "evidence": "blank on all 5 rows"
+    }
+  },
+  "triage_kind": "missing_fields",
+  "what_we_tried": ["replayed the recorded steps in a browser (4 step(s))", "read each result card with learned selectors"],
+  "suggested_hint_examples": [
+    "The phone is on each result's details page — click the result's name; the panel or page that opens shows the phone next to its icon."
+  ],
+  "summary": "phone: found on 0/5 rows — tried the result cards"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `missing_fields` | Fields fewer than half the rows came back with. |
+| `per_field` | Every field some rows lacked: how many rows had it, where the skill looked (`the result cards`, `each row's details page`, `each row's opened panel`, `an AI read of the page text`), and why. |
+| `triage_kind` | `missing_fields`, a [failure kind](/concepts/keeping-skills-working#why-runs-fail), or `recording_failed` for a creation. |
+| `what_we_tried` | What the run did, in plain words. |
+| `suggested_hint_examples` | Hints in the shape `improve` takes. For `blocked` or `logged_out`, it says a hint will not help. |
+
+### Start an improvement
+
+`POST /v1/skills/{slug}/improve` answers at once with `202 Accepted` and an `improvement_id`. Only the skill's owner or an editor of its workspace can improve it. Drafts are allowed, so you can fix a skill that failed its first check.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `mode` | string | No | `fix` (default), `add_fields`, or `relearn_details`. |
+| `feedback` | string | For `fix` and `add_fields` | 3–2,000 characters. For `fix`: what is wrong and where the data is. For `add_fields`: the new fields you want. For `relearn_details`: an optional note. |
+| `fields` | string[] | No | Up to 10 field names. For `fix`: the fields the hint is about (leave it out to use the diagnosis's `missing_fields`, or the fields the hint names). For `add_fields`: names for the new fields (leave it out and Valendata names them). |
+| `example_input` | object | No | Inputs for the check run. Leave it out to use the skill's recorded example. |
+
+Send an `Idempotency-Key` header to make retries safe: the same key returns the same improvement.
+
+#### Fix a missing field
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/improve \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: fix-phone-1" \
+  -d '{
+    "mode": "fix",
+    "feedback": "The phone is on the details page — click the place name, the panel opens, the number is next to the phone icon.",
+    "fields": ["phone"]
+  }'
+# → 202 {"improvement_id": "imp_3f9a…", "status": "queued", "mode": "fix", "status_url": "/v1/skill-improvements/imp_3f9a…", …}
+```
+
+#### Add new fields
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/improve \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "add_fields",
+    "feedback": "Also capture the star rating and review count."
+  }'
+```
+
+Before it learns anything, Valendata compares your request with the fields the skill already has:
+
+- A field that is only a new name for one it already has (say `stars` when the skill has `rating`) is merged into the existing field. It is listed in `details.merged`.
+- A field that is unclear comes back as a question in `details.ambiguous` and is not learned. Answer the question in a new request.
+- Only fields that are really new are learned. They are listed in `details.new_fields`.
+
+#### Re-learn the detail steps
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/improve \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "relearn_details",
+    "feedback": "The site now opens each place in a side panel instead of a new page."
+  }'
+```
+
+#### Poll until it ends
+
+```python Python
+imp = requests.post(
+    f"{API}/v1/skills/{slug}/improve",
+    headers={**HEADERS, "Idempotency-Key": "fix-phone-1"},
+    json={"mode": "fix",
+          "feedback": "The phone is on the details page — click the place name, "
+                      "the panel opens, the number is next to the phone icon.",
+          "fields": ["phone"]},
+).json()
+
+while imp["status"] not in ("done", "failed"):
+    time.sleep(10)
+    imp = requests.get(f"{API}{imp['status_url']}", headers=HEADERS).json()
+print(imp["result"], imp["changes"], imp["outcome"])
+```
+
+### What happens
+
+1. **Plan.** Valendata picks the fields to work on and how. In `fix` mode, if the skill returns rows but misses fields, it relearns where those fields live; if it returns no rows at all, an AI agent redoes the steps, guided by your hint. In `add_fields` mode, it checks your request against the skill's fields first, as described above.
+2. **Learn.** A cloud browser opens the site and relearns the skill: the page itself, the per-result details page or panel, and any "show more" step. The change is saved as a new recipe version, tagged with the improvement's id and mode, so nothing is lost.
+3. **Check.** One short run (up to 5 rows) tests the new version.
+4. **Keep the better one.** The new version stays live only if it is better:
+   - `fix`: the target fields fill on more rows, and no other field broke.
+   - `add_fields`: the new fields fill in the check run.
+   - `relearn_details`: the detail fields fill at least as well as before.
+
+   If not, the attempt is saved as a **candidate** version (not live), the old version stays live, and `outcome` says why. A draft skill whose check passes goes live.
+
+Poll `GET /v1/skill-improvements/{improvement_id}`. `status` moves through `queued`, `working`, `validating`, then `done` or `failed`.
+
+```json
+{
+  "improvement_id": "imp_3f9a…",
+  "mode": "add_fields",
+  "source": "api",
+  "status": "done",
+  "result": "improved",
+  "improved": true,
+  "target_fields": ["review_count"],
+  "changes": [{"field": "review_count", "before": "0/5", "after": "5/5", "improved": true}],
+  "details": {
+    "new_fields": ["review_count"],
+    "merged": [{"proposed": "star rating", "into": "rating", "note": "the skill already captures the rating"}],
+    "ambiguous": [],
+    "diff_summary": "added field review_count"
+  },
+  "recipe_version_before": 4,
+  "recipe_version": 7,
+  "candidate_version": null,
+  "outcome": "Improved: filled review_count: 0/5 → 5/5. …",
+  "credits_charged": 41
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `mode` | `fix`, `add_fields`, or `relearn_details`. |
+| `result` | `running`, `improved` (the new version is live), `kept_old` (not better, so the old version stayed live), `no_change`, `failed`, or `applied` (an imported past Refine, applied without a check run). |
+| `improved` | `true` if the new version is live. `false` if it was kept as a candidate. |
+| `changes` | Each target field, rows filled before → after. |
+| `details` | `new_fields` added, `merged` duplicates (`proposed` → `into`), `ambiguous` requests with a `question`, and a one-line `diff_summary`. |
+| `recipe_version` | The live version when the improvement ended. |
+| `candidate_version` | The version kept but not made live, when it did not help. You can diff and restore it. |
+| `outcome` | What happened and why, in words. |
+| `diagnosis`, `diagnosis_after` | The diagnosis it started from, and the check run's diagnosis if fields are still missing. |
+
+### See what has changed
+
+`GET /v1/skills/{slug}/improvements?limit=20` returns the skill's change history, newest first (`limit` 1–50, default 5). It holds every fix, added field and re-learn by anyone who can edit the skill (its owner or a workspace editor), whether started from the API, MCP, Igris, the web app, or the workflow Brain chat. `source` and `started_by_name` say where and who. Past Refine and Re-learn changes from before are included too, with `imported: true` and `result: "applied"`.
+
+**Limits on improvements:** one improvement at a time for your account, one at a time for each skill (`409` while one runs), up to 6 an hour (`429`), and at least 10 credits to start (`402`). Every mode runs a cloud browser, the AI model, and the check run; all of it is charged to you and reported in `credits_charged`.
+
+## Versions
+
+Every change to a skill's recipe is saved as a numbered version: the first recording, each repair, each edit, and each restore. Each version records the reason it was made and the run that caused it.
+
+| Request | What it does | Who can do it |
+| --- | --- | --- |
+| `GET /v1/skills/{slug}/versions` | Lists versions, newest first. Shows which one is live (`is_live`) and which is pinned (`is_pinned`). | Anyone who may run the skill |
+| `GET /v1/skills/{slug}/versions/{a}/diff/{b}` | Shows what changed from version `a` to `b`: changed settings (`fields`), added, removed, and changed steps (`actions`), and a one-line `summary`. | Anyone who may run the skill |
+| `POST /v1/skills/{slug}/versions/{n}/restore` | Makes version `n` the live recipe. The restore is saved as a new version, so nothing is lost. | The owner, or a workspace editor |
+| `PUT /v1/skills/{slug}/pin` | Body `{"version": n}` pins the skill to version `n`. `{"version": null}` unpins it. | The owner, or a workspace editor |
+
+To run a particular version for one call, without pinning, pass `version`: in the query or body of a sync run, in the body of an async run, or as the `version` argument of a `skill_<slug>` MCP tool. Without it, a run uses the pinned version if there is one, otherwise the live version.
+
+```bash
+# Pin to version 3 while you investigate a change
+curl -X PUT https://api.valendata.com/v1/skills/austin-dentists/pin \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"version": 3}'
+# → {"skill_slug": "austin-dentists", "pinned_recipe_version": 3, "recipe_version": 4}
+```
+
+While a skill is pinned, automatic repairs do not replace the version it runs. They are saved as candidate versions for you to review, diff, and restore if you want them.
+
+## Health
+
+`GET /v1/skills/{slug}/health` shows how a skill has been doing. A public skill's health needs no key. A private skill's health is visible only to people who may run it.
+
+| Field | Meaning |
+| --- | --- |
+| `success_rate_20` | Percent of the last 20 finished runs that worked. |
+| `heals_20` | How many of those runs needed a repair. |
+| `last_success_at` | When it last worked. |
+| `last_failure_kind` | Why the latest failure in that window failed. |
+| `recipe_version` | The version runs replay. |
+| `fast_path` | `{tier, status, median_seconds, description}` if the skill has a fast path, otherwise `null`. |
+| `tiers` | For each way the skill can run: `attempts`, `ok`, `success_rate`, `median_seconds`, and `status` (`healthy` or `broken`). |
+
+## Fast path
+
+Many websites load their data from their own backend after the page opens. When a skill runs in the cloud browser, Valendata watches for a request that clearly carries the rows the skill returns. If it finds one, it tries calling that request directly, alongside normal runs. If the results keep matching, that request becomes the skill's **fast path**, and is saved as a new version.
+
+After that, a run tries the fast path first:
+
+1. `fetch_direct`: one HTTP request, with no browser.
+2. `fetch_browser`: the same request, made from inside a browser.
+3. `replay`: the full recorded steps in a browser.
+
+If the fast path stops working, the run moves to the next step within the same call, so you still get rows. A fast path that keeps failing is paused, and runs use the browser until it is proven again. `tier_used` on each result tells you which step answered.
+
+## Self-healing
+
+Websites change. When a run fails, Valendata works out why before it tries to fix anything:
+
+1. **Triage.** It sorts the failure into a kind, such as `site_down`, `blocked`, `logged_out`, `page_not_loaded`, `element_changed`, or `extraction_drift`. Failures caused by the site, access, or sign-in (`site_down`, `blocked`, `logged_out`, `page_not_loaded`) are not "repaired". The run fails honestly and tells you why. A `logged_out` failure also sends you a notice to sign in again.
+2. **Code fixes first.** Only `element_changed` and `extraction_drift` failures are repaired. If a recorded element changed, Valendata first tries to find it again by its saved fingerprint. This is a quick, cheap fix that does not use an AI model (`heal_kind: "fp"`).
+3. **Verified AI repair.** If that does not work, an AI agent redoes the step (`heal_kind: "ai"`). The result is accepted only if it is proven on the rows it produces. The rows must exist, must not be empty, must match the output contract, and must not be clearly worse than the skill's recent good runs. AI repairs are limited per skill per day.
+4. **New version.** An accepted repair is saved as a new recipe version. You can see it in `versions`, diff it, and restore an earlier version at any time.
+
+Read more in [How Valendata keeps skills working](/concepts/keeping-skills-working).
+
+## Errors
+
+Errors return JSON with a `detail` field.
+
+| Status | When | What to do |
+| --- | --- | --- |
+| `401` | The key is missing, malformed, revoked, or expired. | Check the `Authorization` or `x-api-key` header. |
+| `402` | Not enough credits to start (for example, creating a skill needs at least 10). `detail` includes `current_balance` and `required`. | Top up, then retry. |
+| `403` | You may not run this skill, the skill is not published or active, or only the owner can do this (restore or pin). | Check the skill's owner and visibility. |
+| `404` | The skill, run, creation, or version does not exist, or is private and not yours. | Check the slug or ID. |
+| `422` | The inputs do not match `input_schema`, the `version` does not exist, or `webhook_url` is not allowed. | Fix the request. See the example below. |
+| `409` | The skill is already being improved. | Poll that improvement, then try again. |
+| `429` | Too many requests for your key, too many runs in progress, too many recordings or improvements in progress. | Wait for `Retry-After` seconds (when present), or use an async run. |
+
+A `422` for bad inputs lists every problem and the inputs the skill accepts:
+
+```json
+{
+  "detail": {
+    "message": "Invalid inputs for this skill.",
+    "errors": ["Unknown input(s): town. This skill accepts: city."],
+    "allowed_inputs": [
+      {"name": "city", "type": "string", "required": false, "default": "Austin", "description": null}
+    ]
+  }
+}
+```
+
+A `429` because too many runs are in progress has a `Retry-After` header and a structured body:
+
+```json
+{
+  "detail": {
+    "error": "capacity",
+    "message": "…",
+    "lane": "browser",
+    "scope": "tenant",
+    "retry_after": 30,
+    "hint": "Or start it with POST /v1/skills/{slug}/runs — async runs queue instead of failing."
+  }
+}
+```
+
+A `429` from the per-key rate limit has `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` headers.
+
+## Limits and billing
+
+- **Request rate per API key:** 30 requests a minute on the Free plan, and 120 a minute on paid plans. The limit resets every minute.
+- **Runs in progress:** each account has a limit on how many runs can be in progress at once. Sync calls over the limit get `429`. Async runs queue.
+- **Rows per call:** `max_results` goes up to 500. `0` returns the whole list.
+- **Skill creation:** up to 2 recordings in progress at once, and at least 10 credits to start.
+- **Improvements:** one in progress per account and per skill, up to 6 an hour, and at least 10 credits to start.
+- **Billing:** runs use credits for browser time, AI model use, and rows returned, as listed in [Credits and billing](/credits-and-billing). Every result reports `credits_charged` and `cost_usd`. A request refused before it starts (`401`, `403`, `404`, `422`, or `429`) does not run anything.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Connect your AI assistant" icon="plug" href="/integrations/connect-ai-assistants">
+    Use your skills as tools in Claude, ChatGPT, Meta Muse, or Cursor.
+  </Card>
+  <Card title="How skills keep working" icon="shield-check" href="/concepts/keeping-skills-working">
+    Versions, triage, repairs, and the fast path.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/skills/create">
+    Every endpoint and field.
+  </Card>
+  <Card title="Credits and billing" icon="coins" href="/credits-and-billing">
+    What each run costs.
+  </Card>
+</CardGroup>

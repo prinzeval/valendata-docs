@@ -1,0 +1,15 @@
+---
+title: "Improve a skill"
+description: "Fix a field, add new fields, or re-learn how a skill opens each result. A cloud browser relearns it, a short check run tests it, and it goes live only if it is better."
+openapi: "POST /v1/skills/{slug}/improve"
+---
+
+Pick what to do with `mode`:
+
+- **`fix`** (default): a run's `diagnosis` shows a field missing, for example `phone: found on 0/5 rows — tried the result cards`. Say where the data is, the way you would tell a person: "The phone is on the details page — click the place name, the panel opens, the number is next to the phone icon."
+- **`add_fields`**: capture new fields, for example "also capture the star rating and review count". A field that is only a new name for one the skill already has is merged into it (`details.merged`). An unclear one comes back as a question (`details.ambiguous`). Only really new fields are learned.
+- **`relearn_details`**: rebuild how the skill opens each result, when the site changed or the fields from each result's details page come back empty. `feedback` is an optional note.
+
+`feedback` is required for `fix` and `add_fields`, and optional for `relearn_details`.
+
+The call answers at once. Poll [`GET /v1/skill-improvements/{improvement_id}`](/api-reference/skill-improvements/get) until `status` is `done` or `failed`. If the check run does not show the new version is better, the attempt is kept as a candidate version and the old version stays live. Every change shows up in the skill's [change history](/api-reference/skill-improvements/list). See [Improve a skill](/guides/web-to-api#5-improve-a-skill) for full examples.

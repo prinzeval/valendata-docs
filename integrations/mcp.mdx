@@ -34,11 +34,11 @@ For a client that takes a remote MCP server directly:
 
 The first time the client connects, your browser opens a Valendata consent screen listing exactly what the client is asking for. You approve or decline, and the client stores the resulting token itself.
 
-<Warning>
-  Valendata's MCP server does not take an API key. Authorisation is OAuth 2.1 with PKCE, so a client never holds your password and you can withdraw its access at any time from Settings → Connectors without rotating anything else. Your `val_live_…` API key is for the [REST API](/api-reference/introduction), not for MCP.
-</Warning>
+<Note>
+  Authorisation is OAuth 2.1 with PKCE, so a client never holds your password and you can withdraw its access at any time from Settings → Connectors. If a client cannot do OAuth, it can send a Valendata API key instead (`Authorization: Bearer vd_sk_…`). An API key carries every scope, so prefer OAuth when you want to limit what an assistant can do. Step-by-step setup for Claude, ChatGPT, Meta Muse, and Cursor is in [Connect your AI assistant](/integrations/connect-ai-assistants).
+</Note>
 
-A client that speaks Streamable HTTP rather than SSE can use `https://api.valendata.com/mcp` instead. Both serve the same tools.
+Most current clients (Claude, ChatGPT, Cursor) use Streamable HTTP at `https://api.valendata.com/mcp`. Use `/mcp/sse` only for clients that support SSE alone. Both serve the same tools.
 
 ## Permissions
 
@@ -49,7 +49,7 @@ You grant scopes at the consent screen, and each tool checks the one it needs. G
 | `workflows:read` | See your published workflows and read run results |
 | `workflows:invoke` | Start a workflow. Spends credits |
 | `skills:read` | See your skills and their details |
-| `skills:invoke` | Run a skill. Spends credits |
+| `skills:invoke` | Run a skill, create one with `create_skill`, or fix, extend, or re-learn one with `improve_skill`. Spends credits |
 | `knowledge:read` | Read facts from your knowledge base |
 | `knowledge:write` | Save and update facts in your knowledge base |
 
@@ -78,11 +78,31 @@ The two `invoke` scopes are the ones that cost money. Everything they run is bil
 ### Skills
 
 <ResponseField name="list_skills" type="no arguments">
-  Every skill you own, public and private. Needs `skills:read`.
+  Your active skills, public and private, with the id each one is run by. Needs `skills:read`.
 </ResponseField>
 
-<ResponseField name="invoke_skill" type="skill_id, params?">
-  Runs a skill and returns the extracted rows directly, capped at 50 per call. Pass the skill's inputs as key/value pairs in `params`. Needs `skills:invoke`.
+<ResponseField name="invoke_skill" type="skill_id, params?, max_results?">
+  Runs a skill and returns the extracted rows directly. Pass the skill's inputs as key/value pairs in `params`. `max_results` is 0–500 (`0` returns the whole list); leave it out to use the skill's saved default. Needs `skills:invoke`.
+</ResponseField>
+
+<ResponseField name="skill_<slug>" type="the skill's own inputs, max_results?, version?">
+  One tool per skill you own or that is shared into your workspace, with the skill's typed input and output schema and a short track record in its description. Prefer these over `invoke_skill`. Listing them needs `skills:read`; calling them needs `skills:invoke`.
+</ResponseField>
+
+<ResponseField name="create_skill" type="task, start_url, name?, inputs?, output_fields?, idempotency_key?">
+  Records the task in a cloud browser and publishes it as a private skill. Returns a `creation_id` at once. Needs `skills:invoke` and spends credits.
+</ResponseField>
+
+<ResponseField name="get_skill_creation" type="creation_id">
+  Status of a `create_skill` request: `queued`, `recording`, `validating`, `ready`, or `failed`. Needs `skills:invoke`.
+</ResponseField>
+
+<ResponseField name="improve_skill" type="skill, mode?, feedback, fields?, example_input?, idempotency_key?">
+  Changes one of your skills. `mode` is `fix` (default: a plain-English hint about where missing data is, "the phone is on the details page — click the place name…"), `add_fields` (capture new fields you describe, "also capture the star rating and review count"), or `relearn_details` (rebuild how it opens each result, when the site changed; `feedback` optional). A cloud browser relearns it and a short check run tests the new version; it goes live only if it is better, otherwise it is kept as a candidate. Returns an `improvement_id` at once. Owner or workspace editor only. Needs `skills:invoke` and spends credits.
+</ResponseField>
+
+<ResponseField name="get_skill_improvement" type="improvement_id">
+  Status of an `improve_skill` request: `queued`, `working`, `validating`, `done`, or `failed`, with its `mode`, `result`, each target field's rows before → after, and any added, merged, or unclear fields in `details`. Needs `skills:invoke`.
 </ResponseField>
 
 ### Knowledge base

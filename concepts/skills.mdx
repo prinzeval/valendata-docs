@@ -37,12 +37,11 @@ Skills are published from **Configs**. A Config is a saved recording of a browse
 
 ## The Workspace tab
 
-The Workspace tab is where you run the Skill manually and refine its output.
+The Workspace tab is where you run the Skill manually and improve it.
 
 - **Run** — fill in parameter values and trigger the Skill. Output appears inline as structured data.
 - **Suggest** — generates example input values and defines the output contract based on the Skill's recording, so you can validate what the Skill is expected to return.
-- **Enrich** — if the run returns incomplete data, use Enrich to fill gaps using additional AI-powered extraction passes.
-- **Refine** — adjusts and cleans the output shape after a run, without re-executing the full browser session.
+- **Improve** — tell the Skill what to change in plain English, and pick a mode: **Fix missing data** (a field comes back empty, so say where the data is), **Add fields** (capture new fields, such as "also capture the star rating and review count"), or **Re-learn detail steps** (the site changed, so rebuild how the Skill opens each result). A cloud browser relearns the Skill and a short check run tests it; the new version goes live only if it is better. You can also ask Igris to do it, or use the [API](/guides/web-to-api#5-improve-a-skill). Every change, by anyone who can edit the Skill, is listed in its change history.
 
 ## Running a Skill
 

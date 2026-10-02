@@ -1,22 +1,7 @@
 ---
-title: "Create Skill"
-api: "POST https://api.valendata.com/v1/skills"
-description: "Programmatically define and save a new skill."
+title: "Create a skill from a task"
+description: "Record a plain-language task in a cloud browser and publish it as a typed, versioned skill. Answers at once with a creation id to poll."
+openapi: "POST /v1/skills"
 ---
 
-
-Saves a new skill configuration into your workspace.
-
-### Body
-
-<ParamField body="name" type="string" required>
-  Human-readable title of the skill.
-</ParamField>
-
-<ParamField body="task" type="string" required>
-  Natural language instruction template with parameter placeholders.
-</ParamField>
-
-<ParamField body="is_published" type="boolean" default="false">
-  Whether this skill is publicly discoverable via URL slug.
-</ParamField>
+Recording usually takes a few minutes. Poll [`GET /v1/skill-creations/{creation_id}`](/api-reference/skill-creations/get) until `status` is `ready` or `failed`. See [Create a skill from a task](/guides/web-to-api#1-create-a-skill-from-a-task) for a full example.
