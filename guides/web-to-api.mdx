@@ -307,8 +307,8 @@ console.log(result.count, result.data);
 | `triage_kind` | Why a run failed (`ok` if it did not). See [failure kinds](/concepts/keeping-skills-working#why-runs-fail). |
 | `heal_kind` | `fp` or `ai` if a repair became the skill's recipe during this run. |
 | `recipe_version` | The recipe version this run replayed. |
-| `tier_used`, `tier_timings` | Which way the skill ran (`fetch_direct`, `fetch_browser`, or `replay`), and every way it tried. |
-| `diagnosis` | Present when the run failed, or when a field came back on fewer than half the rows. See [Improve a skill](#5-improve-a-skill). |
+| `tier_used`, `tier_timings` | Which way the skill ran (`fetch_direct`, `fetch_browser`, `html_direct`, or `replay`), and every way it tried. |
+| `diagnosis` | Present when the run failed, when a field came back on fewer than half the rows, or when the rows look wrong. See [Improve a skill](#5-improve-a-skill). |
 
 If your account already has as many runs in progress as it is allowed, a sync call does not wait. It returns `429` with a `Retry-After` header. Use an async run when you would rather queue.
 
@@ -493,7 +493,7 @@ You can change a skill the way you would coach a person: tell it, in plain Engli
 
 ### Read the diagnosis
 
-A run that failed, or that came back with a field on fewer than half the rows, carries a `diagnosis`. It is on the sync result, on `GET /v1/runs/{run_id}`, on a failed `GET /v1/skill-creations/{creation_id}`, and on the MCP tool result.
+A run that failed, that came back with a field on fewer than half the rows, or whose rows look wrong, carries a `diagnosis`. It is on the sync result, on `GET /v1/runs/{run_id}`, on a failed `GET /v1/skill-creations/{creation_id}`, and on the MCP tool result.
 
 ```json
 "diagnosis": {
@@ -521,7 +521,8 @@ A run that failed, or that came back with a field on fewer than half the rows, c
 | --- | --- |
 | `missing_fields` | Fields fewer than half the rows came back with. |
 | `per_field` | Every field some rows lacked: how many rows had it, where the skill looked (`the result cards`, `each row's details page`, `each row's opened panel`, `an AI read of the page text`), and why. |
-| `triage_kind` | `missing_fields`, a [failure kind](/concepts/keeping-skills-working#why-runs-fail), or `recording_failed` for a creation. |
+| `triage_kind` | `missing_fields`, `suspect_rows`, a [failure kind](/concepts/keeping-skills-working#why-runs-fail), or `recording_failed` for a creation. |
+| `quality_flags` | Rows that came back but look wrong: `repeated_rows`, `pagination_overlap` or `placeholder_values`, each with a `severity` (`fail` or `warn`) and a `message`. See [Rows that look wrong](/concepts/keeping-skills-working#rows-that-look-wrong). |
 | `what_we_tried` | What the run did, in plain words. |
 | `suggested_hint_examples` | Hints in the shape `improve` takes. For `blocked` or `logged_out`, it says a hint will not help. |
 
@@ -699,11 +700,14 @@ While a skill is pinned, automatic repairs do not replace the version it runs. T
 
 Many websites load their data from their own backend after the page opens. When a skill runs in the cloud browser, Valendata watches for a request that clearly carries the rows the skill returns. If it finds one, it tries calling that request directly, alongside normal runs. If the results keep matching, that request becomes the skill's **fast path**, and is saved as a new version.
 
+Some websites send the rows inside the page itself instead. For these, Valendata checks whether the list page can be downloaded without a browser and read the same way. The page address must follow the skill's inputs, and the rows must match. If they keep matching, the page download becomes the fast path.
+
 After that, a run tries the fast path first:
 
 1. `fetch_direct`: one HTTP request, with no browser.
 2. `fetch_browser`: the same request, made from inside a browser.
-3. `replay`: the full recorded steps in a browser.
+3. `html_direct`: the list page's HTML, downloaded with no browser, through the skill's own proxy, without your cookies.
+4. `replay`: the full recorded steps in a browser.
 
 If the fast path stops working, the run moves to the next step within the same call, so you still get rows. A fast path that keeps failing is paused, and runs use the browser until it is proven again. `tier_used` on each result tells you which step answered.
 

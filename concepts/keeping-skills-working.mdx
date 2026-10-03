@@ -56,7 +56,7 @@ A repair is accepted only if the rows it produces pass these checks:
 - Rows exist.
 - The contracted fields are not all empty.
 - Every row has every field in the skill's output contract.
-- The result is not clearly worse than the skill's own recent good runs for the same inputs.
+- The result is not clearly worse than any of the skill's last five good runs. A good run with the same inputs is compared on row count and fields. A good run with other inputs is compared on the fields both share: a field that run filled on most rows must not come back nearly empty. This uses what those runs already stored. No extra run is made.
 
 A repair that fails these checks is thrown away, and the run reports the failure honestly. A repair that passes becomes a new version. You can review it, compare it, and roll it back.
 
@@ -69,15 +69,38 @@ Every result also says how far you can trust each field:
 - `rejected_values`: values that did not appear on the page. They are removed, not returned.
 - `truncated_sections`: sections that had more data than this run collected.
 
+### Rows that look wrong
+
+A run can return rows that are not really data. Valendata checks the rows of every run, and of every test before a skill goes live, using only that one run:
+
+- **Repeated rows**: most rows, or every row, are the same record. This usually means the skill reads one card over and over. Valendata counts this before it removes duplicates, so the problem is not hidden.
+- **Pages that repeat**: page 2 repeats the rows of page 1. This usually means the next-page step reloads the same page.
+- **Placeholder values**: a field holds text like "See options", "N/A" or "—", or its own label, on most rows.
+
+These show in the run's `diagnosis` as `quality_flags`. A test does not accept a skill whose rows are all the same record. The other checks are warnings shown next to the rows.
+
+## Cookie and consent banners
+
+When a skill runs in a cloud browser, Valendata clears cookie and consent banners after each page load. It recognizes common consent tools (OneTrust, Cookiebot, Didomi, Quantcast, TrustArc and others), Google's "Before you continue" page, and other cookie pop-ups in several languages. It clicks the site's own button. By default this is "Reject all" or "Only necessary", and "Accept" if there is no reject button. This uses no AI model.
+
+A recorded click on a consent button, such as "Accept all", is optional. If the banner is not there, the step is skipped. It does not fail the run or start a repair. Your own Chrome is never changed: banners are only cleared in the cloud browser.
+
 ## Fast path
 
 Many websites load their data from their own backend after the page opens. When a skill runs in a cloud browser, Valendata watches for a request that clearly carries the data the skill returns. If it finds one, it tests that request alongside normal runs. Only after the results keep agreeing does it become the skill's **fast path**, saved as a new version.
+
+Other websites send the rows inside the page itself. For these, Valendata checks whether the list page can be downloaded with a plain web request, without a browser. Its address must follow the skill's inputs. The skill's own way of reading rows must also give the same rows as the browser run. This tries the page markup first, then any data block in the page. If it works, it is tested alongside normal runs in the same way, then saved as a new version.
 
 From then on, each run tries the quickest route first and falls back in the same call if it has to:
 
 1. **Direct HTTP** (`fetch_direct`): no browser.
 2. **In-browser fetch** (`fetch_browser`): the same request, made from a browser.
-3. **Browser replay** (`replay`): the full recorded steps.
+3. **Page download** (`html_direct`): the list page's HTML, downloaded without a browser and read the same way the browser run reads it.
+4. **Browser replay** (`replay`): the full recorded steps.
+
+The page download goes through the same proxy the skill's browser would use, with an ordinary browser's request headers. It never sends your cookies. It is skipped when the skill's browser profile is signed in to the site. A sign-in page, a consent page, or a bot check is treated as a failure, and the run uses the browser instead. A page download costs no browser time.
+
+Sites that build their rows with JavaScript, such as Google Maps, have no page download. Sites that block plain web requests keep using the browser.
 
 A fast path that keeps failing is paused, and runs use the browser until the fast path is proven again. Each result reports `tier_used` and `tier_timings`. `GET /v1/skills/{slug}/health` shows how each route has done over the last 20 attempts.
 
