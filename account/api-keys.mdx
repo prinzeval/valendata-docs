@@ -1,10 +1,10 @@
 ---
 title: "API Keys: Authenticate Valendata REST API Requests"
 sidebarTitle: "API Keys"
-description: "Create, use, and revoke Valendata API keys to authenticate REST API calls. Learn key scoping, secure storage, and rotation best practices."
+description: "Create, scope, use, and revoke Valendata API keys. Give each key only the scopes it needs, set an expiry, and rotate safely."
 ---
 
-API keys are the credentials your code uses to authenticate requests to the Valendata REST API. Every call to `https://api.valendata.com/v1` — whether you're running a Skill or invoking a Workflow — must include a valid API key. One key authenticates both Skill execution and Workflow invocation.
+API keys are the credentials your code uses to authenticate requests to the Valendata REST API. Every call to `https://api.valendata.com/v1` — whether you're running a Skill or invoking a Workflow — must include a valid API key. Each key carries **scopes**: it can do only what its scopes allow, so a leaked key that can only read a skill cannot run one.
 
 ## Key format
 
@@ -23,10 +23,13 @@ Never expose keys in client-side code, public repositories, or browser environme
     Go to [app.valendata.com](https://app.valendata.com) and navigate to **Settings → API Keys**.
   </Step>
   <Step title="Create a new key">
-    Click **New API Key**. A dialog appears asking for a name.
+    Click **Create key**. A dialog asks for a name, the scopes, and an expiry.
   </Step>
   <Step title="Name your key">
     Enter a descriptive name that identifies where this key will be used — for example, `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name makes it easy to audit and revoke the right key later.
+  </Step>
+  <Step title="Pick the scopes and expiry">
+    Tick only what this integration needs (see [Scopes](#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
   </Step>
   <Step title="Copy the key immediately">
     After creation, Valendata shows the full key value **once**. Copy it now.
@@ -39,6 +42,46 @@ Never expose keys in client-side code, public repositories, or browser environme
     Paste the key into your environment variables, secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault, Doppler), or CI/CD secret store. Never hardcode it in source files.
   </Step>
 </Steps>
+
+## Scopes
+
+| Scope | What it allows |
+| --- | --- |
+| `skills:read` | Read a skill's details, contract, health, and versions |
+| `skills:invoke` | Run a skill (sync or async) and cancel your runs. Spends credits |
+| `skills:write` | Create a skill (`POST /v1/skills`), improve one, restore or pin a recipe version |
+| `runs:read` | Poll a run (`GET /v1/runs/{run_id}`) and list your active runs |
+| `workflows:read` | Read a published workflow's results and runs |
+| `workflows:invoke` | Run a published workflow. Spends credits |
+| `knowledge:read` | Read your knowledge base (MCP) |
+| `knowledge:write` | Save facts to your knowledge base (MCP) |
+| `webhooks:read` | Read your [webhook signing secret](/api-reference/webhooks/secret) |
+| `webhooks:write` | [Rotate](/api-reference/webhooks/rotate-secret) your webhook signing secret |
+| `logins:write` | [Save, change and delete logins](/api-reference/logins/create) and pick the login a skill signs in with |
+| `logins:use` | Run skills that [sign in with your saved login](/guides/skills-that-need-a-login), and hand a run a sign-in code. Without it a run never signs in |
+
+A call that needs a scope the key does not have fails with `403` and names the missing scope:
+
+```json
+{
+  "detail": "This API key is missing the 'skills:invoke' scope. Create a key with 'skills:invoke' in Settings → API keys."
+}
+```
+
+The same scopes apply when the key is used as the bearer on the [MCP server](/integrations/mcp).
+
+Keys created before scopes existed show a **Full access** badge. They keep every scope, so nothing that used them breaks. Replace them with scoped keys when you can.
+
+### Create a key from the API
+
+A signed-in session can create a key with `POST /api/keys`. Leave out `scopes` to get the default set. `allowed_skill_ids` limits the key to those skills only.
+
+```bash
+curl -X POST https://api.valendata.com/api/keys \
+  -H "Authorization: Bearer $SESSION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Zapier", "scopes": ["skills:read", "skills:invoke", "runs:read"], "expires_at": "2027-01-01T00:00:00Z"}'
+```
 
 ## Use your API key
 
@@ -70,13 +113,17 @@ To permanently invalidate a key:
 3. Click the **trash icon** on that row.
 4. Confirm when prompted.
 
-Revocation is immediate. All subsequent requests using the revoked key return `401 Unauthorized`.
+Revocation is immediate. All subsequent requests using the revoked key return `401 Unauthorized`. So do requests with an expired key.
 
 ## Best practices
 
 <CardGroup cols={2}>
   <Card title="One key per integration" icon="puzzle-piece">
     Create a separate key for each service or environment (production, staging, CI). This lets you revoke a single integration without disrupting others.
+  </Card>
+
+  <Card title="Least privilege" icon="lock">
+    Give each key only the scopes it needs, and an expiry. A dashboard that only reads results needs `skills:read` and `runs:read`, nothing that spends credits.
   </Card>
 
   <Card title="Rotate keys regularly" icon="arrows-rotate">

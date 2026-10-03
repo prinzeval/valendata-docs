@@ -35,7 +35,7 @@ For a client that takes a remote MCP server directly:
 The first time the client connects, your browser opens a Valendata consent screen listing exactly what the client is asking for. You approve or decline, and the client stores the resulting token itself.
 
 <Note>
-  Authorisation is OAuth 2.1 with PKCE, so a client never holds your password and you can withdraw its access at any time from Settings → Connectors. If a client cannot do OAuth, it can send a Valendata API key instead (`Authorization: Bearer vd_sk_…`). An API key carries every scope, so prefer OAuth when you want to limit what an assistant can do. Step-by-step setup for Claude, ChatGPT, Meta Muse, and Cursor is in [Connect your AI assistant](/integrations/connect-ai-assistants).
+  Authorisation is OAuth 2.1 with PKCE, so a client never holds your password and you can withdraw its access at any time from Settings → Connectors. If a client cannot do OAuth, it can send a Valendata API key instead (`Authorization: Bearer vd_sk_…`). The key brings its own [scopes](/account/api-keys#scopes): a key with only `skills:read` can list and describe skills but not run them. Step-by-step setup for Claude, ChatGPT, Meta Muse, and Cursor is in [Connect your AI assistant](/integrations/connect-ai-assistants).
 </Note>
 
 Most current clients (Claude, ChatGPT, Cursor) use Streamable HTTP at `https://api.valendata.com/mcp`. Use `/mcp/sse` only for clients that support SSE alone. Both serve the same tools.
@@ -49,7 +49,8 @@ You grant scopes at the consent screen, and each tool checks the one it needs. G
 | `workflows:read` | See your published workflows and read run results |
 | `workflows:invoke` | Start a workflow. Spends credits |
 | `skills:read` | See your skills and their details |
-| `skills:invoke` | Run a skill, create one with `create_skill`, or fix, extend, or re-learn one with `improve_skill`. Spends credits |
+| `skills:invoke` | Run a skill. Spends credits. An OAuth grant of this scope also allows `create_skill` and `improve_skill` |
+| `skills:write` | API keys only: create a skill with `create_skill`, or fix, extend, or re-learn one with `improve_skill`. Spends credits |
 | `knowledge:read` | Read facts from your knowledge base |
 | `knowledge:write` | Save and update facts in your knowledge base |
 

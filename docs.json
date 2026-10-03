@@ -59,6 +59,7 @@
             "pages": [
               "guides/web-to-api",
               "guides/recording-a-skill",
+              "guides/skills-that-need-a-login",
               "guides/scheduling-skills",
               "guides/using-the-marketplace",
               "guides/exporting-data"
@@ -154,10 +155,24 @@
             ]
           },
           {
+            "group": "Logins",
+            "icon": "key",
+            "pages": [
+              "api-reference/logins/create",
+              "api-reference/logins/list",
+              "api-reference/logins/get",
+              "api-reference/logins/update",
+              "api-reference/logins/delete",
+              "api-reference/logins/set-skill-login",
+              "api-reference/logins/run-code"
+            ]
+          },
+          {
             "group": "Webhooks",
             "icon": "webhook",
             "pages": [
-              "api-reference/webhooks/secret"
+              "api-reference/webhooks/secret",
+              "api-reference/webhooks/rotate-secret"
             ]
           }
         ]

@@ -38,7 +38,7 @@ The API returns one of two HTTP error codes when authentication fails:
 | Code | Meaning | Cause |
 | :-- | :-- | :-- |
 | `401` | Unauthorized | The `Authorization` header is missing, malformed, or the key is invalid. |
-| `403` | Forbidden | The key is valid but does not have permission for the requested resource. |
+| `403` | Forbidden | The key is valid but lacks the scope the call needs, or is limited to other skills. The `detail` names the missing scope. See [Scopes](/account/api-keys#scopes). |
 
 Error responses use a `detail` field:
 

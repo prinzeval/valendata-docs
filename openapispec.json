@@ -742,6 +742,61 @@
             "$ref": "#/components/responses/NotFound"
           }
         }
+      },
+      "patch": {
+        "operationId": "setSkillLogin",
+        "summary": "Choose the login a skill signs in with",
+        "description": "Owner only. The login must be yours. Needs `logins:write` and `skills:write` on an API key. The login is used on your own runs only — never a teammate's run or a public copy of the skill.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "test-login-demo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSkillLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The skill's login, masked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillLogin"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
       }
     },
     "/v1/skills/{slug}/health": {
@@ -914,7 +969,7 @@
       "get": {
         "operationId": "getWebhookSecret",
         "summary": "Get your webhook signing secret",
-        "description": "The secret your webhook deliveries are signed with. Each delivery carries `X-Valendata-Timestamp` and `X-Valendata-Signature: v1=<hex HMAC-SHA256(secret, \"<timestamp>.<raw body>\")>`.",
+        "description": "The secret your webhook deliveries are signed with. Each delivery carries `X-Valendata-Timestamp` and `X-Valendata-Signature: v1=<hex HMAC-SHA256(secret, \"<timestamp>.<raw body>\")>`. Needs the `webhooks:read` scope when called with an API key. For 24 hours after a rotation the signature header carries two comma-separated values, new first.",
         "tags": [
           "Webhooks"
         ],
@@ -936,6 +991,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         }
       }
@@ -1378,6 +1436,320 @@
           }
         }
       }
+    },
+    "/v1/webhooks/secret/rotate": {
+      "post": {
+        "operationId": "rotateWebhookSecret",
+        "summary": "Rotate your webhook signing secret",
+        "description": "Replace the signing secret with a new random one and return it. The previous secret keeps signing deliveries (as a second comma-separated `v1=` value) until `previous_valid_until`, 24 hours from now. Needs the `webhooks:write` scope when called with an API key.",
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The new signing secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookSecret"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/v1/logins": {
+      "post": {
+        "operationId": "createLogin",
+        "summary": "Save a login",
+        "description": "Save a website login for your skills to sign in with. Stored encrypted in your Vault, never shared with your workspace, never returned. Needs a session or an API key with `logins:write`.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saved. The masked login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Login"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "description": "A field is missing or invalid. The error never repeats the password."
+          }
+        }
+      },
+      "get": {
+        "operationId": "listLogins",
+        "summary": "List logins",
+        "description": "Your saved logins, masked. Needs `logins:write`.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your logins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/logins/{login_id}": {
+      "get": {
+        "operationId": "getLogin",
+        "summary": "Get a login",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "login_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The masked login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Login"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateLogin",
+        "summary": "Replace a login's fields",
+        "description": "Send a new password, username or authenticator seed. Nothing secret comes back.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "login_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The masked login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Login"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteLogin",
+        "summary": "Delete a login",
+        "description": "Deletes the login. Skills that signed in with it stop doing so.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "login_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/runs/{run_id}/otp": {
+      "post": {
+        "operationId": "handRunACode",
+        "summary": "Hand a run a sign-in code",
+        "description": "When a site texts a sign-in code, the run waits up to 3 minutes for it. Send it here; the run types it into the page and carries on. Only the account that started the run. Needs `logins:use` on an API key.",
+        "tags": [
+          "Logins"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "The run has the code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunCodeAccepted"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "The run is not waiting for a code."
+          },
+          "422": {
+            "description": "That is not a code."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1558,6 +1930,9 @@
             ],
             "nullable": true,
             "description": "Present when the run failed or a field came back on fewer than half the rows."
+          },
+          "needs_user": {
+            "$ref": "#/components/schemas/NeedsUser"
           }
         }
       },
@@ -2403,6 +2778,9 @@
             ],
             "nullable": true,
             "description": "Present when the run failed or a field came back on fewer than half the rows."
+          },
+          "needs_user": {
+            "$ref": "#/components/schemas/NeedsUser"
           }
         }
       },
@@ -2420,6 +2798,18 @@
           "algorithm": {
             "type": "string",
             "example": "HMAC-SHA256 over '<timestamp>.<raw body>'"
+          },
+          "previous_valid_until": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Set for 24 hours after a rotation: until then deliveries are also signed with the previous secret."
+          },
+          "rotated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "When the secret was last rotated."
           }
         }
       },
@@ -2986,6 +3376,209 @@
             "nullable": true
           },
           "idempotent_replay": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NeedsUser": {
+        "type": "object",
+        "nullable": true,
+        "description": "Set when a login stopped the run: what the skill's owner has to fix. Kind and fixed words only — never a username, password or code.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "no_login",
+              "bad_password",
+              "otp_email",
+              "otp_sms",
+              "captcha"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "What to do, in plain words."
+          },
+          "action_url": {
+            "type": "string",
+            "description": "Where it is fixed in the app (the Vault).",
+            "example": "/vault"
+          }
+        }
+      },
+      "CreateLoginRequest": {
+        "type": "object",
+        "required": [
+          "site",
+          "username",
+          "password"
+        ],
+        "properties": {
+          "site": {
+            "type": "string",
+            "description": "The site's domain or a URL on it.",
+            "example": "the-internet.herokuapp.com"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "Stored encrypted. Never returned by any endpoint."
+          },
+          "totp_secret": {
+            "type": "string",
+            "nullable": true,
+            "description": "Authenticator seed (base32, or the whole otpauth:// URI) for sites that ask for an app code. Never returned."
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 120
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          }
+        }
+      },
+      "UpdateLoginRequest": {
+        "type": "object",
+        "description": "Every field is optional; the ones you send replace the stored value. `totp_secret: \"\"` removes the seed.",
+        "properties": {
+          "site": {
+            "type": "string",
+            "description": "The site's domain or a URL on it.",
+            "example": "the-internet.herokuapp.com",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 320,
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "description": "Stored encrypted. Never returned by any endpoint.",
+            "nullable": true
+          },
+          "totp_secret": {
+            "type": "string",
+            "nullable": true,
+            "description": "Authenticator seed (base32, or the whole otpauth:// URI) for sites that ask for an app code. Never returned."
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 120
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "description": "A saved login as every endpoint shows it. Never the password, seed or a code.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "site": {
+            "type": "string",
+            "nullable": true
+          },
+          "username_hint": {
+            "type": "string",
+            "example": "to***h"
+          },
+          "label": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_totp": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LoginList": {
+        "type": "object",
+        "properties": {
+          "logins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Login"
+            }
+          }
+        }
+      },
+      "SetSkillLoginRequest": {
+        "type": "object",
+        "properties": {
+          "login_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The saved login this skill signs in with. `null` or `\"\"` removes it."
+          }
+        }
+      },
+      "SkillLogin": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "login_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "login": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Login"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "RunCodeRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The sign-in code the site sent (4–10 letters or digits).",
+            "example": "123456"
+          }
+        }
+      },
+      "RunCodeAccepted": {
+        "type": "object",
+        "properties": {
+          "run_id": {
+            "type": "string"
+          },
+          "accepted": {
             "type": "boolean"
           }
         }

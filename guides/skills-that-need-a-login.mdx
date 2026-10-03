@@ -1,0 +1,94 @@
+---
+title: "Skills that need a login"
+description: "Let a skill sign in to a site with your saved login. The run does it itself, only when the site asks, and your password never leaves the server."
+---
+
+Some data sits behind a login: your orders, your dashboard, a members-only list. A skill can sign in for you. You save the login once, pick it on the skill, and every run that hits a login page signs in and carries on.
+
+## How it works
+
+1. **You save the login** in the app's **Vault** (Website Login) or with [`POST /v1/logins`](/api-reference/logins/create). It is encrypted and only ever shown masked (`to***h`).
+2. **You pick it on the skill**: in the skill's settings, **This skill signs in with…**, or with [`PATCH /v1/skills/{slug}`](/api-reference/logins/set-skill-login). You confirm once; later runs need no prompt.
+3. **A run checks the start page.** If your browser profile is already signed in, nothing else happens — the run just reads the page. That is the usual case after the first run.
+4. **If the site asks for a login**, the run signs in once on the same browser, then reads the page as normal.
+5. **If it still cannot get in**, the run stops and tells you why in `needs_user` (below). It never retries in a loop.
+
+A login is a setting on the skill, not a tool. No AI assistant can ask Valendata to "log in somewhere": there is no login tool in MCP, and no way to read a saved password back.
+
+## What stays private
+
+Your password, authenticator seed and sign-in codes:
+
+- never reach the AI model that drives the browser (it sees only placeholders such as `vault_password`; the real value is typed at the keyboard, on the login site only),
+- are never written to logs, run results, rows, traces, webhooks or MCP results,
+- are never recorded while the run signs in (the network recording pauses for that step),
+- are never shared with your workspace. A login is personal.
+
+The browser is also fenced to the login site while it signs in, so a page cannot send it somewhere else with your details.
+
+Who signs in: only **your own** runs. A teammate running a shared skill, an API key without `logins:use`, or anyone running a public copy of the skill gets `needs_user.kind = "no_login"` instead. A copied skill never carries your login.
+
+## Two-step sign-in
+
+| What the site asks | What happens |
+| --- | --- |
+| A code from an authenticator app | Add `totp_secret` (the seed, or the `otpauth://` link) to the login. The run works out the current code when it signs in. |
+| A code sent by email | If the site account uses your Valendata email address, the run reads the code from your inbox. Otherwise the run stops with `otp_email`. |
+| A code sent by text message or a phone app | The run waits up to 3 minutes. The run panel shows **Enter the code sent to your phone**; from code, send it to [`POST /v1/runs/{run_id}/otp`](/api-reference/logins/run-code). No code in time → `otp_sms`. |
+
+## When a run cannot sign in
+
+The run fails with `triage_kind: "login_failed"` (or `"logged_out"` when the skill has no login to use) and a `needs_user` object:
+
+```json
+{
+  "status": "failed",
+  "triage_kind": "login_failed",
+  "needs_user": {
+    "kind": "bad_password",
+    "message": "The site did not accept the saved login. Check the username and password in the Vault, then run it again.",
+    "action_url": "/vault"
+  }
+}
+```
+
+| `needs_user.kind` | What to do |
+| --- | --- |
+| `no_login` | Save the site's login and pick it on the skill — or this caller may not use it. |
+| `bad_password` | Fix the username or password in the Vault. |
+| `otp_email` | Use your Valendata email on the site account, or sign in once on the skill's browser profile. |
+| `otp_sms` | Run it again and enter the code when asked, or add the authenticator seed. |
+| `captcha` | Sign in once on the skill's browser profile, then run it again. |
+
+You also get an inbox note, and the assistant tells you with a link to the Vault. It never asks for your password in chat.
+
+## API keys
+
+Two key scopes control logins (see [API keys](/account/api-keys)):
+
+- `logins:write` — save, change and delete logins, and pick a skill's login.
+- `logins:use` — run skills that sign in, and hand a run a code. A key without it still runs the skill, but never signs in.
+
+AI assistants connected over MCP with "Run your skills" may run skills that sign in. Tool descriptions say so: "Signs in with the owner's saved login".
+
+## Cost
+
+Signing in is part of the run: its browser time and AI steps are billed to the run like any other step. A profile that is already signed in costs nothing extra.
+
+## Example
+
+```bash
+# 1. Save the login (once)
+curl -X POST https://api.valendata.com/v1/logins \
+  -H "Authorization: Bearer vd_sk_..." -H "Content-Type: application/json" \
+  -d '{"site": "example.com", "username": "you@example.com", "password": "..."}'
+
+# 2. Pick it on the skill
+curl -X PATCH https://api.valendata.com/v1/skills/my-orders \
+  -H "Authorization: Bearer vd_sk_..." -H "Content-Type: application/json" \
+  -d '{"login_id": "LOGIN_ID"}'
+
+# 3. Run it as usual
+curl -X POST "https://api.valendata.com/v1/skills/my-orders/run?max_results=5" \
+  -H "Authorization: Bearer vd_sk_..." -H "Content-Type: application/json" -d '{}'
+```

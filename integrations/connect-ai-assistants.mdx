@@ -151,7 +151,7 @@ For example, in a client that accepts custom headers:
 ```
 
 <Warning>
-  An API key carries **every** scope, including the two that spend credits. You cannot limit it at a consent screen. Use OAuth when you want to limit what an assistant can do. Keep keys out of shared config files, and revoke a key from **Settings → API Keys** if it leaks. See [API keys](/account/api-keys).
+  An API key carries the scopes you picked when you created it. Make a key just for the assistant with only what it needs. For example, leave out `skills:invoke` and `workflows:invoke` if it should not spend credits. Keep keys out of shared config files, and revoke a key from **Settings → API Keys** if it leaks. See [API keys](/account/api-keys).
 </Warning>
 
 ## Tools

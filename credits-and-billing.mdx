@@ -8,7 +8,13 @@ Valendata uses a credit-based, pay-for-what-you-use billing model. Every action 
 
 ## What credits cover
 
-Every time you trigger a Skill or Workflow, Valendata deducts credits based on the exact resources that run consumed. A session held open (including idle gaps between steps) is billed for the time it's reserved, not just moments of active output — this is metered the same way whether a workflow step, a Skill run, or an interactive chat session holds the browser open.
+Every time you trigger a Skill or Workflow, Valendata deducts credits based on the exact resources that run consumed. Everything is billed at the published rate in 0.01-credit increments — never rounded up to a whole credit. Browser time is billed per second for as long as your run holds the browser, from session start until the run finishes (idle gaps between steps of a running workflow included).
+
+<Note>
+Warm or idle browser time after your run ends is free. Valendata may keep a finished run's browser ready for a couple of minutes so your next run starts instantly — that time is never charged to you.
+</Note>
+
+If a run fails because of our infrastructure (our proxy, our cloud browser, a worker restart, an error in our code, or an AI provider outage), every credit it used is refunded automatically and the run is marked "Failed on our side — refunded". Runs that fail because the site is down, blocks the run, asks for a login, or changed its page, or because of bad inputs or a cancel, are charged as usual.
 
 ### AI model usage
 
@@ -32,7 +38,7 @@ Bring-your-own-key (BYOK) users pay their own provider directly for tokens; the 
 | + Sticky Identity proxy *(stays logged into one site as a stable IP)* | +2.2 credits / minute, on top of browser time |
 | + Rotating Residential proxy *(premium residential network for reliable access from the right region)* | +2.9 credits / minute, on top of browser time |
 
-Not every task needs a proxy — Valendata decides automatically based on what the task requires, and the surcharge only applies for the actual minutes a proxy tier is in use.
+Browser time is billed per second at this rate, in 0.01-credit increments: 45 seconds costs 1.5 credits, and 60.04 seconds costs 2.00 credits. Not every task needs a proxy — Valendata decides automatically based on what the task requires, and the surcharge only applies for the actual time a proxy tier is in use.
 
 ### Other metered actions
 

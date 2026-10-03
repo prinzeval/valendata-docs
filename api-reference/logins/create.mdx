@@ -1,0 +1,11 @@
+---
+title: "Save a login"
+description: "Store a website login your skills can sign in with. It is encrypted, never shared and never returned."
+openapi: "POST /v1/logins"
+---
+
+The response shows the site and a masked username (`to***h`) only. No endpoint, tool or webhook ever returns the password, the authenticator seed or a code.
+
+Add `totp_secret` when the site asks for a code from an authenticator app. The run works out the current code itself when it signs in.
+
+There is no MCP tool for this on purpose: a password in a tool call would stay in the AI client's chat history. Save logins here or in the app's Vault. See [Skills that need a login](/guides/skills-that-need-a-login).

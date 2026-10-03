@@ -406,6 +406,8 @@ curl https://api.valendata.com/v1/webhooks/secret \
 # → {"secret": "…", "signature_header": "X-Valendata-Signature", "algorithm": "HMAC-SHA256 over '<timestamp>.<raw body>'"}
 ```
 
+Reading it with an API key needs the `webhooks:read` scope. If the secret leaks, rotate it with `POST /v1/webhooks/secret/rotate` (scope `webhooks:write`) or from **Settings → API Keys**. For 24 hours after a rotation, deliveries are signed with both the new and the old secret.
+
 Every delivery has these headers:
 
 ```http
@@ -416,7 +418,7 @@ X-Valendata-Signature: v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0c
 The signature is `v1=` followed by the hex HMAC-SHA256 of `"<timestamp>.<raw body>"`, keyed with your secret. To verify a delivery:
 
 1. Compute the signature over the **raw** request body. Do not parse and re-serialize the JSON first.
-2. Compare it with the header using a constant-time comparison.
+2. Split the header on commas (for 24 hours after a rotation it holds `v1=<new>,v1=<old>`) and compare each value using a constant-time comparison. Accept the delivery if any one matches.
 3. Reject deliveries whose timestamp is more than 5 minutes away from now. This stops replays.
 
 <CodeGroup>
@@ -435,7 +437,8 @@ def verify_valendata(secret: str, timestamp: str, raw_body: bytes, signature: st
     if abs(int(time.time()) - ts) > tolerance_s:
         return False
     digest = hmac.new(secret.encode(), f"{ts}.".encode() + raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(f"v1={digest}", signature or "")
+    expected = f"v1={digest}"
+    return any(hmac.compare_digest(expected, s.strip()) for s in (signature or "").split(","))
 
 
 # Flask example
@@ -471,8 +474,10 @@ export function verifyValendata(
     .update(Buffer.concat([Buffer.from(`${ts}.`), rawBody]))
     .digest("hex");
   const expected = Buffer.from(`v1=${digest}`);
-  const given = Buffer.from(signature);
-  return expected.length === given.length && timingSafeEqual(expected, given);
+  return signature.split(",").some((value) => {
+    const given = Buffer.from(value.trim());
+    return expected.length === given.length && timingSafeEqual(expected, given);
+  });
 }
 
 // Express example: use express.raw() so you get the exact bytes that were signed.
@@ -629,6 +634,8 @@ print(imp["result"], imp["changes"], imp["outcome"])
    - `relearn_details`: the detail fields fill at least as well as before.
 
    If not, the attempt is saved as a **candidate** version (not live), the old version stays live, and `outcome` says why. A draft skill whose check passes goes live.
+
+   "Fill" means a real value: placeholder text, a label (such as "Buy It Now" in a feedback column), a value of the wrong shape for the field, or one word repeated on most rows does not count, and `outcome` names the values it ignored.
 
 Poll `GET /v1/skill-improvements/{improvement_id}`. `status` moves through `queued`, `working`, `validating`, then `done` or `failed`.
 
