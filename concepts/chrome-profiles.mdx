@@ -9,9 +9,9 @@ A Browser Profile captures your browser's login state — cookies, session token
 
 ## Why Browser Profiles matter
 
-Most sites worth automating are behind a login. Without persistent sessions, each run would need to re-authenticate from scratch — burning credits on the auth flow, risking bot detection from rapid repeated logins, and failing entirely on sites that enforce rate limits or MFA prompts on every new session.
+Most sites worth automating are behind a login. Without persistent sessions, each run would need to re-authenticate from scratch — burning credits on the auth flow, triggering security prompts from rapid repeated logins, and failing entirely on sites that enforce rate limits or MFA prompts on every new session.
 
-Browser Profiles solve this by replaying a real, lived-in browser session. The site sees a session that has existed for days or weeks, with the cookies and history of a genuine user.
+Browser Profiles solve this by reusing your own signed-in browser session, with your permission. The site sees the same session you already use — your cookies and history — instead of a brand-new login on every run.
 
 Common use cases:
 

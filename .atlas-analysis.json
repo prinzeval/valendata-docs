@@ -108,7 +108,7 @@
     "Workflows: chain skills with HTTP steps, transforms, and cron scheduling",
     "No-code recorder: walk through a workflow once and auto-generate a deployable skill",
     "Chrome Profiles: persist browser sessions so scheduled runs stay logged in",
-    "Native CAPTCHA solving and 2FA/TOTP handling — no third-party services",
+    "Verification and 2FA/TOTP handling inside the run, where the site permits it",
     "47 global regions with proxy rotation and real Chromium sessions",
     "Full run observability: every step recorded, replayable frame-by-frame",
     "Strict JSON schema enforcement on every run output",

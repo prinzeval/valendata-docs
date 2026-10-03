@@ -283,6 +283,8 @@ console.log(result.count, result.data);
   "error": null,
   "credits_charged": 3,
   "cost_usd": 0.03,
+  "cost_final": false,
+  "cost_estimate_credits": 5,
   "drifted_fields": {},
   "unverified_fields": {},
   "rejected_values": [],
@@ -296,7 +298,11 @@ console.log(result.count, result.data);
 }
 ```
 
-`status` is `success`, `partial`, or `failed`. The other fields tell you how much to trust the rows:
+`status` is `success`, `partial`, or `failed`.
+
+**Cost.** A run that uses a cloud browser can answer before the browser's time is billed (the browser is billed when it closes). While that is pending, `cost_final` is `false`: `credits_charged` is what has been billed so far and `cost_estimate_credits` adds an estimate of the browser time still to come, at the current browser rate. Read the run again with `GET /v1/runs/{run_id}` to get the final total, where `cost_final` is `true` and `cost_estimate_credits` equals `credits_charged`. A run that used no cloud browser has `cost_final: true` straight away.
+
+The other fields tell you how much to trust the rows:
 
 | Field | Meaning |
 | --- | --- |
@@ -308,7 +314,7 @@ console.log(result.count, result.data);
 | `heal_kind` | `fp` or `ai` if a repair became the skill's recipe during this run. |
 | `recipe_version` | The recipe version this run replayed. |
 | `tier_used`, `tier_timings` | Which way the skill ran (`fetch_direct`, `fetch_browser`, `html_direct`, or `replay`), and every way it tried. |
-| `diagnosis` | Present when the run failed, when a field came back on fewer than half the rows, or when the rows look wrong. See [Improve a skill](#5-improve-a-skill). |
+| `diagnosis` | Present when the run failed, when a field came back on fewer than half the rows, when a field is blank on a few rows and the page shows why, or when the rows look wrong. See [Improve a skill](#5-improve-a-skill). |
 
 If your account already has as many runs in progress as it is allowed, a sync call does not wait. It returns `429` with a `Retry-After` header. Use an async run when you would rather queue.
 
@@ -385,7 +391,7 @@ console.log(runStatus.status, runStatus.count, runStatus.rows);
 
 ### Webhooks
 
-If you set `webhook_url`, Valendata sends the finished run to it as a `POST` request with a JSON body. The body is the run result: `run_id`, `status`, `rows`, `count`, `execution_time_ms`, `error`, `credits_charged`, `cost_usd`, and the trust and version fields described above.
+If you set `webhook_url`, Valendata sends the finished run to it as a `POST` request with a JSON body. The body is the run result: `run_id`, `status`, `rows`, `count`, `execution_time_ms`, `error`, `credits_charged`, `cost_usd`, `cost_final`, `cost_estimate_credits`, and the trust and version fields described above.
 
 - `webhook_url` must use `http` or `https` and point to a public host. Private, loopback, and internal addresses are refused with `422`. Use `https`.
 - Delivery times out after 15 seconds. Redirects are not followed.
@@ -493,7 +499,7 @@ You can change a skill the way you would coach a person: tell it, in plain Engli
 
 ### Read the diagnosis
 
-A run that failed, that came back with a field on fewer than half the rows, or whose rows look wrong, carries a `diagnosis`. It is on the sync result, on `GET /v1/runs/{run_id}`, on a failed `GET /v1/skill-creations/{creation_id}`, and on the MCP tool result.
+A run that failed, that came back with a field on fewer than half the rows, that left a field blank on a few rows (see [Fields blank on a few rows](#fields-blank-on-a-few-rows)), or whose rows look wrong, carries a `diagnosis`. It is on the sync result, on `GET /v1/runs/{run_id}`, on a failed `GET /v1/skill-creations/{creation_id}`, and on the MCP tool result.
 
 ```json
 "diagnosis": {
@@ -520,11 +526,21 @@ A run that failed, that came back with a field on fewer than half the rows, or w
 | Field | Meaning |
 | --- | --- |
 | `missing_fields` | Fields fewer than half the rows came back with. |
-| `per_field` | Every field some rows lacked: how many rows had it, where the skill looked (`the result cards`, `each row's details page`, `each row's opened panel`, `an AI read of the page text`), and why. |
-| `triage_kind` | `missing_fields`, `suspect_rows`, a [failure kind](/concepts/keeping-skills-working#why-runs-fail), or `recording_failed` for a creation. |
+| `per_field` | Every field some rows lacked: how many rows had it, where the skill looked (`the result cards`, `each row's details page`, `each row's opened panel`, `an AI read of the page text`), and why. A field blank on a few rows also has `not_shown`, `shown_unread`, `severity` and `note`. |
+| `partial_fields` | Fields most rows filled but a few left blank, where the page showed why. |
+| `triage_kind` | `missing_fields`, `partial_fields`, `not_shown`, `suspect_rows`, a [failure kind](/concepts/keeping-skills-working#why-runs-fail), or `recording_failed` for a creation. |
 | `quality_flags` | Rows that came back but look wrong: `repeated_rows`, `pagination_overlap` or `placeholder_values`, each with a `severity` (`fail` or `warn`) and a `message`. See [Rows that look wrong](/concepts/keeping-skills-working#rows-that-look-wrong). |
 | `what_we_tried` | What the run did, in plain words. |
 | `suggested_hint_examples` | Hints in the shape `improve` takes. For `blocked` or `logged_out`, it says a hint will not help. |
+
+#### Fields blank on a few rows
+
+A field most rows filled (half or more) but a few left blank is checked against the page the run saw. There are two cases:
+
+- **`filled on 3/5 — on the card but not read on 2`**: the value is on those rows' cards and the skill missed it. `severity` is `warn`, `triage_kind` is `partial_fields`, and `suggested_hint_examples` has hints you can pass to `improve`.
+- **`filled on 3/5 — not shown on 2 rows' cards`**: those cards show no value, for example a sponsored result with no accessibility icon. Nothing is wrong. `severity` is `info`, `triage_kind` is `not_shown`, and there are no hints.
+
+A field every row filled is never listed. A field blank on a few rows where the page cannot show why is not raised on its own.
 
 ### Start an improvement
 
@@ -605,7 +621,7 @@ print(imp["result"], imp["changes"], imp["outcome"])
 ### What happens
 
 1. **Plan.** Valendata picks the fields to work on and how. In `fix` mode, if the skill returns rows but misses fields, it relearns where those fields live; if it returns no rows at all, an AI agent redoes the steps, guided by your hint. In `add_fields` mode, it checks your request against the skill's fields first, as described above.
-2. **Learn.** A cloud browser opens the site and relearns the skill: the page itself, the per-result details page or panel, and any "show more" step. The change is saved as a new recipe version, tagged with the improvement's id and mode, so nothing is lost.
+2. **Learn.** A cloud browser opens the site and relearns the skill: the page itself, the per-result details page or panel, and any "show more" step. When the value is only part of an element's text, for example the `99.7%` in "99.7% positive (14.8K)", the skill learns to keep just that part, even when that text sits in a different place on each card. The change is saved as a new recipe version, tagged with the improvement's id and mode, so nothing is lost.
 3. **Check.** One short run (up to 5 rows) tests the new version.
 4. **Keep the better one.** The new version stays live only if it is better:
    - `fix`: the target fields fill on more rows, and no other field broke.

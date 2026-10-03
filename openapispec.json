@@ -1272,7 +1272,7 @@
       "get": {
         "operationId": "getSkillImprovement",
         "summary": "Get a Skill improvement",
-        "description": "Where an improvement is: `queued`, `working`, `validating`, `done` (`result` and `improved` say whether the new version is live; `changes` shows each field before → after; `details` shows new, merged and unclear fields) or `failed` (`error`). Only the account that started it can poll it; everyone who can edit the Skill sees it in the Skill's change history.",
+        "description": "Where an improvement is: `queued`, `working`, `validating`, `done` (`result` and `improved` say whether the new version is live; `changes` shows each field before → after; `details` shows new, merged and unclear fields) or `failed` (`error`). The account that started it and anyone who can edit the Skill (its owner or a workspace editor) can poll it; anyone else gets 404.",
         "tags": [
           "Skill improvement"
         ],
@@ -1456,6 +1456,14 @@
           "cost_usd": {
             "type": "number",
             "description": "The same cost in US dollars."
+          },
+          "cost_final": {
+            "type": "boolean",
+            "description": "False while the run's cloud browser time is still being billed (the browser is billed when it closes, which can be after the run answers). `credits_charged` is then only what has been billed so far. True once nothing more will be charged."
+          },
+          "cost_estimate_credits": {
+            "type": "integer",
+            "description": "`credits_charged` plus an estimate of the browser time still being billed, at the current browser rate. Equal to `credits_charged` once `cost_final` is true."
           },
           "drifted_fields": {
             "type": "object",
@@ -2293,6 +2301,14 @@
           "cost_usd": {
             "type": "number",
             "description": "The same cost in US dollars."
+          },
+          "cost_final": {
+            "type": "boolean",
+            "description": "False while the run's cloud browser time is still being billed (the browser is billed when it closes, which can be after the run answers). `credits_charged` is then only what has been billed so far. True once nothing more will be charged."
+          },
+          "cost_estimate_credits": {
+            "type": "integer",
+            "description": "`credits_charged` plus an estimate of the browser time still being billed, at the current browser rate. Equal to `credits_charged` once `cost_final` is true."
           },
           "drifted_fields": {
             "type": "object",
