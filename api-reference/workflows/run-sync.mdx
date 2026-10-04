@@ -1,0 +1,7 @@
+---
+title: "Run a workflow and wait"
+description: "Run a workflow with typed inputs and get its outputs in the same call, or a run id if it takes longer than `wait` seconds."
+openapi: "POST /v1/workflows/{slug}/run"
+---
+
+A `200` holds the finished run with `outputs`. A `202` means the run is still going: poll [`GET /v1/workflow-runs/{run_id}`](/api-reference/workflows/get-run) at its `status_url`.

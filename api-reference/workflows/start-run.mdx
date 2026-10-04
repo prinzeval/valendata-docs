@@ -1,0 +1,7 @@
+---
+title: "Start an async workflow run"
+description: "Start a workflow run in the background and get a run id at once. Supports Idempotency-Key and signed webhooks."
+openapi: "POST /v1/workflows/{slug}/runs"
+---
+
+The outputs are not in this response. Poll [`GET /v1/workflow-runs/{run_id}`](/api-reference/workflows/get-run) until `status` is no longer `pending` or `running`, or set `webhook_url` to receive the finished run as a signed `POST`. See [Webhooks](/guides/web-to-api#webhooks) for how to verify the signature.

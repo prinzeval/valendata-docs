@@ -1750,6 +1750,294 @@
           }
         }
       }
+    },
+    "/v1/workflows/{slug}": {
+      "get": {
+        "operationId": "getWorkflowApi",
+        "summary": "Get a Workflow's API contract",
+        "description": "What the workflow takes (its API trigger's inputs, as a list and as JSON Schema), what a run returns, its track record over the last 20 finished runs, and the endpoints to call. Works with an API key (`workflows:read`) or a signed-in session.",
+        "tags": [
+          "Workflows"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The workflow's slug (shown on its API tab).",
+            "example": "test-workflow-api"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The workflow's contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowApiInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/workflows/{slug}/run": {
+      "post": {
+        "operationId": "runWorkflowSync",
+        "summary": "Run a Workflow and wait",
+        "description": "Checks the inputs against the workflow's declared inputs (a bad call is a 422 and costs nothing), runs it, and waits up to `wait` seconds (default 60, max 120). Finished in time → 200 with `outputs`. Still running → 202 with the run so far; poll its `status_url`. If your account is at its limit of runs in progress, the answer is 429 with `Retry-After` (use `/runs` to queue instead).",
+        "tags": [
+          "Workflows"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The workflow's slug (shown on its API tab).",
+            "example": "test-workflow-api"
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 120
+            },
+            "description": "Overrides `wait` in the body."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Retry-safe key. The same key from the same account returns the run it already started."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunWorkflowRequest"
+              },
+              "example": {
+                "inputs": {
+                  "limit": 3
+                },
+                "wait": 60
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The finished run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRun"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Still running after `wait` seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRun"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/workflows/{slug}/runs": {
+      "post": {
+        "operationId": "startWorkflowRun",
+        "summary": "Start an async Workflow run",
+        "description": "Checks the inputs, starts the run and answers at once with a `run_id`. If your account is at its limit of runs in progress, the run waits as `pending`. Poll `GET /v1/workflow-runs/{run_id}` or pass `webhook_url` to receive the finished run as a signed POST.",
+        "tags": [
+          "Workflows"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The workflow's slug (shown on its API tab).",
+            "example": "test-workflow-api"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Retry-safe key. The same key from the same account returns the run it already started."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunWorkflowRequest"
+              },
+              "example": {
+                "inputs": {
+                  "limit": 3
+                },
+                "wait": 60
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Run started (or the existing one, for a repeated Idempotency-Key).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartWorkflowRunResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/workflow-runs/{run_id}": {
+      "get": {
+        "operationId": "getWorkflowRun",
+        "summary": "Get a Workflow run",
+        "description": "Status, `outputs` once finished, a per-step summary and the cost. Readable by whoever started the run and by the workflow's owner and workspace members.",
+        "tags": [
+          "Workflows"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowRun"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2129,62 +2417,120 @@
       },
       "WorkflowRun": {
         "type": "object",
+        "required": [
+          "run_id",
+          "status"
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
+          "run_id": {
+            "type": "string"
           },
           "workflow_id": {
-            "type": "string",
-            "format": "uuid"
+            "type": "string"
+          },
+          "workflow_slug": {
+            "type": "string"
           },
           "status": {
             "type": "string",
             "enum": [
+              "pending",
+              "running",
               "completed",
               "failed",
+              "cancelled",
+              "paused",
               "waiting_for_human"
             ]
           },
           "inputs": {
-            "type": "object",
-            "nullable": true,
-            "additionalProperties": true
+            "type": "object"
           },
           "outputs": {
-            "nullable": true
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "`{rows, count}` from the final step. When several steps end the workflow: one `{rows, count}` per final step, keyed by step name. `null` while running."
           },
           "error": {
             "type": "string",
             "nullable": true
           },
-          "credits_charged": {
-            "type": "number",
-            "format": "float"
-          },
-          "execution_time_ms": {
-            "type": "integer",
-            "nullable": true
-          },
-          "started_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "completed_at": {
-            "type": "string",
-            "format": "date-time",
+          "diagnosis": {
+            "type": "object",
             "nullable": true
           },
           "created_at": {
             "type": "string",
             "format": "date-time"
           },
-          "step_results": {
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "execution_time_ms": {
+            "type": "integer",
+            "nullable": true
+          },
+          "credits_charged": {
+            "type": "number"
+          },
+          "cost_usd": {
+            "type": "number"
+          },
+          "cost_final": {
+            "type": "boolean"
+          },
+          "cost_estimate_credits": {
+            "type": "number"
+          },
+          "steps": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StepResult"
+              "type": "object",
+              "properties": {
+                "step_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "error": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "execution_time_ms": {
+                  "type": "integer",
+                  "nullable": true
+                }
+              }
             }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "api",
+              "mcp"
+            ],
+            "nullable": true
+          },
+          "status_url": {
+            "type": "string"
           }
         }
       },
@@ -3580,6 +3926,169 @@
           },
           "accepted": {
             "type": "boolean"
+          }
+        }
+      },
+      "WorkflowInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "limit"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "integer",
+              "boolean",
+              "array",
+              "object"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "default": {},
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "example": {}
+        }
+      },
+      "RunWorkflowRequest": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "The workflow's inputs (see `input_schema`). Values are converted like skill inputs: `\"5\"` → 5 for an integer."
+          },
+          "wait": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 120,
+            "description": "`/run` only: seconds to wait (default 60)."
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Receives the finished run as a signed POST (`X-Valendata-Signature`)."
+          }
+        }
+      },
+      "StartWorkflowRunResponse": {
+        "type": "object",
+        "required": [
+          "run_id",
+          "status",
+          "status_url"
+        ],
+        "properties": {
+          "run_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "status_url": {
+            "type": "string",
+            "example": "/v1/workflow-runs/0f533c1b-9134-466f-b6ba-38592ca5d21c"
+          },
+          "idempotent_replay": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkflowApiInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "input_schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowInput"
+            }
+          },
+          "input_json_schema": {
+            "type": "object",
+            "description": "JSON Schema (draft 2020-12) of `inputs`."
+          },
+          "output": {
+            "type": "string",
+            "description": "What `outputs` holds, in one sentence."
+          },
+          "output_json_schema": {
+            "type": "object"
+          },
+          "run_json_schema": {
+            "type": "object"
+          },
+          "trigger": {
+            "type": "object",
+            "description": "The API trigger node: `{type: \"api_trigger\", node}`."
+          },
+          "reliability": {
+            "type": "object",
+            "properties": {
+              "success_rate": {
+                "type": "number",
+                "description": "0–1 over the last 20 finished runs.",
+                "nullable": true
+              },
+              "runs": {
+                "type": "integer"
+              },
+              "label": {
+                "type": "string"
+              },
+              "typical_seconds": {
+                "type": "number",
+                "nullable": true
+              },
+              "last_success_at": {
+                "type": "string",
+                "nullable": true
+              },
+              "total_runs": {
+                "type": "integer"
+              }
+            }
+          },
+          "api_endpoint": {
+            "type": "string",
+            "example": "/v1/workflows/test-workflow-api/run"
+          },
+          "runs_endpoint": {
+            "type": "string"
+          },
+          "run_status_endpoint": {
+            "type": "string"
+          },
+          "mcp_tool": {
+            "type": "string",
+            "example": "workflow_test-workflow-api"
           }
         }
       }

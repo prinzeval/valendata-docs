@@ -58,6 +58,7 @@
             "group": "Guides",
             "pages": [
               "guides/web-to-api",
+              "guides/workflow-api",
               "guides/recording-a-skill",
               "guides/skills-that-need-a-login",
               "guides/scheduling-skills",
@@ -140,6 +141,10 @@
             "group": "Workflows",
             "icon": "diagram-project",
             "pages": [
+              "api-reference/workflows/contract",
+              "api-reference/workflows/run-sync",
+              "api-reference/workflows/start-run",
+              "api-reference/workflows/get-run",
               "api-reference/workflows/list",
               "api-reference/workflows/run"
             ]
