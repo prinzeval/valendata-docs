@@ -31,6 +31,9 @@ Never expose keys in client-side code, public repositories, or browser environme
   <Step title="Pick the scopes and expiry">
     Tick only what this integration needs (see [Scopes](#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
   </Step>
+  <Step title="Limit it to some skills or workflows (optional)">
+    Under **Limit to**, pick the skills and/or workflows this key may use. Leave a list empty to allow all. See [Limit a key to some skills or workflows](#limit-a-key-to-some-skills-or-workflows).
+  </Step>
   <Step title="Copy the key immediately">
     After creation, Valendata shows the full key value **once**. Copy it now.
 
@@ -72,15 +75,36 @@ The same scopes apply when the key is used as the bearer on the [MCP server](/in
 
 Keys created before scopes existed show a **Full access** badge. They keep every scope, so nothing that used them breaks. Replace them with scoped keys when you can.
 
+### Limit a key to some skills or workflows
+
+A key can also be limited to a list of skills (`allowed_skill_ids`) and a list of workflows (`allowed_workflow_ids`). The two limits are separate: a key limited to some skills can still run every workflow unless you also pick workflows, and the other way round. An empty list means no limit.
+
+The keys list shows a **N skills only** or **N workflows only** badge on a limited key. Using it on anything else returns `403`:
+
+```json
+{
+  "detail": "This API key is limited to other workflows and may not use this one."
+}
+```
+
+The workflow limit applies to `/v1/workflows/{slug}`, `/run`, `/runs`, `/v1/workflow-runs/{run_id}`, the older `/api/workflows/{id}/invoke` routes, and the [MCP server](/integrations/mcp): a limited key only sees the `workflow_<slug>` tools it may use.
+
 ### Create a key from the API
 
-A signed-in session can create a key with `POST /api/keys`. Leave out `scopes` to get the default set. `allowed_skill_ids` limits the key to those skills only.
+A signed-in session can create a key with `POST /api/keys`. Leave out `scopes` to get the default set. `allowed_skill_ids` limits the key to those skills only, and `allowed_workflow_ids` to those workflows only (up to 200 each). An id you cannot use returns `422`.
 
 ```bash
 curl -X POST https://api.valendata.com/api/keys \
   -H "Authorization: Bearer $SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "Zapier", "scopes": ["skills:read", "skills:invoke", "runs:read"], "expires_at": "2027-01-01T00:00:00Z"}'
+```
+
+```bash
+curl -X POST https://api.valendata.com/api/keys \
+  -H "Authorization: Bearer $SESSION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Orders bot", "scopes": ["workflows:read", "workflows:invoke"], "allowed_workflow_ids": ["WORKFLOW_ID"]}'
 ```
 
 ## Use your API key

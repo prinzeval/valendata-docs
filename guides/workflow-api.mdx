@@ -94,6 +94,38 @@ curl https://api.valendata.com/v1/workflow-runs/RUN_ID \
 
 or wait for the webhook. The webhook body is the same run object, signed like skill webhooks. See [Webhooks](/guides/web-to-api#webhooks). Sending the same `Idempotency-Key` again returns the run it already started.
 
+### If a run fails on our side
+
+If a run fails because of our infrastructure (our proxy, our browser, our code, a server restart or an AI model outage), every credit it used is refunded automatically: the base fee, every step, and the skill runs inside it. The run then says so:
+
+```json
+{
+  "run_id": "0f533c1b-9134-466f-b6ba-38592ca5d21c",
+  "status": "failed",
+  "error": "Failed on our side — every credit this run used was refunded.",
+  "failure_class": "platform",
+  "refunded": true,
+  "credits_refunded": 4.0
+}
+```
+
+`failure_class` says whose fault a failed run was: `platform` (ours, refunded), `site` (the site was down, blocked or wanted a login), `recipe` (a step failed) or `user` (cancelled, or inputs it could not use). Only `platform` is refunded. Run history in the app shows the same label.
+
+If the server holding an async run restarts while the run waits for capacity, the run is started again on another server, up to 3 times. After that it fails as `platform` and anything it was charged is refunded. Your `webhook_url` hears either outcome.
+
+## Trigger it from a webhook
+
+A workflow with an active webhook trigger also runs on `POST /api/webhooks/workflow/{workflow_id}`, with its secret in the `X-Valendata-Secret` header. The JSON body is the run's inputs and is checked exactly like `/run`: a missing required input, a wrong type, an unknown input name or a body that is not a JSON object returns `422` with every problem listed, and nothing runs or costs credits.
+
+```bash
+curl -X POST https://api.valendata.com/api/webhooks/workflow/WORKFLOW_ID \
+  -H "X-Valendata-Secret: $WEBHOOK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"limit": 3}'
+```
+
+A workflow that declares no inputs takes any JSON object as it is.
+
 ## From an AI assistant (MCP)
 
 Each workflow you can run is also an MCP tool named `workflow_<slug>`, for example `workflow_test-workflow-api`. Its input schema is the trigger's inputs and its output schema is the run object above. Clients that support the MCP Tasks extension get a task they can poll instead of waiting. See [MCP](/integrations/mcp).
@@ -101,5 +133,6 @@ Each workflow you can run is also an MCP tool named `workflow_<slug>`, for examp
 ## Who can run it and who pays
 
 - The workflow's owner and members of its workspace can read and run it. Anyone else gets `404`.
+- An API key limited to some workflows gets `403` on any other one. See [API keys](/account/api-keys#limit-a-key-to-some-skills-or-workflows).
 - The workflow's owner pays: a base fee per run, plus each step's own cost. The run is charged the higher of the two, never both. API and MCP runs don't use your monthly run allowance.
 - If your account already has its maximum of runs in progress, `/run` answers `429` with `Retry-After`. `/runs` waits its turn instead.

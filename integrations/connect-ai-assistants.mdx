@@ -226,6 +226,40 @@ Each published workflow is also an MCP resource at `valendata://workflows/{workf
 | `get_knowledge` | optional `tags` | `knowledge:read` | Reads facts from your knowledge base |
 | `save_knowledge` | `key`, `value` (a JSON object), optional `tags` | `knowledge:write` | Saves or updates one fact |
 
+## Limits and side effects
+
+### Rate and concurrency limits
+
+Calls to the MCP endpoint are limited by how many runs can be in progress at once, not by a per-minute count. The limits are per Valendata account, whether the assistant signed in with OAuth or an API key:
+
+| What runs | In progress at once, per account |
+| --- | --- |
+| Runs that need a cloud browser | 6 |
+| Runs that a skill's fast path answers without a browser | 20 |
+
+There is also a shared limit across all Valendata accounts. When a limit is reached, a skill or workflow tool call returns at once with an error that says how many seconds to wait before retrying (about 30 seconds for browser runs, 2 seconds for fast runs). On clients that support MCP tasks, a skill run waits in a queue instead, for up to one hour. A run that never starts is not charged.
+
+HTTP API calls made with an API key (outside MCP) are also limited per key: 30 requests per minute on the Free plan and 120 per minute on paid plans. See [API keys](/account/api-keys).
+
+### What each tool changes
+
+| Tool | Changes anything? | Uses credits? |
+| --- | --- | --- |
+| `list_skills`, `list_workflows`, `get_run_status`, `list_recent_runs`, `get_knowledge`, `get_skill_creation`, `get_skill_improvement`, workflow resources | No. Read-only | No |
+| `skill_<slug>`, `invoke_skill` | Adds a run to your run history. Visits external websites in a cloud browser. Can sign in with the skill's saved login if you granted `logins:use` | Yes |
+| `invoke_workflow` and per-workflow tools | Adds a workflow run. Runs your workflow's own steps, which can export or overwrite rows in connected sheets and send HTTP requests | Yes |
+| `create_skill` | Records a task in a cloud browser and adds a new private skill to your account | Yes |
+| `improve_skill` | Adds a new recipe version to the skill. Old versions are kept and can be restored. A version that does not test better is kept as a candidate, not made live | Yes |
+| `save_knowledge` | Saves a fact. Overwrites the fact with the same `key` if one exists | No |
+
+No tool deletes skills, workflows, runs or saved logins, and no tool reads or saves a password.
+
+If the account does not have enough credits, a skill run, `create_skill` or `improve_skill` does not start, nothing is charged, and the tool returns: "Not enough credits on this account to run this."
+
+### Human checks (captchas)
+
+Runs started from an AI assistant do not solve a website's human check (a captcha or "verify you are human" page). When a site asks for one, the run stops and its result has `needs_user.kind` set to `captcha` with the message "This site asked for a human check. Open the run in Valendata to continue." That run is not charged. Runs you start inside the Valendata app are not affected.
+
 ## Disconnect and revoke access
 
 You can cut off an assistant from either side.
