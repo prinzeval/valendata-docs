@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "name": "Valendata",
   "theme": "maple",
-  "favicon": "https://media.brand.dev/9368dd59-b624-47ee-837e-7118bdeeca4e.png",
+  "favicon": "/favicon.ico",
   "colors": {
     "primary": "#12b981",
     "light": "#12b981",
