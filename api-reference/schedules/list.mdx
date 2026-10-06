@@ -1,0 +1,11 @@
+---
+title: "List schedules"
+description: "Every schedule you may see, for skills and workflows."
+openapi: "GET /v1/schedules"
+---
+
+`kind=skill` or `kind=workflow` narrows the list. Without it, a kind your key cannot read is simply left out.
+
+Skill schedule ids start with `sklsch_`; workflow schedule ids with `wfsch_`. Each has `cron` and `every` (the cadence two ways), `frequency` (as the app stores it), `timezone`, `inputs`, `enabled`, `next_run_at`, and `last_run_at`. Skill schedules also have `max_results`.
+
+MCP tool: `list_schedules` (with optional `kind` or `workflow`).

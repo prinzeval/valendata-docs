@@ -1,0 +1,63 @@
+---
+title: "Schedule a skill or workflow"
+description: "Run a skill or workflow automatically every few minutes, hours, days, or weeks, from the app, the API, or an AI assistant."
+---
+
+A **schedule** runs a skill or workflow for you on a fixed cadence. Each scheduled run appears in run history like any other [run](/concepts/runs) and uses [credits](/concepts/credits).
+
+## In the app
+
+<Steps>
+  <Step title="Open Schedules">
+    Click **Schedules** in the sidebar, then **New Schedule**.
+  </Step>
+  <Step title="Pick what to run">
+    Choose a skill or a workflow.
+  </Step>
+  <Step title="Choose how often">
+    Pick a preset (every 5, 15, or 30 minutes; every hour; daily at 9:00, 12:00, 18:00, or midnight; weekly on Monday) or **Custom**: a daily time, an interval in minutes, a weekday, or a cron expression. Times are UTC.
+  </Step>
+  <Step title="Pick a browser profile (optional)">
+    If the site needs a sign-in, choose a [browser profile](/concepts/logins-and-browser-profiles). Scheduled runs work even when your computer is off.
+  </Step>
+  <Step title="Create">
+    Click **Create Schedule**. It is live at once and shows its next run time.
+  </Step>
+</Steps>
+
+To pause, switch **Active** off on the schedule's row. Runs missed while paused are not made up later. To remove it, click the delete icon. The skill or workflow itself is not changed.
+
+## From the API
+
+A skill or workflow has **one** schedule. Creating a second returns `409` with the id of the one it has; change that one instead.
+
+| Do this | Call |
+| --- | --- |
+| Schedule a skill | [`POST /v1/skills/{slug}/schedules`](/api-reference/schedules/create-skill-schedule) |
+| Schedule a workflow | [`POST /v1/workflows/{slug}/schedules`](/api-reference/schedules/create-workflow-schedule) |
+| See every schedule | [`GET /v1/schedules`](/api-reference/schedules/list) |
+| See one skill's or workflow's | [`GET /v1/skills/{slug}/schedules`](/api-reference/schedules/list-skill-schedules), [`GET /v1/workflows/{slug}/schedules`](/api-reference/schedules/list-workflow-schedules) |
+| Change, pause, or resume | [`PATCH /v1/schedules/{schedule_id}`](/api-reference/schedules/update) |
+| Delete | [`DELETE /v1/schedules/{schedule_id}`](/api-reference/schedules/delete) |
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/schedules \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"every": "daily 09:00", "timezone": "America/Chicago", "inputs": {"city": "Dallas"}, "max_results": 50}'
+```
+
+Give the cadence as **one** of:
+
+- `every`: `hourly`, `daily`, `daily 09:00`, `weekly mon 09:00`, `30 minutes`, `2h`.
+- `cron`: a 5-field cron expression, such as `0 9 * * 1-5`.
+
+`timezone` is an IANA name (default `UTC`). `enabled: false` saves it switched off. Skill schedules also take `max_results` (default 100).
+
+## From an AI assistant
+
+Ask it, for example "run austin-dentists every morning at 9". It uses `schedule_skill` or `schedule_workflow`, and `update_schedule` to change one. See [MCP tools](/ai-assistants/mcp-tools).
+
+## Before you pick a fast cadence
+
+Check what one run costs in run history, start with a daily schedule, and speed it up once you know the spend. If your balance reaches zero, scheduled runs fail until you top up.

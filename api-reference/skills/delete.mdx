@@ -1,0 +1,11 @@
+---
+title: "Delete a skill"
+description: "Delete a skill you own. Its runs are kept and its schedule stops."
+openapi: "DELETE /v1/skills/{slug}"
+---
+
+The skill's runs stay in run history (your billing history), and its schedule stops. This cannot be undone.
+
+If a workflow uses the skill, you get `409` with `detail.workflows` listing them. Remove the skill from those workflows, or send `?force=true`: the skill is deleted and those workflows' step fails until you point it at another skill. The response lists them in `workflows_detached`.
+
+Owner only. Needs `skills:write`. MCP tool: `delete_skill`.

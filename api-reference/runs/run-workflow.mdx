@@ -1,0 +1,14 @@
+---
+title: "Run a workflow and wait"
+description: "Run a workflow and get its outputs in the same call, or a run id if it takes longer than `wait` seconds."
+openapi: "POST /v1/workflows/{slug}/run"
+---
+
+Send the workflow's inputs under `inputs`, and how long to wait in `wait` (default 60, max 120 seconds).
+
+- `200`: the run finished. `outputs` holds the rows of the final step.
+- `202`: still running. Read [Get a run](/api-reference/runs/get) with its `run_id`.
+
+If your account is busy, this returns `429` with `Retry-After`. See [Build a workflow](/guides/build-a-workflow#4-run-it).
+
+MCP tool: `workflow_<slug>`.

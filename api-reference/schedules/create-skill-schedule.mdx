@@ -1,0 +1,16 @@
+---
+title: "Schedule a skill"
+description: "Run a skill on a schedule."
+openapi: "POST /v1/skills/{slug}/schedules"
+---
+
+Give exactly one of:
+
+- `cron`: a 5-field cron expression, for example `0 9 * * 1-5`.
+- `every`: `hourly`, `daily`, `daily 09:00`, `weekly mon 09:00`, `30 minutes`, `2h`, or the app's forms `daily:09:00`, `weekly:mon:09:00`, `interval:30`.
+
+Also: `timezone` (an IANA name, default `UTC`), `inputs` for every run (checked now), `max_results` (rows per run, default 100, `0` for all), and `enabled` (default `true`).
+
+A skill has one schedule. If it already has one you get `409` with its id: change it with [Update a schedule](/api-reference/schedules/update). Each scheduled run spends the owner's credits.
+
+Owner or workspace editor. Needs `skills:write`. MCP tool: `schedule_skill`.

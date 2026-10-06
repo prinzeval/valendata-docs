@@ -1,0 +1,11 @@
+---
+title: "Cancel a run"
+description: "Stop a queued or running run you started."
+openapi: "POST /v1/runs/{run_id}/cancel"
+---
+
+Works for skill runs and workflow runs. Stopping a workflow run also stops what it is running inside; those are listed in `stopped`. Rows already produced are kept, and credits already used stay charged.
+
+`cancelled` is `true` when a stop was requested now, and `false` when the run had already finished (it is left as it is). `kind` says `skill` or `workflow`.
+
+Only the person who started the run can stop it. Needs `skills:invoke` for a skill run, `workflows:invoke` for a workflow run. MCP tool: `cancel_run`.

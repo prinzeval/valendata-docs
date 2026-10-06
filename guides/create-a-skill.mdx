@@ -1,0 +1,101 @@
+---
+title: "Create a skill"
+description: "Make a skill from one sentence, by recording yourself in the app, or by cloning one from the marketplace."
+---
+
+There are three ways to get a skill:
+
+| Way | Best for | Can sign in to sites? |
+| --- | --- | --- |
+| [From a sentence](#from-a-sentence) | Public pages: search results, listings, directories. | No |
+| [By recording it](#by-recording-it) | Tasks behind your sign-in, or that need exact clicks. | Yes |
+| [From the marketplace](/guides/use-the-marketplace) | Common tasks someone has already built. | Depends on the skill |
+
+## From a sentence
+
+You describe the task and the page it starts on. Valendata does the task in a cloud browser, learns the steps, and checks them with one more run. This takes a few minutes.
+
+You can start it from:
+
+- **The app**: **My Skills → Create Skill → Describe it**. The product tour and Igris, the in-app assistant, can do it too.
+- **Your AI assistant**: ask it to create a skill. It uses the `create_skill` tool. See [MCP tools](/ai-assistants/mcp-tools).
+- **The API**: [`POST /v1/skills`](/api-reference/skills/create).
+
+Optionally name the **inputs** (with the example value the task uses) and the **output fields** you want. If you leave them out, Valendata works them out from the task. Names are turned into `snake_case`, so `Phone number` becomes `phone_number`.
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/skills \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: dentists-austin-001" \
+  -d '{
+    "task": "Search for dentists in Austin and list them",
+    "start_url": "https://www.google.com/maps",
+    "inputs": {"city": "Austin"},
+    "output_fields": {"name": "business name", "rating": "star rating", "phone": "phone number"}
+  }'
+```
+
+```python Python
+import os, time, requests
+
+API = "https://api.valendata.com"
+HEADERS = {"Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}"}
+
+creation = requests.post(
+    f"{API}/v1/skills",
+    headers={**HEADERS, "Idempotency-Key": "dentists-austin-001"},
+    json={
+        "task": "Search for dentists in Austin and list them",
+        "start_url": "https://www.google.com/maps",
+        "inputs": {"city": "Austin"},
+        "output_fields": {"name": "business name", "rating": "star rating", "phone": "phone number"},
+    },
+).json()
+
+while creation["status"] not in ("ready", "failed"):
+    time.sleep(5)
+    creation = requests.get(f"{API}{creation['status_url']}", headers=HEADERS).json()
+
+print(creation["status"], creation["slug"], creation.get("error"))
+```
+
+</CodeGroup>
+
+The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{creation_id}`](/api-reference/skills/get-creation) every few seconds until it is done:
+
+| `status` | Meaning |
+| --- | --- |
+| `queued` | Waiting to start. |
+| `recording` | The cloud browser is doing the task. |
+| `validating` | Saved as a skill (`slug` is set). Valendata runs it once more to check it. |
+| `ready` | Passed the check. You can run it. |
+| `failed` | Did not work. `error` says why and `diagnosis` suggests what to try. |
+
+**Limits:** 2 creations in progress at once, at least 10 credits to start, and 30 minutes per creation. A cloud browser starting fresh cannot sign in, so record tasks that need your sign-in instead.
+
+## By recording it
+
+<Steps>
+  <Step title="Start recording">
+    Open a new session from the dashboard. In the chat box, switch on **Record Skill**. It shows **Recording...** while it is on.
+  </Step>
+  <Step title="Do the task">
+    Type the task for the agent, or use the browser yourself: sign in, search, page through results, and reach the data you want. Every step is recorded.
+  </Step>
+  <Step title="Stop and publish">
+    Stop the session. The recording is saved under **Configs**. Open it, click **Publish as skill**, give it a name and description, choose the visibility, and click **Publish Skill**.
+  </Step>
+  <Step title="Check the inputs and output fields">
+    Open the skill. Click **Suggest** to detect inputs and output fields from the recording, then rename or adjust them.
+  </Step>
+</Steps>
+
+If the site needs a sign-in on later runs, attach a browser profile or a saved login. See [Use a saved login](/guides/use-a-saved-login).
+
+## Next
+
+- [Run a skill](/guides/run-a-skill)
+- [Improve a skill](/guides/improve-a-skill) if a field comes back empty.

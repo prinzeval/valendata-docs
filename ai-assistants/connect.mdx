@@ -1,0 +1,136 @@
+---
+title: "Connect your AI assistant"
+description: "Add Valendata to Claude, ChatGPT, Meta Muse, Cursor, or any MCP client. Sign in once, choose what it may do, and your skills and workflows show up as tools."
+---
+
+Valendata runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server. Connect it to your AI assistant and the assistant can run your skills and workflows, create and improve skills, schedule them, and read or save facts in your knowledge base. It acts as you, only with the permissions you approve, and you can disconnect it at any time. Every run is billed to your account the same as pressing **Run** yourself.
+
+## Before you start
+
+- A Valendata account with at least one skill or workflow, or credits to create one.
+- An assistant that supports remote MCP servers.
+
+## Server URL
+
+| Transport | URL | Use it for |
+| --- | --- | --- |
+| Streamable HTTP (recommended) | `https://api.valendata.com/mcp` | Claude, ChatGPT, Meta Muse, Cursor, and most current clients |
+| Server-Sent Events (SSE) | `https://api.valendata.com/mcp/sse` | Older clients that only support SSE |
+
+Both serve the same tools. You can also copy them from **Settings → Connectors** in the app.
+
+## Add it to your assistant
+
+Menu names in these apps change from time to time. If a label does not match, look for the option to add a custom connector or a remote MCP server.
+
+<Tabs>
+  <Tab title="Claude">
+    Works in Claude on the web and in the desktop app.
+
+    1. Open **Settings → Connectors**.
+    2. Click **Add custom connector**.
+    3. Enter a name, such as `Valendata`, and the URL `https://api.valendata.com/mcp`.
+    4. Click **Add**, then **Connect**. Sign in to Valendata and approve access.
+    5. In a chat, open the tools menu and make sure Valendata is on.
+
+    On Claude Team and Enterprise plans, an organization owner may need to add the connector first.
+  </Tab>
+  <Tab title="ChatGPT">
+    1. Open **Settings → Apps & Connectors → Advanced settings** and turn on **Developer mode**.
+    2. Back in **Apps & Connectors**, click **Create**.
+    3. Enter a name, such as `Valendata`. Set **MCP Server URL** to `https://api.valendata.com/mcp` and **Authentication** to **OAuth**.
+    4. Click **Create**. Sign in to Valendata and approve access.
+    5. In a chat, choose Valendata from the tools or connectors menu.
+
+    Developer mode depends on your ChatGPT plan and workspace settings.
+  </Tab>
+  <Tab title="Meta Muse">
+    1. Open the connector settings and choose to add a custom MCP connector.
+    2. Enter a name, such as `Valendata`, and the URL `https://api.valendata.com/mcp`.
+    3. Choose OAuth sign-in if asked. Sign in to Valendata and approve access.
+    4. Turn on the Valendata connector in your conversation.
+  </Tab>
+  <Tab title="Cursor">
+    Add Valendata to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project):
+
+    ```json
+    {
+      "mcpServers": {
+        "valendata": {
+          "url": "https://api.valendata.com/mcp"
+        }
+      }
+    }
+    ```
+
+    Save the file. Cursor opens the Valendata sign-in page the first time it connects. You can also add the server from **Cursor Settings → Tools & MCP**.
+  </Tab>
+  <Tab title="Other MCP clients">
+    Any client that supports remote MCP servers with OAuth works. Point it at `https://api.valendata.com/mcp` (or `/mcp/sse` for SSE-only clients).
+
+    Clients find the sign-in endpoints from these standard documents:
+
+    - `https://api.valendata.com/.well-known/oauth-protected-resource` (RFC 9728)
+    - `https://api.valendata.com/.well-known/oauth-authorization-server` (RFC 8414)
+
+    An unauthenticated request to the MCP endpoint returns `401` with a `WWW-Authenticate` header pointing to `https://api.valendata.com/.well-known/oauth-protected-resource/mcp`.
+  </Tab>
+</Tabs>
+
+## Sign-in and permissions
+
+Valendata uses OAuth 2.1 with PKCE, so the assistant never sees your password. The assistant registers itself the first time it connects; you do not need a client ID or secret.
+
+When you connect, a consent screen shows the app's name and the permissions (scopes) it asks for. Untick any you do not want. `skills:write`, `workflows:write`, and `account:read` are never granted by default: tick them under **Optional extra access** if the assistant needs them. Then click **Allow access**. Grant only what the assistant needs. The scopes are the same as for API keys; see [Authentication and scopes](/api-reference/authentication#scopes). Only the `invoke` and `write` scopes can spend credits.
+
+The assistant gets a short-lived access token and a refresh token. Valendata stores only a hash of each. A refresh token works once: if a used one is presented again, Valendata treats it as stolen and revokes every token from that sign-in.
+
+## Use an API key instead
+
+If your client cannot do an OAuth sign-in, send an API key as the bearer token:
+
+```json
+{
+  "mcpServers": {
+    "valendata": {
+      "url": "https://api.valendata.com/mcp",
+      "headers": {
+        "Authorization": "Bearer vd_sk_YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+<Warning>
+  The key carries the scopes you picked when you made it. Make a key just for the assistant, with only what it needs. Leave out `skills:invoke` and `workflows:invoke` if it should not spend credits. See [API keys](/account/api-keys).
+</Warning>
+
+## What the assistant sees
+
+Each skill you can run is a tool named `skill_<slug>`, and each workflow is `workflow_<slug>`, with typed inputs and outputs and a short track record in the description. There are also tools to list, create, update, schedule, and improve them. See [MCP tools](/ai-assistants/mcp-tools) for the full list and [Limits and side effects](/ai-assistants/limits-and-side-effects) for what each one changes.
+
+## Disconnect
+
+- **In Valendata**: **Settings → Connectors**, then **Revoke** next to the app. All its tokens stop working at once.
+- **In your assistant**: remove the connector. This does not revoke tokens on Valendata's side, so revoke there too.
+- **API key**: revoke it in **Settings → API Keys**.
+
+Clients can also revoke a token with `POST https://api.valendata.com/oauth/revoke` (RFC 7009). Disconnecting never deletes your skills, workflows, runs, or knowledge base.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The assistant shows no skill tools">
+    Check that you granted `skills:read` and that you have at least one active skill. Then refresh the tool list or reconnect.
+  </Accordion>
+  <Accordion title="A tool says a scope is missing">
+    You did not grant that scope. Revoke the app in **Settings → Connectors**, reconnect, and tick the scope.
+  </Accordion>
+  <Accordion title="A skill needs me to sign in to a website">
+    Give the skill a saved login or a signed-in browser profile. See [Use a saved login](/guides/use-a-saved-login).
+  </Accordion>
+  <Accordion title="Calls fail with not enough credits">
+    Top up from the billing page. See [Credits](/concepts/credits).
+  </Accordion>
+</AccordionGroup>

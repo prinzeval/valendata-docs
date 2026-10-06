@@ -1,0 +1,11 @@
+---
+title: "List workflow runs"
+description: "A workflow's runs, newest first."
+openapi: "GET /v1/workflows/{slug}/runs"
+---
+
+Filter with `status` (`pending`, `running`, `completed`, `failed`, `cancelled`), `source` (`api`, `mcp`, `app`, `schedule`, …), `since`, and `until`. Page with `limit` (1–100, default 25) and `cursor`.
+
+Each item has `run_id`, `status`, `source`, times, `outputs_count`, `credits_charged`, `credits_refunded`, `failure_class`, `error`, and `status_url`. For the outputs, call [Get a run](/api-reference/runs/get).
+
+Needs `workflows:read`. MCP tool: `list_workflow_runs`.

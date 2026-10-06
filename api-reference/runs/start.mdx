@@ -1,7 +1,0 @@
----
-title: "Start an async skill run"
-description: "Start a skill run in the background and get a run id at once. Supports Idempotency-Key and signed webhooks."
-openapi: "POST /v1/skills/{slug}/runs"
----
-
-The rows are not in this response. Poll [`GET /v1/runs/{run_id}`](/api-reference/runs/get-skill-run) until `status` is no longer `queued` or `running`, or set `webhook_url` to receive the finished run as a signed `POST`. See [Webhooks](/guides/web-to-api#webhooks) for how to verify the signature.

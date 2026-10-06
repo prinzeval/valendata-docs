@@ -1,0 +1,9 @@
+---
+title: "List a workflow's schedules"
+description: "The workflow's schedule, as a list of zero or one."
+openapi: "GET /v1/workflows/{slug}/schedules"
+---
+
+A workflow has at most one schedule.
+
+Needs `workflows:read`. MCP tool: `list_schedules` with `workflow`.

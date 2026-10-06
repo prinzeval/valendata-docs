@@ -1,0 +1,9 @@
+---
+title: "Delete a workflow"
+description: "Delete a workflow you own and take its schedule off."
+openapi: "DELETE /v1/workflows/{slug}"
+---
+
+Its runs are kept: they stay in your run history and usage, and stay readable with [Get a run](/api-reference/runs/get) (`workflow_id` reads `null` once the workflow is gone). Deleting the workflow cannot be undone. `schedules_disabled` says whether a schedule was taken off.
+
+Owner only. Needs `workflows:write`. MCP tool: `delete_workflow`.

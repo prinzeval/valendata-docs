@@ -1,0 +1,11 @@
+---
+title: "Improve a skill"
+description: "Fix a field, add fields, or re-learn how a skill opens each result. It goes live only if a check run shows it is better."
+openapi: "POST /v1/skills/{slug}/improve"
+---
+
+Pick a `mode`: `fix` (default), `add_fields`, or `relearn_details`. `feedback` is required for the first two. The call answers at once; read [Get an improvement](/api-reference/improvements/get) until `status` is `done` or `failed`.
+
+When to use each mode, how to read a run's `diagnosis`, and what happens step by step are in [Improve a skill](/guides/improve-a-skill).
+
+MCP tool: `improve_skill`.

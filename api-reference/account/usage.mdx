@@ -1,0 +1,11 @@
+---
+title: "Get usage"
+description: "Credits spent per day and per source."
+openapi: "GET /v1/usage"
+---
+
+`from` and `to` are UTC days, inclusive. The default is the last 30 days; the most is 366 days.
+
+`total` is what you really spent: refunds are taken off. `by_source` splits it into `skill_runs`, `workflows`, `browser_sessions`, `assistant`, `browser_agents`, `ai_tools`, `improvements`, and `other`. `days` lists each day with any usage, oldest first. Credits given back for old over-charges are not usage; they are in `goodwill_refunds`.
+
+Amounts are decimal strings, exact to 0.01. Needs `account:read`. MCP tool: `get_usage`. Each run's own cost is on [Get a run](/api-reference/runs/get).

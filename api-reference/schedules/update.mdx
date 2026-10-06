@@ -1,0 +1,9 @@
+---
+title: "Update a schedule"
+description: "Change a schedule's cadence, timezone, inputs, or switch it on or off."
+openapi: "PATCH /v1/schedules/{schedule_id}"
+---
+
+Send only what you want to change: `cron` or `every`, `timezone`, `inputs`, `enabled`, and, for a skill schedule only, `max_results`. `enabled: false` pauses it; runs missed while paused are not made up later.
+
+Needs `skills:write` (skill schedule) or `workflows:write` (workflow schedule). Switching a workflow schedule on also needs `workflows:invoke`. MCP tool: `update_schedule`.

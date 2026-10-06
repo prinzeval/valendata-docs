@@ -1,0 +1,11 @@
+---
+title: "Update a workflow"
+description: "Change a workflow's name, description, inputs, steps, or connections."
+openapi: "PATCH /v1/workflows/{slug}"
+---
+
+Send only what you want to change. `steps` replaces the whole list. Everything is checked like [Create a workflow](/api-reference/workflows/create).
+
+The state before the change is saved as a version you can restore in the app.
+
+The owner, or a workspace owner, admin, or member (a viewer gets `403`). Needs `workflows:write`. MCP tool: `update_workflow`.

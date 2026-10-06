@@ -1,0 +1,109 @@
+---
+title: "MCP tools"
+description: "Every tool the Valendata MCP server gives your AI assistant, what it does, the scope it needs, and the API call it matches."
+---
+
+Tool names follow the API: `list_`, `get_`, `create_`, `update_`, `delete_`, plus one tool per skill (`skill_<slug>`) and per workflow (`workflow_<slug>`). Each tool does the same thing as the API call in its last column, so the API page has the full fields.
+
+For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For what each tool changes and costs, see [Limits and side effects](/ai-assistants/limits-and-side-effects).
+
+## Skills
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_skills` | optional `q`, `status`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
+| `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
+| `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
+| `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
+| `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
+| `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
+
+Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `improve_skill`, `get_skill_improvement`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
+
+### One tool per skill: `skill_<slug>`
+
+Every skill you can run is its own tool, named `skill_` plus its slug. A skill with the slug `austin-dentists` becomes `skill_austin-dentists`. The list holds skills you own and skills shared into your workspaces. Marketplace skills appear once you clone them.
+
+Each tool has:
+
+- **A description**: what the skill does, plus a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one).
+- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list) and `version`.
+- **An output schema**: the row shape, so the assistant can rely on field names.
+
+Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
+
+`invoke_skill` (`skill_id`, optional `params`, `max_results`) runs a skill by id. Prefer the `skill_<slug>` tools: they carry typed schemas.
+
+## Runs
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_skill_runs` | `skill`, optional `status`, `since`, `limit`, `cursor` | `runs:read` | [List skill runs](/api-reference/runs/list-skill-runs) |
+| `list_workflow_runs` | `slug`, optional `status`, `source`, `since`, `until`, `limit`, `cursor` | `workflows:read` | [List workflow runs](/api-reference/runs/list-workflow-runs) |
+| `get_run` | `run_id` (skill or workflow run) | `runs:read` or `workflows:read` | [Get a run](/api-reference/runs/get) |
+| `cancel_run` | `run_id` | `skills:invoke` or `workflows:invoke` | [Cancel a run](/api-reference/runs/cancel) |
+
+Older tools that still work: `get_run_status` (`run_id`, a workflow run) and `list_recent_runs` (optional `limit`, your latest workflow runs). New assistants should use `get_run` and `list_workflow_runs`.
+
+## Improvements
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`), `feedback`, optional `fields`, `example_input`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
+| `get_skill_improvement` | `improvement_id` | `skills:invoke` | [Get an improvement](/api-reference/improvements/get) |
+
+When a skill run comes back short, its result has a `diagnosis` with hints the assistant can pass as `feedback`. See [Improve a skill](/guides/improve-a-skill).
+
+## Schedules
+
+A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, workflow ones with `wfsch_`.
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_schedules` | optional `kind` (`skill` or `workflow`), `workflow` | `skills:read` / `workflows:read` | [List schedules](/api-reference/schedules/list) |
+| `schedule_skill` | `skill`, `cron` or `every`, optional `timezone`, `inputs`, `max_results`, `enabled` | `skills:write` | [Schedule a skill](/api-reference/schedules/create-skill-schedule) |
+| `schedule_workflow` | `slug`, `cron` or `every`, optional `timezone`, `inputs`, `enabled` | `workflows:write` (+ `workflows:invoke` to switch on) | [Schedule a workflow](/api-reference/schedules/create-workflow-schedule) |
+| `update_schedule` | `schedule_id`, optional `cron`, `every`, `timezone`, `inputs`, `enabled` | `skills:write` / `workflows:write` | [Update a schedule](/api-reference/schedules/update) |
+| `delete_schedule` | `schedule_id` | `skills:write` / `workflows:write` | [Delete a schedule](/api-reference/schedules/delete) |
+
+## Workflows
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_workflows` | optional `q`, `limit`, `cursor` | `workflows:read` | [List workflows](/api-reference/workflows/list) |
+| `get_workflow` | `slug`, optional `include_graph` (default `true`) | `workflows:read` | [Get a workflow](/api-reference/workflows/get) |
+| `create_workflow` | `name`, optional `description`, `inputs`, `steps`, `connections`, `workspace_id` | `workflows:write` | [Create a workflow](/api-reference/workflows/create) |
+| `update_workflow` | `slug`, optional `name`, `description`, `inputs`, `steps`, `connections` | `workflows:write` | [Update a workflow](/api-reference/workflows/update) |
+| `delete_workflow` | `slug` | `workflows:write` | [Delete a workflow](/api-reference/workflows/delete) |
+
+`workflows:write` is on API keys. For an assistant it is opt-in: tick "Create, edit and delete your workflows and schedules" under **Optional extra access** on the consent screen.
+
+### One tool per workflow: `workflow_<slug>`
+
+Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow). Clients that support the MCP Tasks extension get a task they can poll instead of waiting.
+
+`invoke_workflow` (`workflow_id`, optional `inputs`) starts a workflow by id and returns a `run_id`. Prefer the `workflow_<slug>` tools.
+
+Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows of its last finished run, at no cost. Needs `workflows:read`.
+
+## Account
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `get_account` | none | `account:read` | [Get your account](/api-reference/account/get) |
+| `get_usage` | optional `from`, `to` (`YYYY-MM-DD`) | `account:read` | [Get usage](/api-reference/account/usage) |
+
+`account:read` is on API keys. For an assistant it is opt-in: tick "See your credits balance and usage" under **Optional extra access** on the consent screen.
+
+## Knowledge base
+
+Your knowledge base holds facts the assistant can reuse across chats, such as your company name or preferred cities. It has no API page.
+
+| Tool | Arguments | Scope | What it does |
+| --- | --- | --- | --- |
+| `get_knowledge` | optional `tags` | `knowledge:read` | Reads facts, optionally filtered by tag. |
+| `save_knowledge` | `key`, `value` (a JSON object), optional `tags` | `knowledge:write` | Saves or updates one fact. |
+
+## Not available as tools
+
+There is no tool to save a login or read one back, on purpose: a password in a tool call would stay in the assistant's chat history. Save logins in the app's **Vault** or with [Create a login](/api-reference/logins/create).

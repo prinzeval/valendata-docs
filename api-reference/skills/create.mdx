@@ -1,7 +1,11 @@
 ---
-title: "Create a skill from a task"
-description: "Record a plain-language task in a cloud browser and publish it as a typed, versioned skill. Answers at once with a creation id to poll."
+title: "Create a skill"
+description: "Make a skill from a one-sentence task. Answers at once with a creation id to poll."
 openapi: "POST /v1/skills"
 ---
 
-Recording usually takes a few minutes. Poll [`GET /v1/skill-creations/{creation_id}`](/api-reference/skill-creations/get) until `status` is `ready` or `failed`. See [Create a skill from a task](/guides/web-to-api#1-create-a-skill-from-a-task) for a full example.
+A cloud browser does the task, learns the steps, and checks them. Read [Get a skill creation](/api-reference/skills/get-creation) every few seconds until `status` is `ready` or `failed`. Send an `Idempotency-Key` so a retry does not start a second creation.
+
+A walkthrough with code, statuses, and limits is in [Create a skill](/guides/create-a-skill#from-a-sentence).
+
+MCP tool: `create_skill`.

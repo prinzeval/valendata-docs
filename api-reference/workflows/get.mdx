@@ -1,0 +1,9 @@
+---
+title: "Get a workflow"
+description: "A workflow and its contract: inputs, output shape, track record, and routes."
+openapi: "GET /v1/workflows/{slug}"
+---
+
+`input_schema` lists the inputs (from the API trigger), `output` says what `outputs` will hold, and `reliability` summarizes the last 20 finished runs. `mcp_tool` is the tool name assistants see. Add `include_graph=true` for its `steps` and `connections`. The slug is on the workflow's **API** tab.
+
+MCP tool: `get_workflow` (includes the steps by default).

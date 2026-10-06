@@ -1,0 +1,15 @@
+---
+title: "Run a skill and wait"
+description: "Run a skill and get its rows in the same call."
+openapi: "POST /v1/skills/{slug}/run"
+---
+
+Put the skill's inputs at the top level of the body (or in the query). The run settings (`max_results`, `max_pages`, `version`, `browser_type`, `profile_id`, `proxy_config`, `scrape_mode`) sit next to them. See [Run settings](/guides/run-a-skill#run-settings).
+
+The rows are in `data`. The other fields are explained in [Runs](/concepts/runs#what-a-finished-run-holds).
+
+If your account already has its maximum of runs in progress, this returns `429` with `Retry-After` instead of waiting. Use [Start a skill run](/api-reference/runs/start-skill-run) to queue instead.
+
+The older `POST /v1/skills/run` with `skill_id` and `parameters` in the body still works. New code should use this route.
+
+MCP tool: `skill_<slug>`.

@@ -35,100 +35,103 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Get started",
+            "icon": "rocket",
             "pages": [
               "introduction",
-              "quickstart",
-              "credits-and-billing"
-            ],
-            "icon": "rocket"
+              "quickstart"
+            ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Concepts",
+            "icon": "lightbulb",
             "pages": [
               "concepts/skills",
               "concepts/workflows",
-              "concepts/chrome-profiles",
+              "concepts/runs",
+              "concepts/keeping-skills-working",
+              "concepts/logins-and-browser-profiles",
               "concepts/workspaces",
-              "concepts/keeping-skills-working"
-            ],
-            "icon": "lightbulb"
+              "concepts/credits"
+            ]
           },
           {
-            "group": "Guides",
+            "group": "How-to guides",
+            "icon": "book-open",
             "pages": [
-              "guides/web-to-api",
-              "guides/workflow-api",
-              "guides/recording-a-skill",
-              "guides/skills-that-need-a-login",
-              "guides/scheduling-skills",
-              "guides/using-the-marketplace",
-              "guides/exporting-data"
-            ],
-            "icon": "book-open"
+              "guides/create-a-skill",
+              "guides/run-a-skill",
+              "guides/improve-a-skill",
+              "guides/build-a-workflow",
+              "guides/schedule",
+              "guides/use-a-saved-login",
+              "guides/export-data",
+              "guides/use-the-marketplace"
+            ]
           },
           {
-            "group": "Integrations",
+            "group": "Use with AI assistants",
+            "icon": "robot",
             "pages": [
-              "integrations/overview",
-              "integrations/connect-ai-assistants",
-              "integrations/mcp"
-            ],
-            "icon": "plug"
+              "ai-assistants/connect",
+              "ai-assistants/mcp-tools",
+              "ai-assistants/limits-and-side-effects"
+            ]
           },
           {
-            "group": "Account & Security",
+            "group": "Account and security",
+            "icon": "shield",
             "pages": [
-              "account/two-factor-authentication",
               "account/api-keys",
+              "account/two-factor-authentication",
               "account/data-export"
-            ],
-            "icon": "shield"
+            ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "API reference",
         "groups": [
           {
             "group": "Overview",
             "icon": "book-open",
             "pages": [
               "api-reference/introduction",
-              "api-reference/authentication"
+              "api-reference/authentication",
+              "api-reference/errors",
+              "api-reference/pagination-and-idempotency"
             ]
           },
           {
             "group": "Skills",
-            "icon": "sparkles",
+            "icon": "bolt",
             "pages": [
-              "api-reference/skills/contract",
-              "api-reference/skills/health",
-              "api-reference/skills/run-by-slug",
-              "api-reference/skills/run-by-id",
               "api-reference/skills/list",
-              "api-reference/skills/get"
-            ]
-          },
-          {
-            "group": "Skill creation",
-            "icon": "wand-magic-sparkles",
-            "pages": [
               "api-reference/skills/create",
-              "api-reference/skill-creations/get"
+              "api-reference/skills/get-creation",
+              "api-reference/skills/get",
+              "api-reference/skills/update",
+              "api-reference/skills/delete",
+              "api-reference/skills/health"
             ]
           },
           {
-            "group": "Skill improvement",
-            "icon": "wand-magic",
+            "group": "Runs",
+            "icon": "play",
             "pages": [
-              "api-reference/skills/improve",
-              "api-reference/skill-improvements/get",
-              "api-reference/skill-improvements/list"
+              "api-reference/runs/run-skill",
+              "api-reference/runs/start-skill-run",
+              "api-reference/runs/list-skill-runs",
+              "api-reference/runs/run-workflow",
+              "api-reference/runs/start-workflow-run",
+              "api-reference/runs/list-workflow-runs",
+              "api-reference/runs/get",
+              "api-reference/runs/cancel",
+              "api-reference/runs/send-code"
             ]
           },
           {
-            "group": "Versions",
+            "group": "Skill versions",
             "icon": "code-branch",
             "pages": [
               "api-reference/versions/list",
@@ -138,44 +141,63 @@
             ]
           },
           {
-            "group": "Workflows",
-            "icon": "diagram-project",
+            "group": "Improvements",
+            "icon": "wand-magic-sparkles",
             "pages": [
-              "api-reference/workflows/contract",
-              "api-reference/workflows/run-sync",
-              "api-reference/workflows/start-run",
-              "api-reference/workflows/get-run",
-              "api-reference/workflows/list",
-              "api-reference/workflows/run"
+              "api-reference/improvements/improve",
+              "api-reference/improvements/get",
+              "api-reference/improvements/list"
             ]
           },
           {
-            "group": "Runs",
-            "icon": "clock-rotate-left",
+            "group": "Schedules",
+            "icon": "clock",
             "pages": [
-              "api-reference/runs/start",
-              "api-reference/runs/get-skill-run",
-              "api-reference/runs/list",
-              "api-reference/runs/get"
+              "api-reference/schedules/list",
+              "api-reference/schedules/get",
+              "api-reference/schedules/list-skill-schedules",
+              "api-reference/schedules/create-skill-schedule",
+              "api-reference/schedules/list-workflow-schedules",
+              "api-reference/schedules/create-workflow-schedule",
+              "api-reference/schedules/update",
+              "api-reference/schedules/delete"
+            ]
+          },
+          {
+            "group": "Workflows",
+            "icon": "diagram-project",
+            "pages": [
+              "api-reference/workflows/list",
+              "api-reference/workflows/create",
+              "api-reference/workflows/get",
+              "api-reference/workflows/update",
+              "api-reference/workflows/delete"
             ]
           },
           {
             "group": "Logins",
             "icon": "key",
             "pages": [
-              "api-reference/logins/create",
               "api-reference/logins/list",
+              "api-reference/logins/create",
               "api-reference/logins/get",
               "api-reference/logins/update",
-              "api-reference/logins/delete",
-              "api-reference/logins/set-skill-login",
-              "api-reference/logins/run-code"
+              "api-reference/logins/delete"
+            ]
+          },
+          {
+            "group": "Account and usage",
+            "icon": "user",
+            "pages": [
+              "api-reference/account/get",
+              "api-reference/account/usage"
             ]
           },
           {
             "group": "Webhooks",
             "icon": "webhook",
             "pages": [
+              "api-reference/webhooks/overview",
               "api-reference/webhooks/secret",
               "api-reference/webhooks/rotate-secret"
             ]
@@ -201,5 +223,187 @@
     "playground": {
       "display": "interactive"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/index",
+      "destination": "/introduction",
+      "permanent": true
+    },
+    {
+      "source": "/credits-and-billing",
+      "destination": "/concepts/credits",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/chrome-profiles",
+      "destination": "/concepts/logins-and-browser-profiles",
+      "permanent": true
+    },
+    {
+      "source": "/guides/web-to-api",
+      "destination": "/guides/run-a-skill",
+      "permanent": true
+    },
+    {
+      "source": "/guides/workflow-api",
+      "destination": "/guides/build-a-workflow",
+      "permanent": true
+    },
+    {
+      "source": "/guides/recording-a-skill",
+      "destination": "/guides/create-a-skill",
+      "permanent": true
+    },
+    {
+      "source": "/guides/skills-that-need-a-login",
+      "destination": "/guides/use-a-saved-login",
+      "permanent": true
+    },
+    {
+      "source": "/guides/scheduling-skills",
+      "destination": "/guides/schedule",
+      "permanent": true
+    },
+    {
+      "source": "/guides/using-the-marketplace",
+      "destination": "/guides/use-the-marketplace",
+      "permanent": true
+    },
+    {
+      "source": "/guides/exporting-data",
+      "destination": "/guides/export-data",
+      "permanent": true
+    },
+    {
+      "source": "/integrations/overview",
+      "destination": "/guides/export-data",
+      "permanent": true
+    },
+    {
+      "source": "/integrations/connect-ai-assistants",
+      "destination": "/ai-assistants/connect",
+      "permanent": true
+    },
+    {
+      "source": "/integrations/mcp",
+      "destination": "/ai-assistants/mcp-tools",
+      "permanent": true
+    },
+    {
+      "source": "/integrations/webhooks",
+      "destination": "/api-reference/webhooks/overview",
+      "permanent": true
+    },
+    {
+      "source": "/integrations/n8n",
+      "destination": "/guides/export-data",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skills/contract",
+      "destination": "/api-reference/skills/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skills/run",
+      "destination": "/api-reference/runs/run-skill",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skills/run-by-slug",
+      "destination": "/api-reference/runs/run-skill",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skills/run-by-id",
+      "destination": "/api-reference/runs/run-skill",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skills/improve",
+      "destination": "/api-reference/improvements/improve",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skill-creations/get",
+      "destination": "/api-reference/skills/get-creation",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skill-improvements/get",
+      "destination": "/api-reference/improvements/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/skill-improvements/list",
+      "destination": "/api-reference/improvements/list",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/runs/start",
+      "destination": "/api-reference/runs/start-skill-run",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/runs/get-skill-run",
+      "destination": "/api-reference/runs/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/runs/list",
+      "destination": "/api-reference/runs/list-workflow-runs",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/contract",
+      "destination": "/api-reference/workflows/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/run",
+      "destination": "/api-reference/runs/run-workflow",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/run-sync",
+      "destination": "/api-reference/runs/run-workflow",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/execute",
+      "destination": "/api-reference/runs/run-workflow",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/start-run",
+      "destination": "/api-reference/runs/start-workflow-run",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/workflows/get-run",
+      "destination": "/api-reference/runs/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/logins/set-skill-login",
+      "destination": "/api-reference/skills/update",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/logins/run-code",
+      "destination": "/api-reference/runs/send-code",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/sessions/status",
+      "destination": "/api-reference/runs/get",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/sessions/recordings",
+      "destination": "/api-reference/runs/get",
+      "permanent": true
+    }
+  ]
 }

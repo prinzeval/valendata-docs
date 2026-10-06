@@ -1,9 +1,0 @@
----
-title: "Choose a skill's login"
-description: "Pick the saved login a skill signs in with when the site asks."
-openapi: "PATCH /v1/skills/{slug}"
----
-
-Only the skill's owner can do this, with a login they own. Send `"login_id": null` to remove it.
-
-The login is used on your own runs only. A teammate running a shared skill, or anyone running a public copy, never signs in as you: their run stops with `needs_user.kind = "no_login"`.

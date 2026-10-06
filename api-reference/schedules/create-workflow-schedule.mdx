@@ -1,0 +1,11 @@
+---
+title: "Schedule a workflow"
+description: "Run a workflow on a schedule."
+openapi: "POST /v1/workflows/{slug}/schedules"
+---
+
+Takes `cron` or `every`, `timezone`, `inputs`, and `enabled`, as in [Schedule a skill](/api-reference/schedules/create-skill-schedule), without `max_results`. `inputs` are checked against the workflow's inputs.
+
+A workflow has one schedule; a second gets `409` with its id.
+
+Anyone who may edit the workflow (a viewer gets `403`). Needs `workflows:write`, plus `workflows:invoke` to create it switched on. MCP tool: `schedule_workflow`.

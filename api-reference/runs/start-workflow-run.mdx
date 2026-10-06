@@ -1,0 +1,7 @@
+---
+title: "Start a workflow run"
+description: "Start a workflow run in the background and get a run id at once."
+openapi: "POST /v1/workflows/{slug}/runs"
+---
+
+If your account is busy, the run waits as `pending`. Read [Get a run](/api-reference/runs/get) until it is no longer `pending` or `running`, or set `webhook_url`. See [Webhooks](/api-reference/webhooks/overview). Send an `Idempotency-Key` to make retries safe.

@@ -1,5 +1,17 @@
 ---
 title: "Get a skill's health"
-description: "Success rate and repairs over the last 20 runs, the last failure kind, and each route's health."
+description: "Success rate and repairs over the last 20 runs, the last failure kind, and how each route is doing."
 openapi: "GET /v1/skills/{slug}/health"
 ---
+
+| Field | Meaning |
+| --- | --- |
+| `success_rate_20` | Percent of the last 20 finished runs that worked. |
+| `heals_20` | How many of those needed a repair. |
+| `last_success_at` | When it last worked. |
+| `last_failure_kind` | Why the latest failure failed. See [failure kinds](/concepts/keeping-skills-working#why-runs-fail). |
+| `recipe_version` | The version runs use. |
+| `fast_path` | `{tier, status, median_seconds, description}`, or `null`. |
+| `tiers` | For each route: `attempts`, `ok`, `success_rate`, `median_seconds`, and `status` (`healthy` or `broken`). |
+
+A public skill's health needs no key.

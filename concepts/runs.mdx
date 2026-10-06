@@ -1,0 +1,68 @@
+---
+title: "Runs"
+description: "A run is one execution of a skill or workflow. It has a status, rows, a cost, and fields that say how far to trust each row."
+---
+
+A **run** is one execution of a skill or a workflow. Every way of starting one (the **Run** button, the API, an AI assistant, a schedule, a workflow step) creates a run with a `run_id`. You can see every run in the app's run history, or read it with [`GET /v1/runs/{run_id}`](/api-reference/runs/get).
+
+## Wait, or run in the background
+
+| | Wait for the result | Run in the background |
+| --- | --- | --- |
+| API | `POST /v1/skills/{slug}/run` | `POST /v1/skills/{slug}/runs` |
+| You get | The rows, in the same call | A `run_id` at once. Read the run later, or get a [webhook](/api-reference/webhooks/overview). |
+| If your account is busy | `429` with `Retry-After` | The run waits in a queue |
+| Best for | Quick skills, interactive use | Long skills, batches, servers |
+
+Workflows have the same pair under `/v1/workflows/{slug}`. See [Run a skill](/guides/run-a-skill).
+
+## Status
+
+| Status | Meaning |
+| --- | --- |
+| `queued` | Waiting for a free browser. |
+| `running` | In progress. |
+| `success` | Finished with rows. Workflows say `completed`. |
+| `partial` | Finished, but some rows or fields are missing. |
+| `failed` | Did not finish. `error` and `triage_kind` say why. |
+| `cancelled` | Stopped by you. See [Cancel a run](/api-reference/runs/cancel). |
+
+## What a finished run holds
+
+- **Rows**: the data, one object per row, with the skill's output fields.
+- **Count** and **time taken**.
+- **Version**: the skill version this run used (`recipe_version`).
+- **Route**: how it ran (`tier_used`): a fast path or the full browser steps. See [Fast path](/concepts/keeping-skills-working#fast-path).
+- **Replay**: in the app, a browser run has a step-by-step replay with screenshots, so you can see where it clicked and typed.
+- **Cost**: `credits_charged` and `cost_usd`. A cloud browser is billed when it closes, so a run can answer before its final cost is known. Until then `cost_final` is `false` and `cost_estimate_credits` holds the expected total. Read the run again for the final number.
+
+## How far to trust the rows
+
+Valendata never fills in a value it did not see. Each result says what it is unsure of:
+
+| Field | Meaning |
+| --- | --- |
+| `drifted_fields` | Fields that look wrong on this run, with the reason. |
+| `unverified_fields` | Fields Valendata has not yet proven it reads correctly. |
+| `rejected_values` | Values that were not on the page. They are removed, not returned. |
+| `truncated_sections` | Sections that had more data than this run collected. |
+| `diagnosis` | Present when a run failed, a field came back on fewer than half the rows, or the rows look wrong. It says what was tried and suggests a hint for [Improve](/guides/improve-a-skill#read-the-diagnosis). |
+
+## Why a run failed
+
+A failed run has one `triage_kind`, such as `site_down`, `blocked`, `logged_out`, or `element_changed`. Only page changes are repaired. The full list is in [Keeping skills working](/concepts/keeping-skills-working#why-runs-fail).
+
+Workflow runs also have a `failure_class`:
+
+| `failure_class` | Whose fault | Charged? |
+| --- | --- | --- |
+| `platform` | Ours: our browser, proxy, code, a restart, or an AI provider outage. | No. Every credit is refunded and `refunded` is `true`. |
+| `site` | The site was down, blocked the run, or wanted a sign-in. | Yes |
+| `recipe` | A step failed. | Yes |
+| `user` | Cancelled, or inputs it could not use. | Yes |
+
+Skill runs follow the same rule: a run that fails on our side is refunded and marked **Failed on our side — refunded**.
+
+## Who can see a run
+
+Whoever started it, and the owner of the skill or workflow. Workspace members can see runs of the workspace's workflows.

@@ -1,5 +1,11 @@
 ---
 title: "List skills"
-description: "Retrieve all skills available in the current workspace."
-openapi: "GET /api/skills"
+description: "Your skills and those shared into your workspaces, newest first, with their inputs and health."
+openapi: "GET /v1/skills"
 ---
+
+Search with `q` (name, slug, or description) and filter with `status` (`active` or `draft`). Page with `limit` (1–100, default 50) and `cursor`; see [Pagination](/api-reference/pagination-and-idempotency#pagination).
+
+Each item has the skill's `slug`, its `inputs`, `health` over the last 20 runs, `last_run_at`, and `api_endpoint` / `runs_endpoint` to run it. For the full contract, call [Get a skill](/api-reference/skills/get).
+
+Needs `skills:read`. MCP tool: `list_skills`.

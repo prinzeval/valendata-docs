@@ -1,0 +1,82 @@
+---
+title: "Logins and browser profiles"
+description: "Two ways a skill gets past a sign-in page: a browser profile that is already signed in, or a saved login the run uses to sign in itself."
+---
+
+Much useful data sits behind a sign-in: your orders, a dashboard, a members-only list. A skill can reach it in two ways, and they work together.
+
+| | Browser profile | Saved login |
+| --- | --- | --- |
+| What it is | A browser's signed-in state (cookies and storage), kept in the cloud. | A username and password (and optional authenticator seed), encrypted. |
+| How it signs in | It does not need to. The site sees a session that is already signed in. | The run types the login in, only when the site asks. |
+| Good for | Sites with SSO, hardware keys, or checks a run cannot pass. | Sites where sessions expire often. |
+| Shared? | Belongs to a workspace. | Personal. Never shared with your workspace. |
+
+A run first checks the start page. If the browser profile is already signed in, it just reads the page. If the site asks for a sign-in and the skill has a saved login, the run signs in once and carries on. If it still cannot get in, it stops and tells you why. It never retries in a loop.
+
+To set either one up, see [Use a saved login](/guides/use-a-saved-login).
+
+## Browser profiles
+
+A **browser profile** stores a browser's signed-in state. Every workspace has a **Default** profile, used by cloud runs unless a skill picks another one. You can also pick a profile per workflow step, so different steps run as different accounts.
+
+Each profile has an **exit IP**: the country the site sees. Keep it the same as where you first signed in. A mismatch can make the site end the session. If you imported your sign-in from your own Chrome, leave it on **No proxy**.
+
+Sessions expire. When one does, runs fail with `triage_kind: "logged_out"` and you get a notice to sign in again on that profile.
+
+## Saved logins
+
+A **saved login** is encrypted and shown only masked (`to***h`). Your password, authenticator seed, and sign-in codes:
+
+- never reach the AI model that drives the browser. It sees placeholders such as `vault_password`, and the real value is typed only on the login site.
+- are never written to logs, run results, rows, webhooks, or AI assistant results.
+- are never recorded while the run signs in.
+- are never shared with your workspace.
+
+While it signs in, the browser is fenced to the login site, so a page cannot send it somewhere else with your details.
+
+Only **your own** runs sign in. A teammate running a shared skill, an API key without the `logins:use` scope, or anyone running a public copy of the skill gets `needs_user.kind = "no_login"` instead. A copied skill never carries your login.
+
+A login is a setting on a skill, not a tool. No AI assistant can ask Valendata to "log in somewhere", and nothing can read a saved password back.
+
+### Two-step sign-in
+
+| What the site asks | What happens |
+| --- | --- |
+| A code from an authenticator app | Add the authenticator seed (`totp_secret`) to the login. The run works out the current code. |
+| A code sent by email | If the site account uses your Valendata email, the run reads the code from your inbox. Otherwise it stops with `otp_email`. |
+| A code sent by text or a phone app | The run waits up to 3 minutes for you to enter it, in the app or with [Send a sign-in code](/api-reference/runs/send-code). No code in time gives `otp_sms`. |
+
+### When a run cannot sign in
+
+The run fails with `triage_kind: "login_failed"` (or `"logged_out"` when there is no login to use) and a `needs_user` object:
+
+```json
+{
+  "status": "failed",
+  "triage_kind": "login_failed",
+  "needs_user": {
+    "kind": "bad_password",
+    "message": "The site did not accept the saved login. Check the username and password in the Vault, then run it again.",
+    "action_url": "/vault"
+  }
+}
+```
+
+| `needs_user.kind` | What to do |
+| --- | --- |
+| `no_login` | Save the site's login and pick it on the skill, or this caller may not use it. |
+| `bad_password` | Fix the username or password in the **Vault**. |
+| `otp_email` | Use your Valendata email on the site account, or sign in once on the skill's browser profile. |
+| `otp_sms` | Run it again and enter the code when asked, or add the authenticator seed. |
+| `captcha` | Sign in once on the skill's browser profile, then run it again. |
+
+You also get an inbox note with a link to the **Vault**. Valendata never asks for your password in a chat.
+
+## Cost
+
+Signing in is part of the run: its browser time and AI steps are billed like any other step. A profile that is already signed in costs nothing extra.
+
+<Warning>
+  You are responsible for making sure automated use of your accounts follows each site's terms.
+</Warning>

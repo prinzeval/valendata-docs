@@ -1,87 +1,43 @@
 ---
-title: "What Is Valendata? "
+title: "What is Valendata?"
 sidebarTitle: "Introduction"
-description: "Valendata is an AI-powered browser automation platform that turns plain-English tasks into reusable API endpoints returning strict, structured JSON."
+description: "Valendata turns a task on a website into a skill: something you can run, schedule, or call from code or an AI assistant, that returns the same clean rows every time."
 ---
 
-Valendata is an AI-powered browser automation platform that lets you describe what you want a browser to do — in plain English — and receive structured JSON back. No brittle selectors, no headless-Chrome boilerplate, no scraper maintenance. You write a task, Valendata drives a real Chromium browser in the cloud, and your data comes back in exactly the shape you defined.
-
-## The three core primitives
-
-Everything in Valendata is built on three concepts you'll use every day.
-
-<CardGroup cols={3}>
-  <Card title="Skills" icon="bolt">
-    A **Skill** is a named, reusable automation task with optional parameters. Write it once, publish it as a versioned API endpoint, and call it from anywhere. Skills are the atomic unit — everything else builds on top of them.
-  </Card>
-
-  <Card title="Workflows" icon="diagram-project">
-    A **Workflow** chains Skills together with HTTP steps and data transforms. Wire the output of one Skill into the input of the next, add conditional logic, and schedule the whole pipeline on a cron.
-  </Card>
-
-  <Card title="Credits" icon="coins">
-    Credits are what you spend when you run Skills, covering AI tokens, browser time, and web searches in one unit.<br /><br />Purchased credits never expire. Subscription credits refresh monthly; Pro\+ plans carry unused credits forward, others reset.
-  </Card>
-</CardGroup>
-
-## What problems does Valendata solve?
-
-Hand-rolling scrapers is painful. Pages change, selectors break, verification steps interrupt you, logins expire, and infrastructure bills pile up before you ship a single line of business logic. Valendata eliminates that entire class of problem.
+Valendata turns a task on a website into a **skill**. You describe the task in one sentence, for example "list the dentists in Austin on Google Maps". Valendata does it once in a browser, learns the steps, and saves them. From then on you run the skill with new inputs and get rows back in the same shape every time.
 
 <CardGroup cols={2}>
-  <Card title="Self-healing agents" icon="rotate">
-    Valendata's AI Brain re-plans on the fly when a page changes. If a product listing moves to a new URL or a checkout form adds a new field, the agent adapts without you touching a config file.
+  <Card title="Skills" icon="bolt" href="/concepts/skills">
+    One website task with typed inputs and fixed output fields.
   </Card>
-
-  <Card title="Verification & 2FA in-flow" icon="shield-check">
-    Human-verification steps are handled inside the run where the site permits it. Full 2FA and TOTP flows for your own accounts run end-to-end inside the same managed browser session.
+  <Card title="Workflows" icon="diagram-project" href="/concepts/workflows">
+    Several steps chained together: skills, code, HTTP calls, exports.
   </Card>
-
-  <Card title="Managed infrastructure" icon="server">
-    Real Chromium browsers run across 47 global regions. Pin sessions to a country, rotate proxies, and scale to hundreds of parallel runs — all without a single line of infra code.
+  <Card title="Runs" icon="play" href="/concepts/runs">
+    One execution of a skill or workflow, with its rows, cost, and status.
   </Card>
-
-  <Card title="Full observability" icon="eye">
-    Every run is fully replayable. Scrub through screenshots frame-by-frame to see exactly where the agent clicked, typed, and scrolled. Debug in seconds, not hours.
+  <Card title="Credits" icon="coins" href="/concepts/credits">
+    What runs cost. New accounts get 100 free credits.
   </Card>
 </CardGroup>
 
-<Note>
-  Output schema enforcement means Valendata validates every response against your defined schema before returning it. Even when the underlying page changes, you get clean, consistent JSON — or a clear error instead of silent garbage data.
-</Note>
+## What you can do with a skill
 
-## Who is Valendata for?
+- **Run it** in the app, from the API, or from an AI assistant such as Claude or ChatGPT.
+- **Schedule it** to run every hour, day, or week.
+- **Chain it** with other steps in a workflow.
+- **Trust it.** When a site changes, Valendata repairs the skill, tests the repair, and saves it as a new version. If it cannot get correct rows, it tells you why instead of returning made-up data. See [Keeping skills working](/concepts/keeping-skills-working).
 
-Valendata is designed for a broad range of users — you don't need to be an engineer to get value from the platform.
-
-<Accordion title="Developers & engineers">
-  Use the REST API to trigger runs programmatically, embed Skills into your backend, and pipe structured output directly into your database or data warehouse. Valendata handles the browser layer so you can focus on what you do with the data.
-</Accordion>
-
-<Accordion title="GTM & revenue teams">
-  Extract competitor pricing, monitor product availability, enrich CRM leads with live data from LinkedIn or company websites, and deliver fresh intelligence to your stack — without filing an engineering ticket.
-</Accordion>
-
-<Accordion title="Growth marketers">
-  Automate repetitive research workflows: track rankings, harvest contact data, monitor review sites, and push results directly to Sheets, HubSpot, or Slack. Schedule it once and wake up to fresh data every morning.
-</Accordion>
-
-<Accordion title="Non-technical builders">
-  Use the no-code recorder to walk through a task once — Valendata turns your session into a deployable Skill with parameters, a schema, and a live API endpoint included. No code required.
-</Accordion>
-
-## Ready to build?
+## Where to go next
 
 <CardGroup cols={3}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Go from sign-up to a live API call in under 10 minutes. Build your first Skill and see real JSON output.
+    Your first skill in 5 minutes.
   </Card>
-
-  <Card title="Skills" icon="bolt" href="/concepts/skills">
-    Learn how Skills work — parameters, versioning, Chrome Profiles, and how to deploy your first endpoint.
+  <Card title="Use with AI assistants" icon="robot" href="/ai-assistants/connect">
+    Your skills as tools in Claude, ChatGPT, Meta Muse, or Cursor.
   </Card>
-
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Browse the full REST API. Explore endpoints, request schemas, and live response examples.
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Every endpoint, one page each.
   </Card>
 </CardGroup>

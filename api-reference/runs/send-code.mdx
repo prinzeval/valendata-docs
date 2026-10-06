@@ -1,0 +1,9 @@
+---
+title: "Send a sign-in code"
+description: "Give a waiting run the code a site sent to your phone."
+openapi: "POST /v1/runs/{run_id}/otp"
+---
+
+When a site sends a code by text or a phone app, the run waits up to 3 minutes. The app shows **Enter the code sent to your phone** in the run panel; from code, call this. The run types the code and carries on.
+
+No code in time: the run fails with `needs_user.kind = "otp_sms"`. A run that is not waiting for a code returns `409`. Needs `logins:use`. See [Logins and browser profiles](/concepts/logins-and-browser-profiles#two-step-sign-in).

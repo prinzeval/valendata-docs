@@ -1,0 +1,91 @@
+---
+title: "Improve a skill"
+description: "Tell a skill in plain English what to fix or add. It relearns, a short check run tests it, and the new version goes live only if it is better."
+---
+
+You can change a skill the way you would coach a person. There are three kinds of improvement:
+
+| Mode | Use it when | What to write |
+| --- | --- | --- |
+| **Fix missing data** (`fix`) | A field comes back empty, for example `phone` is blank because the number is only on each place's details page. | Where the data is. Required. |
+| **Add fields** (`add_fields`) | You want more fields, for example "also capture the star rating and review count". | The fields you want. Required. |
+| **Re-learn detail steps** (`relearn_details`) | The site changed, or fields from each result's details page come back empty. | A note. Optional. |
+
+Start one from:
+
+- **The app**: the **Improve** box on the skill page. You can also ask Igris.
+- **Your AI assistant**: the `improve_skill` tool.
+- **The API**: [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve).
+
+Only the skill's owner or an editor in its workspace can improve it.
+
+## Read the diagnosis
+
+A run that came back short carries a `diagnosis`. It tells you what to write:
+
+```json
+"diagnosis": {
+  "missing_fields": ["phone"],
+  "per_field": {
+    "phone": {"filled": "0/5", "where_tried": ["the result cards"], "evidence": "blank on all 5 rows"}
+  },
+  "what_we_tried": ["replayed the recorded steps in a browser (4 step(s))"],
+  "suggested_hint_examples": [
+    "The phone is on each result's details page — click the result's name; the panel or page that opens shows the phone next to its icon."
+  ],
+  "summary": "phone: found on 0/5 rows — tried the result cards"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `missing_fields` | Fields fewer than half the rows came back with. |
+| `per_field` | For each field some rows lacked: how many rows had it, where the skill looked, and why. |
+| `partial_fields` | Fields most rows filled but a few left blank, where the page showed why. |
+| `triage_kind` | `missing_fields`, `partial_fields`, `not_shown`, `suspect_rows`, or a [failure kind](/concepts/keeping-skills-working#why-runs-fail). |
+| `quality_flags` | Rows that look wrong. See [Rows that look wrong](/concepts/keeping-skills-working#rows-that-look-wrong). |
+| `suggested_hint_examples` | Hints you can pass as `feedback`. For `blocked` or `logged_out`, it says a hint will not help. |
+
+A field blank on only a few rows is checked against the page. If the value is on the card and was missed, it is a warning with hints (`partial_fields`). If the card shows no value at all, nothing is wrong (`not_shown`).
+
+## Start an improvement
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/improve \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: fix-phone-1" \
+  -d '{
+    "mode": "fix",
+    "feedback": "The phone is on the details page — click the place name, the panel opens, the number is next to the phone icon.",
+    "fields": ["phone"]
+  }'
+# → 202 {"improvement_id": "imp_3f9a…", "status": "queued", "status_url": "/v1/skill-improvements/imp_3f9a…"}
+```
+
+Read [`GET /v1/skill-improvements/{improvement_id}`](/api-reference/improvements/get) until `status` is `done` or `failed`.
+
+For **Add fields**, Valendata first compares your request with the fields the skill has. A new name for an existing field (say `stars` when the skill has `rating`) is merged into it (`details.merged`). An unclear request comes back as a question (`details.ambiguous`). Only really new fields are learned (`details.new_fields`).
+
+## What happens
+
+1. **Plan.** Valendata picks the fields to work on.
+2. **Learn.** A cloud browser opens the site and relearns the skill, including each result's details page and any "show more" step. The change is saved as a new version.
+3. **Check.** One short run (up to 5 rows) tests the new version.
+4. **Keep the better one.** The new version goes live only if the target fields fill on more rows and nothing else broke. Otherwise it is kept as a **candidate** version, the old version stays live, and `outcome` says why. Placeholder text, labels, or one word repeated on most rows do not count as filled.
+
+The result says `improved` (`true` if the new version is live), `changes` (each field's rows before → after), and `credits_charged`.
+
+## Compare, pin, or roll back
+
+Every improvement and every automatic repair is a new [version](/concepts/keeping-skills-working#versions). You can:
+
+- [List versions](/api-reference/versions/list) and [compare two versions](/api-reference/versions/diff).
+- [Restore a version](/api-reference/versions/restore). The restore is saved as a new version.
+- [Pin a version](/api-reference/versions/pin) so runs keep using it while you investigate. Automatic repairs are then saved as candidates.
+
+[`GET /v1/skills/{slug}/improvements`](/api-reference/improvements/list) lists every change, by anyone, from the app, the API, or an assistant.
+
+## Limits
+
+One improvement at a time for your account and for each skill (`409`), up to 6 an hour (`429`), and at least 10 credits to start (`402`). Every mode uses a cloud browser, the AI model, and the check run, all charged to you.

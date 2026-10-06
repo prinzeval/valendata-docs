@@ -1,20 +1,19 @@
 ---
-title: "How Valendata keeps skills working"
-sidebarTitle: "Keeping skills working"
+title: "Keeping skills working"
 description: "Websites change. Valendata versions every skill, works out why a run failed, repairs only what can be repaired, proves each repair, and takes a faster route when one is safe."
 ---
 
-A skill is a website task saved as a recipe: the steps to take, and how to read the results. Websites change their layout, and a recipe that worked yesterday can break today. Valendata is built so that a skill either keeps returning correct rows or tells you clearly why it cannot. It never returns made-up data.
+A skill saves the steps to take on a website and how to read the results. Websites change their layout, and steps that worked yesterday can break today. Valendata is built so that a skill either keeps returning correct rows or tells you clearly why it cannot. It never returns made-up data.
 
 This page explains the four parts that make that work: versions, triage, repairs, and the fast path.
 
 ## Versions
 
-Every change to a skill's recipe is saved as a new, numbered **version**. That includes the first recording, each automatic repair, each fast path, each edit you make, and each restore. A version records:
+Every change to a skill's steps is saved as a new, numbered **version**. That includes the first recording, each automatic repair, each fast path, each edit you make, and each restore. A version records:
 
 - **Why it was made**: for example `initial`, `heal_fp`, `heal_ai`, `fetch`, `edit`, or `restore`.
 - **The run that caused it**, if there was one.
-- **The full recipe at that point.** It is a complete copy, not just the changes, so an old version can always be replayed exactly.
+- **The full steps at that point.** It is a complete copy, not just the changes, so an old version can always be replayed exactly.
 
 What you can do with versions:
 
@@ -23,7 +22,7 @@ What you can do with versions:
 - **Pin** a skill to a version. A pinned skill keeps running that version. Automatic repairs are still saved, but as *candidate* versions for you to review. They do not change what runs.
 - **Run one version for one call** by passing `version`, without pinning.
 
-See [Versions in the Web to API guide](/guides/web-to-api#versions) for the API calls.
+To do these from code, see the [Skill versions API](/api-reference/versions/list). To compare and roll back after an improvement, see [Improve a skill](/guides/improve-a-skill#compare-pin-or-roll-back).
 
 ## Why runs fail
 
@@ -33,20 +32,20 @@ When a run fails, Valendata first works out why. Each failed run gets exactly on
 | --- | --- | --- |
 | `site_down` | The site did not respond, or returned a server error. | No. The run may wait and try once more, then fails and reports the reason. |
 | `blocked` | The site refused access, or asked for a check that a person must complete. | No. The run fails and reports the reason. |
-| `logged_out` | The site asked for a sign-in where data was expected. | No. Valendata tells you to sign in again on the browser profile the skill uses. |
+| `logged_out` | The site asked for a sign-in where data was expected. | No. Valendata tells you to sign in again. See [Logins and browser profiles](/concepts/logins-and-browser-profiles). |
 | `page_not_loaded` | The page came back blank or incomplete. | No. The run may wait and try once more, then fails and reports the reason. |
 | `element_changed` | The page loaded, but a recorded element was not there. | Yes. See [Repairs](#repairs). |
 | `extraction_drift` | The steps ran on a real page, but the rows came back empty or hollow. | Yes. See [Repairs](#repairs). |
 | `unknown` | None of the above matched. | Reported. |
 | `ok` | The run did not fail. | Not needed. |
 
-This order matters. Repairing a recipe never fixes a site that is down, a sign-in that has expired, or a site that is refusing access. Trying to would waste your credits, and could replace a good recipe with a bad one. So these runs stop and report why, and nothing is written to the recipe.
+This order matters. Repairing a skill never fixes a site that is down, a sign-in that has expired, or a site that is refusing access. Trying to would waste your credits, and could replace good steps with bad ones. So these runs stop and report why, and nothing is changed.
 
 ## Repairs
 
 Only `element_changed` and `extraction_drift` failures are repaired. Valendata tries the cheapest fix first:
 
-1. **Code fix.** Valendata saved a fingerprint of each element when the skill was recorded. It looks for the element on the new page that best matches that fingerprint. This does not use an AI model, and it adds almost no time to the run. If it succeeds, the result reports `heal_kind: "fp"`.
+1. **Code fix.** Valendata saved a fingerprint of each element when the skill was created. It looks for the element on the new page that best matches that fingerprint. This does not use an AI model, and it adds almost no time to the run. If it succeeds, the result reports `heal_kind: "fp"`.
 2. **AI repair.** If the code fix cannot find a confident match, an AI agent works out the step on the changed page. If it succeeds, the result reports `heal_kind: "ai"`. Only one repair runs on a skill at a time, and each skill has a small daily limit on AI repairs. A skill that needs rescuing many times a day is flagged as broken, not hidden.
 
 ### Every repair is proven
@@ -60,14 +59,7 @@ A repair is accepted only if the rows it produces pass these checks:
 
 A repair that fails these checks is thrown away, and the run reports the failure honestly. A repair that passes becomes a new version. You can review it, compare it, and roll it back.
 
-### Data you can trust
-
-Every result also says how far you can trust each field:
-
-- `drifted_fields`: fields that look wrong on this run.
-- `unverified_fields`: fields Valendata has not yet proven it reads correctly.
-- `rejected_values`: values that did not appear on the page. They are removed, not returned.
-- `truncated_sections`: sections that had more data than this run collected.
+Every result also says how far you can trust each field. See [Runs](/concepts/runs#how-far-to-trust-the-rows).
 
 ### Rows that look wrong
 
@@ -77,7 +69,7 @@ A run can return rows that are not really data. Valendata checks the rows of eve
 - **Pages that repeat**: page 2 repeats the rows of page 1. This usually means the next-page step reloads the same page.
 - **Placeholder values**: a field holds text like "See options", "N/A" or "—", or its own label, on most rows.
 
-These show in the run's `diagnosis` as `quality_flags`. A test does not accept a skill whose rows are all the same record. The other checks are warnings shown next to the rows.
+These show in the run's `diagnosis` as `quality_flags` (`repeated_rows`, `pagination_overlap`, `placeholder_values`). A test does not accept a skill whose rows are all the same record. The other checks are warnings shown next to the rows.
 
 ## Cookie and consent banners
 
@@ -107,6 +99,6 @@ A fast path that keeps failing is paused, and runs use the browser until the fas
 ## Where to see it
 
 - **Each run result**: `triage_kind`, `heal_kind`, `recipe_version`, `tier_used`, and the trust fields.
-- **`GET /v1/skills/{slug}`**: `reliability`, `recipe_version`, `pinned_recipe_version`, and `fast_path`.
-- **`GET /v1/skills/{slug}/health`**: success rate and repairs over the last 20 runs, the last failure kind, and health for each route.
-- **MCP tools**: each `skill_<slug>` tool's description includes the same short track record. See [Connect your AI assistant](/integrations/connect-ai-assistants).
+- **[`GET /v1/skills/{slug}`](/api-reference/skills/get)**: `reliability`, `recipe_version`, `pinned_recipe_version`, and `fast_path`.
+- **[`GET /v1/skills/{slug}/health`](/api-reference/skills/health)**: success rate and repairs over the last 20 runs, the last failure kind, and health for each route.
+- **AI assistants**: each `skill_<slug>` tool's description includes the same short track record. See [MCP tools](/ai-assistants/mcp-tools).

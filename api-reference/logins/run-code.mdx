@@ -1,9 +1,0 @@
----
-title: "Hand a run a sign-in code"
-description: "Give a waiting run the code a site texted to your phone."
-openapi: "POST /v1/runs/{run_id}/otp"
----
-
-When a site sends a code by text message or a phone app, the run waits up to 3 minutes. The app shows "Enter the code sent to your phone" in the run panel; from code you call this endpoint. The run types the code into the page and carries on.
-
-If nobody sends a code in time, the run fails with `needs_user.kind = "otp_sms"`. You get `409` when the run is not waiting for a code.

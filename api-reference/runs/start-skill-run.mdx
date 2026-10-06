@@ -1,0 +1,9 @@
+---
+title: "Start a skill run"
+description: "Start a skill run in the background and get a run id at once."
+openapi: "POST /v1/skills/{slug}/runs"
+---
+
+Inputs go under `inputs`. If your account is busy, the run waits in a queue (up to about an hour, then it fails uncharged).
+
+The rows are not in this response. Read [Get a run](/api-reference/runs/get) until `status` is no longer `queued` or `running`, or set `webhook_url` to have the finished run sent to you. See [Webhooks](/api-reference/webhooks/overview). Send an `Idempotency-Key` to make retries safe.

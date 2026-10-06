@@ -1,5 +1,11 @@
 ---
 title: "List workflows"
-description: "Retrieve all workflows in the current workspace."
-openapi: "GET /api/workflows"
+description: "Workflows you own and those shared with you through a workspace, newest first."
+openapi: "GET /v1/workflows"
 ---
+
+Search with `q` (name, slug, or description). Page with `limit` (1–100, default 25) and `cursor`.
+
+Each item has `slug`, `name`, `inputs` (names; `*` marks a required one), `step_count`, `last_run_at`, `owned`, `workspace_id`, and `api_endpoint`.
+
+Needs `workflows:read`. MCP tool: `list_workflows`.

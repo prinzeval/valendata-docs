@@ -1,0 +1,20 @@
+---
+title: "Get an improvement"
+description: "Check an improvement until it is done or has failed, and see what changed."
+openapi: "GET /v1/skill-improvements/{improvement_id}"
+---
+
+`status` moves through `queued`, `working`, `validating`, then `done` or `failed`.
+
+| Field | Meaning |
+| --- | --- |
+| `result` | `improved` (new version is live), `kept_old`, `no_change`, `failed`, `running`, or `applied` (an imported past change). |
+| `improved` | `true` if the new version is live. |
+| `changes` | Each target field's rows filled, before → after. |
+| `details` | `new_fields`, `merged` duplicates, `ambiguous` requests with a `question`, and a `diff_summary`. |
+| `recipe_version`, `candidate_version` | The live version at the end, and the version kept but not made live. |
+| `outcome` | What happened, in words. |
+
+The account that started it and anyone who can edit the skill can read it.
+
+MCP tool: `get_skill_improvement`.

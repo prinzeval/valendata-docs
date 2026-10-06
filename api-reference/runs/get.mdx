@@ -1,5 +1,18 @@
 ---
-title: "Get a workflow run"
-description: "Retrieve details about a specific workflow run by its ID."
-openapi: "GET /api/workflows/{workflow_id}/runs/{run_id}"
+title: "Get a run"
+description: "Any run, skill or workflow: its status, and the result once it has finished."
+openapi: "GET /v1/runs/{run_id}"
 ---
+
+Skill run ids start with `run_`. Anything else is looked up as a workflow run.
+
+While the run is going, `status` is `queued`, `pending`, or `running`. Once it ends:
+
+- A **skill run** has its rows in `rows`, plus `count`, cost, version, and the trust fields.
+- A **workflow run** has `kind: "workflow"`, `outputs`, a per-step summary in `steps`, cost, and `failure_class`.
+
+What each field means is in [Runs](/concepts/runs). You can read a run if you started it or may see the skill or workflow. Needs `runs:read` for a skill run, `workflows:read` for a workflow run.
+
+The older `GET /v1/workflow-runs/{run_id}` still works for workflow runs.
+
+MCP tool: `get_run` (`get_run_status` also still works for workflow runs).

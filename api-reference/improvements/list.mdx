@@ -1,0 +1,7 @@
+---
+title: "List a skill's improvements"
+description: "Every change to a skill, by anyone who can edit it, from the app, the API, or an assistant. Newest first."
+openapi: "GET /v1/skills/{slug}/improvements"
+---
+
+`limit` is 1–50 (default 5). `source` and `started_by_name` say where and who. Changes made before improvements existed are included with `imported: true`.

@@ -1,116 +1,48 @@
 ---
-title: "Skills: Build and Deploy Browser Automation Endpoints"
-sidebarTitle: "Skills"
-description: "Skills are named browser automation tasks that run on demand, on a schedule, or inside a Workflow — and deploy automatically as live API endpoints.
-
-A Skill packages a recorded browser session into a versioned, callable unit. It has typed input parameters that let you vary what it targets at runtime, and a structured output schema that guarantees consistent data back on every run. Once published, a Skill works from the dashboard, from a cron schedule, from a Workflow, or from a raw HTTP call — all without you touching browser code."
+title: "Skills"
+description: "A skill is one website task, saved so you can run it again with new inputs and get rows in the same shape every time."
 ---
 
-## What makes up a Skill
+A **skill** is one task on a website, saved so it can be run again. For example: "search Google Maps for dentists in a city and list name, rating, and phone". Valendata does the task once in a browser, learns the steps, and saves them. Every later run replays those steps with your inputs.
 
-| Piece | What it does |
-| :-- | :-- |
-| **Name** | Human-readable identifier used in the dashboard, the API, and Workflow steps |
-| **Description** | Plain-English summary of what the Skill does |
-| **Parameters** | Typed inputs (strings, numbers, booleans, arrays) auto-detected from your recording and editable in the Skill editor |
-| **Output schema** | The fields the Skill returns on every run, AI-suggested from your recording and customisable in the Developer Settings tab |
+## What a skill is made of
 
-## How to create a Skill
+| Part | What it is | Example |
+| --- | --- | --- |
+| **Name and slug** | The skill's name, and the short id you use in the API and in tool names. | `Austin dentists`, `austin-dentists` |
+| **Inputs** | The values you can change on each run. Each has a type and an optional default. | `city` (string, default `Austin`) |
+| **Output fields** | The columns every row has. | `name`, `rating`, `phone` |
+| **Contract** | The inputs and output fields together, as JSON Schema. Callers and AI assistants read it to know what to send and what comes back. | `input_schema`, `output_json_schema` |
+| **Version** | The saved steps. Every change makes a new numbered version, so you can compare and roll back. | version `3` |
+| **Visibility** | `private` (only you), `workspace` (shared with a team workspace), or `public` (listed in the [marketplace](/guides/use-the-marketplace)). | `private` |
 
-Skills are published from **Configs**. A Config is a saved recording of a browser session — you perform the task once, Valendata captures every action, and the recording becomes the source of truth the Skill replays.
+## Where a skill runs
 
-<Steps>
-  <Step title="Record a session">
-    Open any workflow, find the chat input area, and toggle Record Skill on. The toggle label changes to Recording... while active. Describe your task to the AI as you normally would and complete the full flow in the live browser. When you are done, turn the toggle off. Valendata saves the session as a Config.
-  </Step>
-  <Step title="Publish the Config as a Skill">
-    Go to Skills in the sidebar and click \+ Create. The Publish Skill modal opens. Select the Config you just recorded from the dropdown. Give the Skill a name and description. Valendata auto-detects parameters from the recording — review and adjust them if needed, then click Publish Skill.
-  </Step>
-  <Step title="Your Skill is live">
-    The Skill appears in your Skills list with an API endpoint ready to call. Open it to run it manually, adjust its settings, or grab the API details from the Developer Settings tab.
+A skill runs in a browser, on your behalf:
 
-    <Note>
-      Before building a Skill from scratch, check the Marketplace — a public library of pre-built Skills contributed by the community. You can clone any Skill into your Workspace and customise it without recording anything.
-    </Note>
-  </Step>
-</Steps>
+- **A Valendata cloud browser.** Works when your computer is off. Used for schedules and API calls by default.
+- **Your own browser**, through the Valendata extension. Uses the sites you are already signed in to.
 
-## The Workspace tab
+If a site needs a sign-in, the skill can use a [saved login or browser profile](/concepts/logins-and-browser-profiles). Some skills also learn a **fast path** that reads the same rows without a browser. See [Keeping skills working](/concepts/keeping-skills-working#fast-path).
 
-The Workspace tab is where you run the Skill manually and improve it.
+## Ways to use a skill
 
-- **Run** — fill in parameter values and trigger the Skill. Output appears inline as structured data.
-- **Suggest** — generates example input values and defines the output contract based on the Skill's recording, so you can validate what the Skill is expected to return.
-- **Improve** — tell the Skill what to change in plain English, and pick a mode: **Fix missing data** (a field comes back empty, so say where the data is), **Add fields** (capture new fields, such as "also capture the star rating and review count"), or **Re-learn detail steps** (the site changed, so rebuild how the Skill opens each result). A cloud browser relearns the Skill and a short check run tests it; the new version goes live only if it is better. You can also ask Igris to do it, or use the [API](/guides/web-to-api#5-improve-a-skill). Every change, by anyone who can edit the Skill, is listed in its change history.
+| Where | How |
+| --- | --- |
+| The app | Open the skill, fill in the inputs, click **Run**. |
+| Your code | Call the API. See [Run a skill](/guides/run-a-skill). |
+| An AI assistant | Each skill is a tool named `skill_<slug>`. See [Connect your AI assistant](/ai-assistants/connect). |
+| A schedule | See [Schedule a skill or workflow](/guides/schedule). |
+| A workflow | Add it as a skill step. See [Workflows](/concepts/workflows). |
 
-## Running a Skill
+Every one of these creates a [run](/concepts/runs) and uses [credits](/concepts/credits).
 
-<CardGroup cols={2}>
-  <Card title="Dashboard" icon="browser">
-    Open the Skill and use the Workspace tab to run it manually. Fill in parameter values and inspect the structured output directly in the dashboard.
-  </Card>
+<Note>
+  You are responsible for having the right to access the sites and data your skills use. Follow each site's terms of use and keep request rates reasonable. See the [Terms of Service](https://www.valendata.com/terms-and-conditions).
+</Note>
 
-  <Card title="API" icon="code">
-    Call the Skill's endpoint with your API key. Works from any script, backend service, or no-code tool.
-  </Card>
+## Related
 
-  <Card title="Schedule" icon="clock">
-    Attach a cron schedule to the Skill from the Schedules page. The Skill runs automatically on your chosen cadence and results appear in the Runs tab.
-  </Card>
-
-  <Card title="Workflow" icon="diagram-project">
-    Add the Skill as a step inside a Workflow, where it receives the previous step's output as its input parameters.
-  </Card>
-</CardGroup>
-
-## Calling a Skill via the API
-
-There are two endpoints — use whichever suits your setup:
-
-**By Skill ID** — the stable option. Find the ID on the Developer Settings tab.
-
-```bash
-curl -X POST https://api.valendata.com/v1/skills/run \
-  -H "Authorization: Bearer vd_sk_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "skill_id": "skl_b281b8165a23",
-    "parameters": {
-      "product_url": "https://example.com/products/widget-pro"
-    }
-  }'
-```
-
-**By slug** — the readable option. Find the slug in the URL when viewing the Skill.
-
-```bash
-curl -X POST https://api.valendata.com/v1/skills/competitor-price-check/run \
-  -H "Authorization: Bearer vd_sk_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_url": "https://example.com/products/widget-pro"
-  }'
-```
-
-Both endpoints return the same response shape:
-
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "price": 129.00,
-      "in_stock": true,
-      "seller": "Acme Store"
-    }
-  ],
-  "count": 1,
-  "execution_time_ms": 4821
-}
-```
-
-`status` is `success`, `failed`, or `partial`. `data` is always an array. `count` is the number of records returned.
-
-<Warning>
-  All Skill endpoints require authentication. Pass your API key as Authorization: Bearer vd\_sk\_.... Running a Skill without a valid key returns a 401.
-</Warning>
+- [Create a skill](/guides/create-a-skill)
+- [Improve a skill](/guides/improve-a-skill)
+- [Skills API](/api-reference/skills/list)

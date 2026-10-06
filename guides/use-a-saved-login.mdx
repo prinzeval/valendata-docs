@@ -1,0 +1,61 @@
+---
+title: "Use a saved login"
+description: "Let a skill reach pages behind a sign-in: set up a browser profile, or save a login and pick it on the skill."
+---
+
+There are two ways, and you can use both. To choose, see [Logins and browser profiles](/concepts/logins-and-browser-profiles).
+
+## Option 1: a signed-in browser profile
+
+<Steps>
+  <Step title="Create the profile">
+    Click **Browser Profiles** in the sidebar, then **Create**. Name it after the site and account, for example `LinkedIn — Growth team`.
+  </Step>
+  <Step title="Sign in">
+    Pick one:
+
+    - **Terminal command (recommended).** Copy the command shown and run it in Terminal. Choose **Pick my browser** (copy the sign-in from your Chrome, Brave, or Edge), **Fresh login** (sign in once in a clean window), or **Default Chrome** (read your default Chrome's cookies). Your password is never seen.
+    - **Live browser.** Click **Set up authentication**. A browser opens in the dashboard. Sign in, including any two-step check, then click **Done — save session**.
+  </Step>
+  <Step title="Pick it on the skill">
+    Open the skill. In the settings panel, choose the profile under **Browser Profile**. It saves at once. Every run, scheduled run, and API run now starts signed in.
+  </Step>
+</Steps>
+
+When the session expires, runs fail with `logged_out`. Open **Browser Profiles**, click **Update authentication** on that profile, sign in again, and click **Done — save session**.
+
+## Option 2: a saved login
+
+<Steps>
+  <Step title="Save the login">
+    In the app, open the **Vault** and add a **Website Login**. Or call [`POST /v1/logins`](/api-reference/logins/create). Add the authenticator seed if the site asks for an app code.
+  </Step>
+  <Step title="Pick it on the skill">
+    In the skill's settings, choose it under **This skill signs in with…**. Or call [`PATCH /v1/skills/{slug}`](/api-reference/skills/update) with `login_id`. You confirm once; later runs need no prompt.
+  </Step>
+  <Step title="Run as usual">
+    When the site asks for a sign-in, the run signs in and carries on.
+  </Step>
+</Steps>
+
+```bash
+# 1. Save the login (once) and keep its id
+LOGIN_ID=$(curl -s -X POST https://api.valendata.com/v1/logins \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" -H "Content-Type: application/json" \
+  -d '{"site": "example.com", "username": "you@example.com", "password": "..."}' | jq -r .id)
+
+# 2. Pick it on the skill
+curl -X PATCH https://api.valendata.com/v1/skills/my-orders \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" -H "Content-Type: application/json" \
+  -d "{\"login_id\": \"$LOGIN_ID\"}"
+
+# 3. Run it
+curl -X POST "https://api.valendata.com/v1/skills/my-orders/run?max_results=5" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" -H "Content-Type: application/json" -d '{}'
+```
+
+API keys need `logins:write` to save logins and pick them, and `logins:use` to run skills that sign in. A key without `logins:use` still runs the skill but never signs in. See [Authentication and scopes](/api-reference/authentication#scopes).
+
+If a site texts a code, the run waits up to 3 minutes. Enter it in the run panel, or send it with [`POST /v1/runs/{run_id}/otp`](/api-reference/runs/send-code).
+
+If a run cannot sign in, its `needs_user` says what to do. See [When a run cannot sign in](/concepts/logins-and-browser-profiles#when-a-run-cannot-sign-in).

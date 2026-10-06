@@ -1,0 +1,9 @@
+---
+title: "List a skill's schedules"
+description: "The skill's schedule, as a list of zero or one."
+openapi: "GET /v1/skills/{slug}/schedules"
+---
+
+A skill has at most one schedule, as on the app's **Schedules** page.
+
+Needs `skills:read`. MCP tool: `list_schedules` with `kind: "skill"`.

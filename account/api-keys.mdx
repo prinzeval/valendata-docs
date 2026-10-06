@@ -1,20 +1,9 @@
 ---
-title: "API Keys: Authenticate Valendata REST API Requests"
-sidebarTitle: "API Keys"
-description: "Create, scope, use, and revoke Valendata API keys. Give each key only the scopes it needs, set an expiry, and rotate safely."
+title: "API keys"
+description: "Create, limit, and revoke API keys in the app. Give each key only the scopes it needs and an expiry."
 ---
 
-API keys are the credentials your code uses to authenticate requests to the Valendata REST API. Every call to `https://api.valendata.com/v1` — whether you're running a Skill or invoking a Workflow — must include a valid API key. Each key carries **scopes**: it can do only what its scopes allow, so a leaked key that can only read a skill cannot run one.
-
-## Key format
-
-All Valendata live keys follow the prefix pattern `vd_sk_` followed by a random string:
-
-```text
-vd_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Never expose keys in client-side code, public repositories, or browser environments.
+An API key lets your code, or an AI assistant, call Valendata as you. Each key carries **scopes**: it can do only what its scopes allow, so a leaked key that can only read a skill cannot run one. This page covers managing keys in the app. How to send a key, and the full list of scopes, are in [Authentication and scopes](/api-reference/authentication).
 
 ## Create an API key
 
@@ -29,7 +18,7 @@ Never expose keys in client-side code, public repositories, or browser environme
     Enter a descriptive name that identifies where this key will be used — for example, `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name makes it easy to audit and revoke the right key later.
   </Step>
   <Step title="Pick the scopes and expiry">
-    Tick only what this integration needs (see [Scopes](#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
+    Tick only what this integration needs (see [Scopes](/api-reference/authentication#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
   </Step>
   <Step title="Limit it to some skills or workflows (optional)">
     Under **Limit to**, pick the skills and/or workflows this key may use. Leave a list empty to allow all. See [Limit a key to some skills or workflows](#limit-a-key-to-some-skills-or-workflows).
@@ -42,40 +31,13 @@ Never expose keys in client-side code, public repositories, or browser environme
     </Warning>
   </Step>
   <Step title="Store the key securely">
-    Paste the key into your environment variables, secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault, Doppler), or CI/CD secret store. Never hardcode it in source files.
+    Paste the key into an environment variable or a secrets manager. Never put it in source files.
   </Step>
 </Steps>
 
-## Scopes
-
-| Scope | What it allows |
-| --- | --- |
-| `skills:read` | Read a skill's details, contract, health, and versions |
-| `skills:invoke` | Run a skill (sync or async) and cancel your runs. Spends credits |
-| `skills:write` | Create a skill (`POST /v1/skills`), improve one, restore or pin a recipe version |
-| `runs:read` | Poll a run (`GET /v1/runs/{run_id}`) and list your active runs |
-| `workflows:read` | Read a published workflow's results and runs |
-| `workflows:invoke` | Run a published workflow. Spends credits |
-| `knowledge:read` | Read your knowledge base (MCP) |
-| `knowledge:write` | Save facts to your knowledge base (MCP) |
-| `webhooks:read` | Read your [webhook signing secret](/api-reference/webhooks/secret) |
-| `webhooks:write` | [Rotate](/api-reference/webhooks/rotate-secret) your webhook signing secret |
-| `logins:write` | [Save, change and delete logins](/api-reference/logins/create) and pick the login a skill signs in with |
-| `logins:use` | Run skills that [sign in with your saved login](/guides/skills-that-need-a-login), and hand a run a sign-in code. Without it a run never signs in |
-
-A call that needs a scope the key does not have fails with `403` and names the missing scope:
-
-```json
-{
-  "detail": "This API key is missing the 'skills:invoke' scope. Create a key with 'skills:invoke' in Settings → API keys."
-}
-```
-
-The same scopes apply when the key is used as the bearer on the [MCP server](/integrations/mcp).
-
 Keys created before scopes existed show a **Full access** badge. They keep every scope, so nothing that used them breaks. Replace them with scoped keys when you can.
 
-### Limit a key to some skills or workflows
+## Limit a key to some skills or workflows
 
 A key can also be limited to a list of skills (`allowed_skill_ids`) and a list of workflows (`allowed_workflow_ids`). The two limits are separate: a key limited to some skills can still run every workflow unless you also pick workflows, and the other way round. An empty list means no limit.
 
@@ -87,11 +49,11 @@ The keys list shows a **N skills only** or **N workflows only** badge on a limit
 }
 ```
 
-The workflow limit applies to `/v1/workflows/{slug}`, `/run`, `/runs`, `/v1/workflow-runs/{run_id}`, the older `/api/workflows/{id}/invoke` routes, and the [MCP server](/integrations/mcp): a limited key only sees the `workflow_<slug>` tools it may use.
+The limits apply to every API route for that skill or workflow, including its runs and schedules, and to the [MCP tools](/ai-assistants/mcp-tools): a limited key only sees the `skill_<slug>` and `workflow_<slug>` tools it may use.
 
-### Create a key from the API
+## Create a key from code
 
-A signed-in session can create a key with `POST /api/keys`. Leave out `scopes` to get the default set. `allowed_skill_ids` limits the key to those skills only, and `allowed_workflow_ids` to those workflows only (up to 200 each). An id you cannot use returns `422`.
+A signed-in session can create a key with `POST /api/keys`. Leave out `scopes` to get the default set. `allowed_skill_ids` limits the key to those skills only, and `allowed_workflow_ids` to those workflows only (up to 200 each). An id you cannot use returns `422`. The `201` response holds the key in `raw_key`. It is returned only this once.
 
 ```bash
 curl -X POST https://api.valendata.com/api/keys \
@@ -109,24 +71,7 @@ curl -X POST https://api.valendata.com/api/keys \
 
 ## Use your API key
 
-Pass your API key in the `Authorization: Bearer` header on every API call:
-
-```bash
-curl -X POST https://api.valendata.com/v1/skills/run \
-  -H "Authorization: Bearer $VALENDATA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{ "skill_id": "YOUR_SKILL_ID" }'
-```
-
-For local development, store the key in a `.env` file and load it with your framework's environment tooling:
-
-```bash .env
-VALENDATA_API_KEY=vd_sk_YOUR_API_KEY
-```
-
-<Tip>
-  Add `.env` to your `.gitignore` immediately. A committed API key should be treated as compromised — revoke it and issue a new one right away.
-</Tip>
+Send it in the `Authorization: Bearer` header. See [Authentication and scopes](/api-reference/authentication). Keep it in an environment variable or a secrets manager, never in source code. Add `.env` to `.gitignore`.
 
 ## Revoke an API key
 
@@ -166,13 +111,13 @@ Revocation is immediate. All subsequent requests using the revoked key return `4
 ## Frequently asked questions
 
 <Accordion title="What should I do if a key is accidentally exposed?">
-  Revoke it immediately from **Settings → API Keys** and create a replacement. Check your run history  for any unexpected activity.
+  Revoke it immediately from **Settings → API Keys** and create a replacement. Check your run history for any unexpected activity.
 </Accordion>
 
 <Accordion title="How many API keys can I create?">
-  There is no hard limit on the number of keys per Workspace. Creating one key per integration is a recommended practice, not a forced constraint.
+  There is no hard limit on the number of keys. Creating one key per integration is a recommended practice, not a forced constraint.
 </Accordion>
 
 <Accordion title="Do API key requests consume credits?">
-  The API key itself has no cost. Credits are consumed by the Skill runs, Workflow executions, and other operations that the key triggers — not by authentication itself.
+  The key itself has no cost. Credits are used by the runs and other work the key starts.
 </Accordion>

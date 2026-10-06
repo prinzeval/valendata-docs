@@ -1,5 +1,7 @@
 ---
-title: "Restore a recipe version"
-description: "Make an earlier version the live recipe. The restore is saved as a new version."
+title: "Restore a version"
+description: "Make an earlier version live again. The restore is saved as a new version."
 openapi: "POST /v1/skills/{slug}/versions/{n}/restore"
 ---
+
+Nothing is lost: the restore is itself a new version. Owner or workspace editor. Needs `skills:write`.

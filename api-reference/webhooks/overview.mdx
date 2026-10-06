@@ -1,0 +1,92 @@
+---
+title: "About webhooks"
+description: "Get a finished background run pushed to your URL, signed so you can check it came from Valendata."
+---
+
+When you start a background run (a [skill run](/api-reference/runs/start-skill-run) or a [workflow run](/api-reference/runs/start-workflow-run)) with a `webhook_url`, Valendata sends the finished run to that URL as a `POST` with a JSON body. The body is the same object [`GET /v1/runs/{run_id}`](/api-reference/runs/get) returns.
+
+## Delivery
+
+- `webhook_url` must be `http` or `https` on a public host. Private, loopback, and internal addresses are refused with `422`. Use `https`.
+- Delivery times out after 15 seconds. Redirects are not followed.
+- A network error or a `5xx` is retried up to two more times, a few seconds apart. A `4xx` is not retried.
+- Return any `2xx` quickly, then do your work.
+
+## Verify the signature
+
+Every delivery has two headers:
+
+```http
+X-Valendata-Timestamp: 1759320000
+X-Valendata-Signature: v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+```
+
+The signature is `v1=` plus the hex HMAC-SHA256 of `"<timestamp>.<raw body>"`, keyed with your signing secret. Get the secret once with [`GET /v1/webhooks/secret`](/api-reference/webhooks/secret).
+
+1. Compute the signature over the **raw** body. Do not parse and re-serialize the JSON first.
+2. Split the header on commas and compare each value in constant time. Accept if any matches. (For 24 hours after you [rotate the secret](/api-reference/webhooks/rotate-secret), it holds `v1=<new>,v1=<old>`.)
+3. Reject timestamps more than 5 minutes from now, to stop replays.
+
+<CodeGroup>
+
+```python Python
+import hashlib
+import hmac
+import time
+
+
+def verify_valendata(secret: str, timestamp: str, raw_body: bytes, signature: str, tolerance_s: int = 300) -> bool:
+    try:
+        ts = int(timestamp)
+    except (TypeError, ValueError):
+        return False
+    if abs(int(time.time()) - ts) > tolerance_s:
+        return False
+    digest = hmac.new(secret.encode(), f"{ts}.".encode() + raw_body, hashlib.sha256).hexdigest()
+    expected = f"v1={digest}"
+    return any(hmac.compare_digest(expected, s.strip()) for s in (signature or "").split(","))
+
+
+# Flask:
+# @app.post("/hooks/valendata")
+# def hook():
+#     if not verify_valendata(SECRET, request.headers.get("X-Valendata-Timestamp"),
+#                             request.get_data(), request.headers.get("X-Valendata-Signature")):
+#         abort(401)
+#     run = request.get_json()
+#     return "", 204
+```
+
+```typescript TypeScript
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+export function verifyValendata(
+  secret: string,
+  timestamp: string | null,
+  rawBody: Buffer,
+  signature: string | null,
+  toleranceS = 300,
+): boolean {
+  const ts = Number(timestamp);
+  if (!Number.isInteger(ts) || !signature) return false;
+  if (Math.abs(Math.floor(Date.now() / 1000) - ts) > toleranceS) return false;
+  const digest = createHmac("sha256", secret)
+    .update(Buffer.concat([Buffer.from(`${ts}.`), rawBody]))
+    .digest("hex");
+  const expected = Buffer.from(`v1=${digest}`);
+  return signature.split(",").some((value) => {
+    const given = Buffer.from(value.trim());
+    return expected.length === given.length && timingSafeEqual(expected, given);
+  });
+}
+
+// Express: use express.raw() so you get the exact bytes that were signed.
+// app.post("/hooks/valendata", express.raw({ type: "application/json" }), (req, res) => {
+//   if (!verifyValendata(SECRET, req.get("X-Valendata-Timestamp") ?? null, req.body,
+//                        req.get("X-Valendata-Signature") ?? null)) return res.sendStatus(401);
+//   const run = JSON.parse(req.body.toString("utf8"));
+//   res.sendStatus(204);
+// });
+```
+
+</CodeGroup>

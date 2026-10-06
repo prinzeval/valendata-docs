@@ -1,126 +1,90 @@
 ---
-title: "Valendata REST API"
+title: "API overview"
 sidebarTitle: "Overview"
-description: "Trigger Skills, manage Workflows, retrieve Runs, and stream structured results from any language using JSON over HTTPS."
+description: "How the Valendata API is laid out: one base URL, JSON everywhere, and the same names and verbs for every resource."
 ---
 
-The Valendata REST API gives you programmatic access to every resource on the platform (Skills, Workflows, Runs, Browser Profiles, and more). Every request and response uses JSON, over HTTPS.
+The Valendata API lets you create, run, schedule, and improve skills and workflows from your own code. Everything an AI assistant can do through [MCP tools](/ai-assistants/mcp-tools) is also here, under the same names.
 
 ## Base URL
 
-Valendata uses two path prefixes depending on the operation:
-
-- `/v1/*`: Skill endpoints: create a Skill from a task, read its contract and health, run it (sync or async), read async runs, and manage recipe versions. See the [Web to API guide](/guides/web-to-api).
-- `/api/*`: All other resources including Workflows, Browser Profiles, credentials, API key management, and Marketplace
-
-For example:
-
 ```text
-POST https://api.valendata.com/v1/skills/run
-POST https://api.valendata.com/api/workflows/{workflow_id}/run
+https://api.valendata.com/v1
 ```
 
-## Request & Response Format
+Send JSON with `Content-Type: application/json`. Every response is JSON.
 
-Every request body must be JSON, and every response body is JSON. Set the `Content-Type` header to `application/json` on all requests that include a body.
+## Resources and naming
+
+Every resource uses the same verbs:
+
+| You want to | Method | Page title starts with | MCP tool starts with |
+| --- | --- | --- | --- |
+| See many | `GET /v1/<resource>` | List | `list_` |
+| See one | `GET /v1/<resource>/{id}` | Get | `get_` |
+| Make one | `POST /v1/<resource>` | Create | `create_` |
+| Change one | `PATCH /v1/<resource>/{id}` | Update | `update_` |
+| Remove one | `DELETE /v1/<resource>/{id}` | Delete | `delete_` |
+
+Skills and workflows are named by their **slug**. Runs and schedules by their id.
+
+| Resource | Routes |
+| --- | --- |
+| [Skills](/api-reference/skills/list) | `/v1/skills`, `/v1/skills/{slug}`, `/v1/skills/{slug}/health`, `/v1/skill-creations/{creation_id}` |
+| [Runs](/api-reference/runs/get) | `/v1/skills/{slug}/run` (wait), `/v1/skills/{slug}/runs` (background, and list), the same under `/v1/workflows/{slug}`, and `/v1/runs/{run_id}` for any run |
+| [Skill versions](/api-reference/versions/list) | `/v1/skills/{slug}/versions`, `/v1/skills/{slug}/pin` |
+| [Improvements](/api-reference/improvements/improve) | `/v1/skills/{slug}/improve`, `/v1/skills/{slug}/improvements`, `/v1/skill-improvements/{improvement_id}` |
+| [Schedules](/api-reference/schedules/list) | `/v1/schedules`, `/v1/schedules/{schedule_id}`, `/v1/skills/{slug}/schedules`, `/v1/workflows/{slug}/schedules` |
+| [Workflows](/api-reference/workflows/list) | `/v1/workflows`, `/v1/workflows/{slug}` |
+| [Logins](/api-reference/logins/list) | `/v1/logins`, `/v1/logins/{login_id}` |
+| [Account and usage](/api-reference/account/get) | `/v1/account`, `/v1/usage` |
+| [Webhooks](/api-reference/webhooks/overview) | `/v1/webhooks/secret` |
+
+Two run routes differ by one letter on purpose: `/run` waits for the result, `/runs` starts in the background. See [Runs](/concepts/runs#wait-or-run-in-the-background).
+
+## Conventions
+
+- Field names are `snake_case`. Timestamps are ISO 8601 in UTC with a `Z`, such as `2026-10-06T18:37:00Z`.
+- Ids are opaque strings. Most carry a prefix that says what they are (`skl_`, `sklsch_`, `wfsch_`); some older ones (workflows, logins, workflow runs) are plain UUIDs. Never parse an id; store it as you got it.
+- Credit amounts on [Account and usage](/api-reference/account/get) are decimal strings with two places (`"3500.43"`), so no precision is lost; `credits.balance_number` has the balance as a number. Run costs (`credits`, `credits_charged`) are numbers.
+- Booleans are JSON `true` and `false`. Enum values are listed on each route's page.
+- Every response carries `X-Request-ID`. Every error has the same body. See [Errors and limits](/api-reference/errors).
+- The full OpenAPI document is at `https://api.valendata.com/v1/openapi.json`. Each operation's `operationId` is the name of the MCP tool that does the same thing (`list_skills`, `create_workflow`, `run_skill`); `x-mcp-tool` names the tool where it differs.
+
+## Versioning and deprecation
+
+The version is in the path: `/v1`. Within v1, changes are additive only: new routes, new optional parameters, new response fields, new error `code` values. Write your client to ignore fields it does not know.
+
+A route that will go away is marked deprecated in the reference and answers with three headers, for at least six months before it is removed:
 
 ```http
-Content-Type: application/json
+Deprecation: @1791244800
+Sunset: Tue, 06 Apr 2027 00:00:00 GMT
+Link: <https://docs.valendata.com/api-reference/runs/run-skill>; rel="successor-version"
 ```
 
-Successful responses return the requested data at the top level of the JSON object. The exact shape of each response is documented on the relevant endpoint page.
+`Deprecation` is when it was deprecated (Unix time), `Sunset` is the earliest date it may be removed, and `Link` points to the route to use instead. Deprecated today:
 
-## Authentication
+| Route | Use instead |
+| --- | --- |
+| `POST /v1/skills/run` (run by id) | [`POST /v1/skills/{slug}/run`](/api-reference/runs/run-skill) |
+| `GET /v1/workflow-runs/{run_id}` | [`GET /v1/runs/{run_id}`](/api-reference/runs/get) |
 
-Every request to the Valendata API must include your API key in the `Authorization` header as a Bearer token. Keys are prefixed with `vd_sk_`.
+## The rest of the basics
 
-```http
-Authorization: Bearer vd_sk_YOUR_API_KEY
-```
-
-See the [Authentication](/api-reference/authentication) page for full details on obtaining a key, handling auth errors, and security best practices.
-
-## Rate Limiting
-
-Rate limits are enforced per API key on a fixed one-minute window.
-
-| Plan | Limit |
-| :-- | :-- |
-| Free | 30 requests / minute |
-| Pro | 120 requests / minute |
-
-Every API response includes headers so you can track your usage:
-
-```http
-X-RateLimit-Limit: 30
-X-RateLimit-Remaining: 12
-X-RateLimit-Reset: 1720000060
-```
-
-`X-RateLimit-Reset` is a Unix timestamp indicating when the current window expires and the counter resets.
-
-If you exceed the limit, the API returns HTTP `429 Too Many Requests`:
-
-```json
-{
-  "detail": "Rate limit exceeded. Retry after 34 seconds."
-}
-```
-
-The response also includes a `Retry-After` header with the number of seconds to wait before retrying.
-
-<Warning>
-  Rate limit responses do not consume credits. Credits are only deducted for completed Skill or Workflow Runs.
-</Warning>
-
-## HTTP Status Codes
-
-The API uses standard HTTP status codes to communicate the outcome of every request.
-
-| Code | Meaning | When you see it |
-| --- | --- | --- |
-| `200` | OK | The request succeeded. The response body contains the result. |
-| `400` | Bad Request | The request body is malformed, missing required fields, or invalid. |
-| `401` | Unauthorized | The `Authorization` (or `x-api-key`) header is missing, or the key is invalid, revoked, or expired. |
-| `402` | Payment Required | Not enough credits to start (for example, creating a Skill needs at least 10). |
-| `403` | Forbidden | The key is valid but lacks permission for the requested resource. |
-| `404` | Not Found | The requested resource does not exist in your Workspace. |
-| `422` | Unprocessable Entity | The inputs do not match the Skill's `input_schema`, the requested `version` does not exist, or `webhook_url` is not allowed. |
-| `429` | Too Many Requests | Too many requests for your key, too many runs in progress, or too many recordings in progress. Wait for `Retry-After` when present. |
-| `500` | Internal Server Error | An unexpected error occurred on Valendata's side. |
-
-## Error Format
-
-When a request fails, the API returns a JSON body with a `detail` field:
-
-<ResponseField name="detail" type="string | object" required>
-  A message describing what went wrong. For most errors this is a plain string. For structured errors (such as a credit limit response) it may be an object with additional fields.
-</ResponseField>
-
-Here is a representative error response:
-
-```json
-{
-  "detail": "Skill not found"
-}
-```
-
-## Explore the API
+Each of these has one page:
 
 <CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/api-reference/authentication">
-    Learn how API keys work, where to create them, and how to keep them secure.
+  <Card title="Authentication and scopes" icon="key" href="/api-reference/authentication">
+    Send your key. What each scope allows.
   </Card>
-
-  <Card title="Skills API" icon="bolt" href="/api-reference/skills/run">
-    Trigger, list, and retrieve your reusable automation Skills via API.
+  <Card title="Errors and limits" icon="triangle-exclamation" href="/api-reference/errors">
+    Status codes, error bodies, rate limits, and runs in progress.
   </Card>
-
-  <Card title="Workflows API" icon="diagram-project" href="/api-reference/workflows/run">
-    Build and trigger multi-step Workflows that chain Skills, HTTP calls, and transforms.
+  <Card title="Pagination and idempotency" icon="list" href="/api-reference/pagination-and-idempotency">
+    Page through lists. Retry safely.
   </Card>
-
-  <Card title="Runs API" icon="circle-play" href="/api-reference/runs/list">
-    Retrieve run history and inspect the result of any Skill or Workflow execution.
+  <Card title="Webhooks" icon="webhook" href="/api-reference/webhooks/overview">
+    Get finished runs pushed to you, and verify them.
   </Card>
 </CardGroup>

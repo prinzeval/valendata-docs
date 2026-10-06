@@ -1,0 +1,115 @@
+---
+title: "Run a skill"
+description: "Run a skill from the app or the API: wait for the rows, or start it in the background and get a webhook when it finishes."
+---
+
+## In the app
+
+Open the skill, fill in its inputs, and click **Run**. The rows appear in a table you can download. See [Export data](/guides/export-data).
+
+## From the API
+
+Before you start, create an API key in **Settings → API Keys** with the `skills:invoke` scope (and `runs:read` to read background runs). See [API keys](/account/api-keys).
+
+To see what a skill takes and returns, read its contract with [`GET /v1/skills/{slug}`](/api-reference/skills/get): `input_schema` lists the inputs, `output_json_schema` the row shape.
+
+### Wait for the rows
+
+[`POST /v1/skills/{slug}/run`](/api-reference/runs/run-skill) runs the skill and answers when it finishes. Put the inputs at the top level of the body:
+
+<CodeGroup>
+
+```bash curl
+curl -X POST "https://api.valendata.com/v1/skills/austin-dentists/run?max_results=20" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"city": "Dallas"}'
+```
+
+```python Python
+import os, requests
+
+API = "https://api.valendata.com"
+HEADERS = {"Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}"}
+
+resp = requests.post(
+    f"{API}/v1/skills/austin-dentists/run",
+    headers=HEADERS,
+    params={"max_results": 20},
+    json={"city": "Dallas"},
+    timeout=600,
+)
+resp.raise_for_status()
+for row in resp.json()["data"]:
+    print(row)
+```
+
+</CodeGroup>
+
+The rows are in `data`. If your account already has as many runs in progress as it may, this call does not wait: it returns `429` with `Retry-After`. Run in the background instead.
+
+### Run in the background
+
+[`POST /v1/skills/{slug}/runs`](/api-reference/runs/start-skill-run) answers at once with a `run_id`. Inputs go under `inputs`. If your account is busy, the run waits in a queue.
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/runs \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: order-1234" \
+  -d '{"inputs": {"city": "Houston"}, "max_results": 50, "webhook_url": "https://example.com/hooks/valendata"}'
+# → 202 {"run_id": "run_8c1d2e3f4a5b", "status": "queued", "poll_url": "/v1/runs/run_8c1d2e3f4a5b"}
+```
+
+```python Python
+import os, time, requests
+
+API = "https://api.valendata.com"
+HEADERS = {"Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}"}
+
+start = requests.post(
+    f"{API}/v1/skills/austin-dentists/runs",
+    headers={**HEADERS, "Idempotency-Key": "order-1234"},
+    json={"inputs": {"city": "Houston"}, "max_results": 50},
+).json()
+
+while True:
+    run = requests.get(f"{API}{start['poll_url']}", headers=HEADERS).json()
+    if run["status"] not in ("queued", "running"):
+        break
+    time.sleep(3)
+
+print(run["status"], run["count"], run["rows"][:3])
+```
+
+</CodeGroup>
+
+Then either read [`GET /v1/runs/{run_id}`](/api-reference/runs/get) until `status` is no longer `queued` or `running`, or set `webhook_url` and Valendata sends you the finished run. See [Webhooks](/api-reference/webhooks/overview). In a finished background run, the rows are in `rows`.
+
+To stop a run, call [`POST /v1/runs/{run_id}/cancel`](/api-reference/runs/cancel). To list a skill's past runs, call [`GET /v1/skills/{slug}/runs`](/api-reference/runs/list-skill-runs).
+
+### Run settings
+
+These go next to the inputs and are not inputs themselves:
+
+| Setting | What it does |
+| --- | --- |
+| `max_results` | Rows to return, 0–500. `0` returns the whole list. Leave it out to use the skill's saved default. |
+| `max_pages` | Page limit for skills that page through results. `0` means all pages. |
+| `version` | Run one [version](/concepts/keeping-skills-working#versions) for this call only. |
+| `browser_type` | `remote` (cloud browser), `extension` (your own browser), `local_profile`, or `none`. |
+| `profile_id` | The [browser profile](/concepts/logins-and-browser-profiles) to use. |
+| `proxy_config` | Region: a country code, `random`, or `none`. |
+| `scrape_mode` | `deep` or `flash`, for skills that support it. |
+
+Inputs are checked before anything runs. A missing input, a wrong type, or an unknown name returns `422` with every problem listed, and nothing is charged. See [Errors and limits](/api-reference/errors).
+
+## From an AI assistant
+
+Each skill is a tool named `skill_<slug>`. See [Connect your AI assistant](/ai-assistants/connect).
+
+## What comes back
+
+The rows, plus fields that say how far to trust them, which version ran, and what it cost. See [Runs](/concepts/runs).

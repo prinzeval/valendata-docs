@@ -1,0 +1,34 @@
+---
+title: "Export data"
+description: "Get a run's rows out of Valendata: download them, read them from the API, or send them to another tool automatically."
+---
+
+## Download from the app
+
+Open the skill or workflow, then the run. Above the rows, click **Download CSV** or **Download JSON**.
+
+## Read them from the API
+
+Every run returns its rows as JSON:
+
+- A run you waited for has them in `data`. See [Run a skill](/guides/run-a-skill#wait-for-the-rows).
+- A background run has them in `rows` on [`GET /v1/runs/{run_id}`](/api-reference/runs/get), or in the body of its [webhook](/api-reference/webhooks/overview).
+- A workflow run has them in `outputs`.
+
+Any tool that can make an HTTP request (Zapier, Make, n8n, your own backend) can run a skill and use the rows this way.
+
+## Send them to another tool automatically
+
+Build a [workflow](/guides/build-a-workflow) that runs the skill and then sends the rows on:
+
+| Step | Sends rows to |
+| --- | --- |
+| **Integration** | Google Sheets, Postgres, Slack, Gmail, or Notion. |
+| **HTTP** | Any URL, with your own headers and body. Use a **Vault** credential for the secret. |
+| **Code** | Anywhere Python can reach. |
+
+Put it on a [schedule](/guides/schedule) to get fresh rows every day.
+
+## Your whole account
+
+To download a copy of your account data (profile, workflows, run history, key and credential names), see [Export your account data](/account/data-export).

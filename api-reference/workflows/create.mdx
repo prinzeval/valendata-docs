@@ -1,0 +1,16 @@
+---
+title: "Create a workflow"
+description: "Create a workflow from its inputs, steps, and connections."
+openapi: "POST /v1/workflows"
+---
+
+- `inputs`: what a run takes, `[{name, type, required, default, description, example}]`.
+- `steps`: in the same JSON the app saves, `[{id, name, type, config, on_error, retries}]`. A skill step names the skill in `config.skill`; a workflow step in `config.target_workflow_id`. Steps read inputs as `{{inputs.<name>}}`.
+- `connections`: `[{from_step, to_step}]`. Leave empty to run the steps in order.
+- `workspace_id`: a workspace you belong to. Default: your personal workspace.
+
+Everything is checked first. A `422` lists every problem and nothing is saved. It does not run the workflow.
+
+The easiest way to build steps is the Brain on the canvas. See [Build a workflow](/guides/build-a-workflow). To copy an existing workflow's steps, read it with [Get a workflow](/api-reference/workflows/get) and `include_graph=true`.
+
+A key limited to some workflows cannot create one. Needs `workflows:write`. MCP tool: `create_workflow`.

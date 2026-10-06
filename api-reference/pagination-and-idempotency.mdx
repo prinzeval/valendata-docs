@@ -1,0 +1,66 @@
+---
+title: "Pagination and idempotency"
+description: "Page through list results, and retry a request without starting the same work twice."
+---
+
+## Pagination
+
+Every list takes the same two query parameters and answers in the same shape:
+
+| Parameter | What it is |
+| --- | --- |
+| `limit` | Items per page, 1–100. |
+| `cursor` | The `next_cursor` of the previous page. Leave it out for the first page. |
+
+| Field | What it is |
+| --- | --- |
+| The items | Under the resource's own key: `skills`, `workflows`, `runs`, `schedules`, `logins`, `versions`, or `improvements`. |
+| `next_cursor` | Pass it back as `cursor` for the next page. `null` on the last page. |
+| `has_more` | `true` when there is a next page (the same as `next_cursor` not being `null`). |
+
+Lists are newest first.
+
+| Route | `limit` default | Also filters by |
+| --- | --- | --- |
+| [`GET /v1/skills`](/api-reference/skills/list) | 50 | `q`, `status` |
+| [`GET /v1/skills/{slug}/runs`](/api-reference/runs/list-skill-runs) | 50 | `status`, `since` |
+| [`GET /v1/workflows`](/api-reference/workflows/list) | 25 | `q` |
+| [`GET /v1/workflows/{slug}/runs`](/api-reference/runs/list-workflow-runs) | 25 | `status`, `source`, `since`, `until` |
+| [`GET /v1/skills/{slug}/improvements`](/api-reference/improvements/list) | 5 | |
+| [`GET /v1/schedules`](/api-reference/schedules/list), [`GET /v1/logins`](/api-reference/logins/list), [`GET /v1/skills/{slug}/versions`](/api-reference/versions/list), and a skill's or workflow's schedules | 100 | `kind` (schedules) |
+
+```bash
+# First page → {"skills": [...], "next_cursor": "eyJ0IjoiMjAyNi0x...", "has_more": true}
+CURSOR=$(curl -s "https://api.valendata.com/v1/skills?limit=20" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" | jq -r .next_cursor)
+
+# Next page
+curl "https://api.valendata.com/v1/skills?limit=20&cursor=$CURSOR" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+A cursor is opaque: pass it back exactly as you got it. One this API did not hand out is a `400` with `code: invalid_cursor`.
+
+## Idempotency
+
+Every `POST`, `PUT`, and `PATCH` under `/v1` accepts an `Idempotency-Key` header: creating a skill or workflow, starting a run, improving, scheduling, saving a login, rotating the webhook secret, and the rest. Use any unique string of 1–255 characters, such as your order id.
+
+| You send | You get |
+| --- | --- |
+| The same key and the same request (method, path, query, and JSON body; key order does not matter) | The first response again, with the header `Idempotent-Replayed: true`. Nothing runs or is charged again. |
+| The same key with a different request | `422` with `code: idempotency_key_reused`. Use a new key for each new request. |
+| The same key while the first request is still running | `409` with `code: idempotency_key_in_use` and `Retry-After`. Retry to get its result. |
+
+- Only a successful (`2xx`) response is kept. A request that was refused or failed started nothing, so retrying it with the same key really retries.
+- Keys are kept for **24 hours**. After that, the same key starts fresh, except that a run, a skill creation, or an improvement still returns the one it already started, with `idempotent_replay: true` in the body.
+- Keys belong to the API key that sent them. Another key never sees your responses.
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/runs \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: order-5678" \
+  -d '{"inputs": {"city": "Houston"}}'
+```
+
+AI assistants pass the same thing as the `idempotency_key` tool argument.

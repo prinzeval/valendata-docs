@@ -1,5 +1,11 @@
 ---
-title: "Pin or unpin a recipe version"
-description: "Keep a skill on one recipe version, or return it to the live version."
+title: "Pin a version"
+description: "Keep a skill on one version, or unpin it."
 openapi: "PUT /v1/skills/{slug}/pin"
 ---
+
+Body `{"version": 3}` pins version 3. `{"version": null}` unpins.
+
+While pinned, automatic repairs do not change what runs. They are saved as candidate versions you can compare and restore. To run another version for one call only, pass `version` when you [run the skill](/api-reference/runs/run-skill) instead.
+
+Owner or workspace editor. Needs `skills:write`.

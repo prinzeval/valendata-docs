@@ -1,161 +1,96 @@
 ---
-title: "Valendata Quickstart: Live API Endpoint in 10 Minutes"
-sidebarTitle: "Quickstart"
-description: "Sign up, build your first Skill, run it from the dashboard, and make your first live API call — all in under 10 minutes, no credit card required."
+title: "Quickstart"
+description: "Create your first skill from one sentence, run it, and call it from code, in about 5 minutes."
 ---
 
-Valendata gets you from zero to a live browser-automation API endpoint in a single sitting. You'll sign up for a free account, write a plain-English Skill that extracts structured data from a real webpage, run it from the dashboard to verify the output, and then call it programmatically via the REST API. By the end of this guide you'll have a working endpoint you can wire into any application.
+You will create a skill from one sentence, run it, and call it from your own code.
 
 <Steps>
-  <Step title="Create your free account">
-    Go to [app.valendata.com](https://app.valendata.com) and sign up. Every new account gets **100 free credits** — no credit card required. Credits cover LLM tokens, browser session time, and web searches, so your first few runs cost you nothing.
-
-    <Tip>
-      Your 100 free credits never expire. Use them to experiment before committing to a paid plan.
-    </Tip>
-
-    Once you've verified your email, you'll land inside your default **Workspace** — the organizational unit where your Skills, Workflows, and credentials all live.
+  <Step title="Sign up">
+    Create an account at [app.valendata.com](https://app.valendata.com). New accounts get **100 free credits**, no card needed.
   </Step>
-  <Step title="Create your first Skill">
-    A Skill is a reusable API endpoint built from a saved browser automation **Config**. Configs are generated automatically when you run a session. So you need at least one session saved before publishing a Skill.
+  <Step title="Create a skill from a sentence">
+    Open **My Skills**, click **Create Skill** and choose **Describe it**. Say what it should do and which website, for example:
 
-    1. In the sidebar, click **Skills**, then click **\+ Create**. 
-    2. In the **Config** dropdown, select the saved session config you want to publish as a Skill. 
-    3. Give your Skill a **name** and an optional **description**. Click the wand icon to let AI suggest both from the config automatically. 
-    4. Set **Visibility** to `Private` (only you can run it) or `Public` (anyone with a valid API key can run it). 
-    5. Optionally enable **Monetize this skill** if you want other users to pay credits to run it. 
-    6. Click **Publish Skill**. Valendata publishes the Skill as a versioned API endpoint and generates a `skill_id`.
+    - **What should it do?** Search for dentists in Austin and list their name, rating, and phone.
+    - **Which website?** `https://www.google.com/maps`
 
-    <Note>
-      Input and output parameters are detected automatically from your config — you don't need to define them manually. You can use **Suggest** to add or update them later from the **Workspace** tab on the Skill details page.
-    </Note>
+    Valendata does the task once in a cloud browser, learns the steps, and checks that they work. This takes a few minutes. When it is ready, the skill has a **slug** (for example `austin-dentists`), its **inputs** (`city`), and its **output fields** (`name`, `rating`, `phone`).
+
+    You can also call [`POST /v1/skills`](/api-reference/skills/create), or ask your own AI assistant. See [Create a skill](/guides/create-a-skill).
   </Step>
-  <Step title="Run your Skill from the dashboard">
-    Before wiring anything into your code, verify that the Skill works and the output looks right.
+  <Step title="Run it in the app">
+    Open the skill, change the input (try `Dallas`), and click **Run**. The rows appear in a table. If a field is missing, use **Improve**. See [Improve a skill](/guides/improve-a-skill).
+  </Step>
+  <Step title="Call it from code">
+    Create an API key in **Settings → API Keys** (see [API keys](/account/api-keys)). Then run the skill and wait for the rows:
 
-    1. Open the Skill you just created. The **Workspace** tab is shown by default. 
-    2. Fill in any input parameters if your Skill requires them, then click **Run skill**. 
-    3. Watch the live browser session — you'll see the agent navigate, extract data, and return results. 
-    4. When the run finishes, the output panel shows structured JSON:
+    <CodeGroup>
 
-    ```json
-        {
-          "status": "success",
-          "data": [
-            {
-              "name": "Wireless Noise-Cancelling Headphones",
-              "price": "$79.99",
-              "url": "https://example.com/products/wn-headphones"
-            },
-            {
-              "name": "Portable Bluetooth Speaker",
-              "price": "$34.99",
-              "url": "https://example.com/products/bt-speaker"
-            }
-          ],
-          "count": 2,
-          "execution_time_ms": 8421
-        }
+    ```bash curl
+    curl -X POST "https://api.valendata.com/v1/skills/austin-dentists/run?max_results=5" \
+      -H "Authorization: Bearer $VALENDATA_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"city": "Dallas"}'
     ```
 
-    If data is missing from the output, or you want more fields, describe what you need in the **Improve** box: **Fix missing data** when a field comes back empty, **Add fields** to capture more, or **Re-learn detail steps** if the site changed. The new version goes live only if a short check run shows it is better.
-  </Step>
-  <Step title="Call your Skill via the API">
-    Once your Skill runs cleanly in the dashboard, integrate it into your application using the REST API. Grab your API key from **Settings → API Keys**.
+    ```python Python
+    import os, requests
 
-    <Tabs>
-      <Tab title="cURL">
-        ```bash
-        curl -X POST https://api.valendata.com/v1/skills/run \
-          -H "Authorization: Bearer YOUR_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d '{
-            "skill_id": "YOUR_SKILL_ID",
-            "parameters": {}
-          }'
-        ```
-      </Tab>
-      <Tab title="Python">
-        ```python
-        import requests
-        
-        response = requests.post(
-            "https://api.valendata.com/v1/skills/run",
-            headers={
-                "Authorization": "Bearer YOUR_API_KEY",
-                "Content-Type": "application/json",
-            },
-            json={
-                "skill_id": "YOUR_SKILL_ID",
-                "parameters": {},
-            },
-        )
-        
-        print(response.json())
-        ```
-      </Tab>
-      <Tab title="Node.js">
-        ```javascript
-        const response = await fetch("https://api.valendata.com/v1/skills/run", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer YOUR_API_KEY",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            skill_id: "YOUR_SKILL_ID",
-            parameters: {},
-          }),
-        });
-        
-        const data = await response.json();
-        console.log(data);
-        ```
-      </Tab>
-    </Tabs>
-
-    The API returns a response like this:
-
-    ```rust
-        {
-          "status": "success",
-          "data": [
-            {
-              "name": "Wireless Noise-Cancelling Headphones",
-              "price": "$79.99",
-              "url": "https://example.com/products/wn-headphones"
-            },
-            {
-              "name": "Portable Bluetooth Speaker",
-              "price": "$34.99",
-              "url": "https://example.com/products/bt-speaker"
-            }
-          ],
-          "count": 2,
-          "execution_time_ms": 8421
-        }
+    resp = requests.post(
+        "https://api.valendata.com/v1/skills/austin-dentists/run",
+        headers={"Authorization": f"Bearer {os.environ['VALENDATA_API_KEY']}"},
+        params={"max_results": 5},
+        json={"city": "Dallas"},
+        timeout=600,
+    )
+    resp.raise_for_status()
+    print(resp.json()["data"])
     ```
 
-    <Warning>
-      Keep your API key secret. Never commit it to source control or expose it client-side. Rotate compromised keys immediately from **Settings → API Keys**.
-    </Warning>
+    ```typescript TypeScript
+    const resp = await fetch(
+      "https://api.valendata.com/v1/skills/austin-dentists/run?max_results=5",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.VALENDATA_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ city: "Dallas" }),
+      },
+    );
+    console.log((await resp.json()).data);
+    ```
+
+    </CodeGroup>
+
+    ```json Response (shortened)
+    {
+      "status": "success",
+      "data": [
+        {"name": "Lone Star Dental", "rating": 4.8, "phone": "+1 214-555-0100"}
+      ],
+      "count": 1,
+      "credits_charged": 3
+    }
+    ```
   </Step>
 </Steps>
 
-## What's next?
+## Next steps
 
-You've built and called your first Skill. Here are the most common next steps.
-
-<CardGroup cols={3}>
-  <Card title="Schedule a Skill" icon="clock" href="/guides/scheduling-skills">
-    Run your Skill automatically on a cron schedule — hourly, daily, or any custom interval. Wake up to fresh data without lifting a finger.
+<CardGroup cols={2}>
+  <Card title="Run a skill" icon="play" href="/guides/run-a-skill">
+    Wait for rows, or start in the background and get a webhook.
   </Card>
-
-  <Card title="Build a Workflow" icon="diagram-project" href="/concepts/workflows">
-    Chain multiple Skills together with HTTP steps and transforms to build end-to-end data pipelines that run as a single unit.
+  <Card title="Schedule a skill or workflow" icon="clock" href="/guides/schedule">
+    Fresh rows every hour, day, or week.
   </Card>
-
-  <Card title="Browse the Marketplace" icon="store" href="https://app.valendata.com/skills">
-    Clone a pre-built Skill from the public Marketplace, customize it for your use case, and ship in minutes instead of hours.
+  <Card title="Connect your AI assistant" icon="robot" href="/ai-assistants/connect">
+    Use your skills from Claude, ChatGPT, Meta Muse, or Cursor.
+  </Card>
+  <Card title="Credits" icon="coins" href="/concepts/credits">
+    What each run costs.
   </Card>
 </CardGroup>

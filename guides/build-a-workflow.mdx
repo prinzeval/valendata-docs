@@ -1,0 +1,56 @@
+---
+title: "Build a workflow"
+description: "Build a workflow on the canvas, declare its inputs, and run it from the app, the API, a webhook, or an AI assistant."
+---
+
+## 1. Add the steps
+
+Open **Workflows** in the sidebar and create a workflow. Tell the **Brain** (the chat beside the canvas) what you want, for example "run my competitor-prices skill, keep prices under my price, and post them to Slack". It adds the steps, writes code steps, and wires outputs into later steps. You can also add and set up steps yourself from the canvas toolbar. See [Workflows](/concepts/workflows) for the step types.
+
+From code, you can create and change workflows with [`POST /v1/workflows`](/api-reference/workflows/create) and [`PATCH /v1/workflows/{slug}`](/api-reference/workflows/update).
+
+## 2. Declare the inputs
+
+Click the **API trigger**, the first node on the canvas. Add one entry per input:
+
+| Field | What it means |
+| --- | --- |
+| `name` | Letters, digits and `_`. Steps use it as `{{inputs.name}}`. |
+| `type` | `string`, `number`, `integer`, `boolean`, `array`, or `object`. |
+| `required` | The caller must send it, unless it has a `default`. |
+| `default` | Used when the caller leaves it out. Scheduled runs always use defaults. |
+| `description`, `example` | Shown in the API tab, the contract, and the assistant tool. |
+
+You cannot delete the trigger. A workflow made before triggers existed gets one automatically, with one required string input for each `{{inputs.name}}` its steps already use.
+
+## 3. Use the inputs in steps
+
+Write `{{inputs.<name>}}` in any step setting: a skill step's inputs, its **Max results**, an HTTP URL or body, a condition. Code steps also get every input in the `inputs` dictionary.
+
+## 4. Run it
+
+| From | How |
+| --- | --- |
+| The app | Click **Run** and fill in the inputs. |
+| The API | Wait for the result with [`POST /v1/workflows/{slug}/run`](/api-reference/runs/run-workflow), or start it in the background with [`POST /v1/workflows/{slug}/runs`](/api-reference/runs/start-workflow-run). |
+| An AI assistant | The `workflow_<slug>` tool. See [MCP tools](/ai-assistants/mcp-tools). |
+| A schedule | See [Schedule a skill or workflow](/guides/schedule). |
+
+The slug is on the workflow's **API** tab. Read the contract (inputs, output shape, track record) with [`GET /v1/workflows/{slug}`](/api-reference/workflows/get).
+
+```bash
+curl -X POST https://api.valendata.com/v1/workflows/competitor-prices/run \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": {"limit": 3}, "wait": 60}'
+```
+
+If it finishes within `wait` seconds (default 60, max 120), you get `200` with `outputs`. If not, you get `202` with a `run_id`: read it with [`GET /v1/runs/{run_id}`](/api-reference/runs/get).
+
+Inputs are checked first. A missing input, a wrong type, or an unknown name returns `422` with every problem listed, and nothing runs. Values are converted when they can be: `"3"` becomes `3` for an `integer` input.
+
+## Who can run it and who pays
+
+- The owner and members of its workspace can read and run it. Anyone else gets `404`.
+- An API key limited to some workflows gets `403` on any other. See [API keys](/account/api-keys#limit-a-key-to-some-skills-or-workflows).
+- The owner pays. See [Workflows: cost](/concepts/workflows#cost). API and assistant runs do not use your monthly run allowance.

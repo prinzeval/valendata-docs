@@ -1,0 +1,149 @@
+---
+title: "Errors and limits"
+description: "Status codes, error bodies, request ids, rate limits, and how many runs can be in progress at once."
+---
+
+## Status codes
+
+| Status | When | What to do |
+| --- | --- | --- |
+| `200` / `201` / `202` / `204` | It worked. `202` means it started and you read the result later. | |
+| `400` | The body is not valid JSON, or a `cursor` or `Idempotency-Key` is not valid. | Fix the request. |
+| `401` | The key is missing, malformed, revoked, or expired. | See [Authentication](/api-reference/authentication). |
+| `402` | Not enough credits to start. `detail` has `current_balance` and `required`. | Top up, then retry. |
+| `403` | The key lacks a scope, or you may not do this to a skill or workflow you can see (for example, only the owner can restore or pin). | Check the scope and the owner. |
+| `404` | It does not exist, or it is not yours to see. A private skill, workflow, or run of someone else's is a `404`, never a `403`, so nobody learns it exists. | Check the slug or id. |
+| `405` | The route exists but not with this method. The `Allow` header lists the methods it takes. | Use one of those. |
+| `409` | A conflict: the skill is already being improved, it already has a schedule, a workflow still uses the skill you are deleting, the run is not waiting for a code, or a request with the same `Idempotency-Key` is still running. | `detail` says which. |
+| `422` | A field is invalid (`param` names it), inputs do not match the contract, the `version` does not exist, `webhook_url` is not allowed, or the `Idempotency-Key` was already used with a different request. | Fix the request. The body lists every problem. |
+| `429` | Too many requests for your key, or too many runs, creations, or improvements in progress. | Wait `Retry-After` seconds, or run in the background. |
+| `500` | Something broke on our side. | Retry. Runs that fail on our side are refunded. |
+
+A request refused before it starts (`400`, `401`, `402`, `403`, `404`, `409`, `422`, `429`) runs nothing and costs nothing.
+
+## Error body
+
+Every error, from every route, has the same shape:
+
+```json
+{
+  "detail": "Skill not found: austin-dentist",
+  "code": "not_found",
+  "type": "invalid_request_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+| Field | What it is |
+| --- | --- |
+| `detail` | What went wrong, for people. A string, or an object for errors with more to say. Its wording can change; do not parse it. |
+| `code` | What went wrong, for code. Stable: see the list below. |
+| `type` | The family of the error: `invalid_request_error`, `authentication_error`, `billing_error`, `permission_error`, `conflict_error`, `idempotency_error`, `rate_limit_error`, or `api_error`. |
+| `request_id` | Also in the `X-Request-ID` header. Quote it when you contact support. |
+| `param` | On validation errors only: the field at fault, as a dotted path such as `inputs.city`. |
+| `errors` | On a `422` from request validation only: every problem, one object each. |
+
+A `422` for a field that does not validate:
+
+```json
+{
+  "detail": "Invalid request — name: Field required",
+  "code": "validation_error",
+  "type": "invalid_request_error",
+  "request_id": "3f9a1c2b7d4e",
+  "param": "name",
+  "errors": [{"type": "missing", "loc": ["body", "name"], "msg": "Field required"}]
+}
+```
+
+A `422` for bad skill inputs lists every problem and the inputs the skill accepts in `detail`:
+
+```json
+{
+  "detail": {
+    "message": "Invalid inputs for this skill.",
+    "errors": ["Unknown input(s): town. This skill accepts: city."],
+    "allowed_inputs": [
+      {"name": "city", "type": "string", "required": false, "default": "Austin", "description": null}
+    ]
+  },
+  "code": "validation_error",
+  "type": "invalid_request_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+A `429` because too many runs are in progress has a `Retry-After` header, and `detail` says which limit:
+
+```json
+{
+  "detail": {
+    "error": "capacity",
+    "message": "…",
+    "lane": "browser",
+    "scope": "tenant",
+    "retry_after": 30,
+    "hint": "Or start it with POST /v1/skills/{slug}/runs — async runs queue instead of failing."
+  },
+  "code": "rate_limited",
+  "type": "rate_limit_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+### Error codes
+
+| `code` | Status | Meaning |
+| --- | --- | --- |
+| `bad_request` | `400` | The request is malformed. |
+| `invalid_json` | `400` | The body is not valid JSON. |
+| `invalid_cursor` | `400` | `cursor` is not one this API handed out. |
+| `invalid_idempotency_key` | `400` | `Idempotency-Key` is empty or longer than 255 characters. |
+| `unauthorized` | `401` | No valid key or session. |
+| `payment_required` | `402` | Not enough credits, or a workspace spend cap is reached. |
+| `permission_denied` | `403` | A scope is missing, or the action is not yours to take. |
+| `not_found` | `404` | It does not exist, or it is not yours to see. |
+| `method_not_allowed` | `405` | Wrong method for this route. |
+| `conflict` | `409` | The current state does not allow it. |
+| `idempotency_key_in_use` | `409` | The first request with this key is still running. |
+| `idempotent_replay_unavailable` | `409` | The first request with this key succeeded, but its answer was too large to keep. `detail` names what it started. |
+| `validation_error` | `422` | A field or input is invalid. |
+| `idempotency_key_reused` | `422` | This key was already used with a different request. |
+| `rate_limited` | `429` | Too many requests for this key, or too many runs in progress. |
+| `internal_error` | `500` | Something broke on our side. |
+
+New codes may be added; treat an unknown `code` by its `type` and status.
+
+## Request ids
+
+Every response, success or error, carries an `X-Request-ID` header. Send your own `X-Request-ID` (letters, digits, `.`, `_`, `:`, `-`; up to 64 characters) to trace a call through your logs and ours; anything else is replaced with an id of ours.
+
+## Rate limits
+
+Each API key may make a number of requests a minute, counted in a fixed one-minute window:
+
+| Plan | Requests a minute per key |
+| --- | --- |
+| Free | 30 |
+| Paid plans | 120 |
+
+The same budget covers the `/v1` routes and the [MCP endpoint](/ai-assistants/connect) when you connect with the key. Every response to a request made with a key, errors included, carries:
+
+```http
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 12
+X-RateLimit-Reset: 1720000060
+```
+
+`X-RateLimit-Reset` is the Unix time the window resets. Over the limit, you get a `429` with `code: rate_limited` and a `Retry-After` header in seconds. AI assistants connected with OAuth are not counted per request; the run limits below and your credits bound them. The limits for AI assistants are on [Limits and side effects](/ai-assistants/limits-and-side-effects).
+
+## Other limits
+
+| Limit | Value |
+| --- | --- |
+| Runs in progress | A limit per account. Runs that wait for the result get `429`; background runs queue (up to about an hour, then fail uncharged). |
+| Rows per run | `max_results` up to 500. `0` returns the whole list. |
+| Skill creations | 2 in progress, at least 10 credits to start, 30 minutes each. |
+| Improvements | 1 in progress per account and per skill, 6 an hour, at least 10 credits to start. |
+| Workflow wait | `wait` up to 120 seconds on `POST /v1/workflows/{slug}/run`. |
+| Items per list page | `limit` up to 100. See [Pagination](/api-reference/pagination-and-idempotency#pagination). |

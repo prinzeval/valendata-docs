@@ -1,0 +1,26 @@
+---
+title: "Update a skill"
+description: "Change a skill's name, description, inputs, output fields, run settings, saved login, or sharing."
+openapi: "PATCH /v1/skills/{slug}"
+---
+
+Send only what you want to change. You get back the skill as [Get a skill](/api-reference/skills/get) returns it, plus `changes` (what changed, in words), `warnings`, and `login`.
+
+| Key | What it changes |
+| --- | --- |
+| `name`, `description` | The skill's name and description. |
+| `inputs` | `add` new inputs, `update` existing ones (`rename`, `type`, `default`, `required`, `description`), or `remove` some. |
+| `outputs` | `update` output fields (`rename`, `description`, `type`) or `remove` them. |
+| `default_max_results` | Rows a run returns when the caller does not say. `0` means all. |
+| `browser_type`, `proxy_config`, `profile_id`, `scrape_mode` | How it runs by default. See [Run settings](/guides/run-a-skill#run-settings). |
+| `data_retention_days` | How long run rows are kept, 1–90. |
+| `login_id` | The [saved login](/concepts/logins-and-browser-profiles#saved-logins) it signs in with. `null` or `""` removes it. Needs `logins:write`. |
+| `visibility`, `workspace_id` | `private` (only you) or `workspace` (shared with a team workspace; name it with `workspace_id` if you are in several). |
+
+**Inputs and output fields.** Renaming one renames it in the skill's steps too. Removing an input the steps still use returns `422` naming the step. A new input with `recorded_value` (the value the recording typed or opened) replaces that value on each run; without it the input is added but changes nothing yet. A change to the steps becomes a new [version](/concepts/keeping-skills-working#versions).
+
+To **add** output fields, use [Improve a skill](/api-reference/improvements/improve) with `mode: "add_fields"`: the skill has to learn where they are.
+
+**Who.** The owner or a workspace editor. `login_id` and `visibility` are owner only, and a login is only used on the owner's own runs. Needs `skills:write`.
+
+MCP tool: `update_skill`.

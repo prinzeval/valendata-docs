@@ -1,0 +1,12 @@
+---
+title: "Get your account"
+description: "Your credit balance, plan, auto-recharge, and workspaces."
+openapi: "GET /v1/account"
+---
+
+- `credits`: `balance` (exact to 0.01, as a decimal string), `balance_number`, the `topup_credits` and `referral_credits` within it, and `low` (true under `low_threshold`; runs stop at 0).
+- `plan`: `name`, `status`, `renews`, `period_ends_at`, and `monthly_allowance`.
+- `auto_recharge`: `enabled`, `threshold`, `amount`.
+- `workspaces`: each with `id`, `name`, your `role`, and `personal`.
+
+Needs `account:read`. MCP tool: `get_account`. What credits buy is on [Credits](/concepts/credits).
