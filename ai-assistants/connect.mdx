@@ -73,7 +73,7 @@ Menu names in these apps change from time to time. If a label does not match, lo
     - `https://api.valendata.com/.well-known/oauth-protected-resource` (RFC 9728)
     - `https://api.valendata.com/.well-known/oauth-authorization-server` (RFC 8414)
 
-    An unauthenticated request to the MCP endpoint returns `401` with a `WWW-Authenticate` header pointing to `https://api.valendata.com/.well-known/oauth-protected-resource/mcp`.
+    An unauthenticated request to the MCP endpoint returns `401` with a `WWW-Authenticate` header pointing to `https://api.valendata.com/.well-known/oauth-protected-resource/mcp`. When a token or key is sent but refused, the header also has `error="invalid_token"` and an `error_description` that says why: the token expired, was revoked, was issued for another server (wrong audience), or the API key is invalid. The JSON body has the same `error_description`. Sign in again, or use a working key.
   </Tab>
 </Tabs>
 

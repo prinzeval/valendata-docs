@@ -7,6 +7,14 @@ Tool names follow the API: `list_`, `get_`, `create_`, `update_`, `delete_`, plu
 
 For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For what each tool changes and costs, see [Limits and side effects](/ai-assistants/limits-and-side-effects).
 
+## Which tools the assistant sees
+
+The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 18 tools, plus one tool per skill and per workflow:
+
+`list_skills`, `get_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
+
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+
 ## Skills
 
 | Tool | Arguments | Scope | Same as |
@@ -30,12 +38,12 @@ Every skill you can run is its own tool, named `skill_` plus its slug. A skill w
 Each tool has:
 
 - **A description**: what the skill does, plus a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one).
-- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list) and `version`.
+- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `detail`, and `fields` (see [Run results](#run-results)).
 - **An output schema**: the row shape, so the assistant can rely on field names.
 
-Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
+Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill), with the wait described in [Run results](#run-results). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
 
-`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
+`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `detail`, `fields`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
 
 ## Runs
 
@@ -43,10 +51,61 @@ Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a
 | --- | --- | --- | --- |
 | `list_skill_runs` | `skill`, optional `status`, `since`, `limit`, `cursor` | `runs:read` | [List skill runs](/api-reference/runs/list-skill-runs) |
 | `list_workflow_runs` | `slug`, optional `status`, `source`, `since`, `until`, `limit`, `cursor` | `workflows:read` | [List workflow runs](/api-reference/runs/list-workflow-runs) |
-| `get_run` | `run_id` (skill or workflow run) | `runs:read` or `workflows:read` | [Get a run](/api-reference/runs/get) |
+| `get_run` | `run_id` (skill or workflow run), optional `offset`, `limit`, `fields`, `detail` | `runs:read` (skill run) or `workflows:read` (workflow run) | [Get a run](/api-reference/runs/get) |
 | `cancel_run` | `run_id` | `skills:invoke` or `workflows:invoke` | [Cancel a run](/api-reference/runs/cancel) |
 
-Older tools that still work: `get_run_status` (`run_id`, a workflow run) and `list_recent_runs` (optional `limit`, your latest workflow runs). New assistants should use `get_run` and `list_workflow_runs`.
+`get_run_status` and `list_recent_runs` are gone. Use `get_run` for any run, and `list_skill_runs` or `list_workflow_runs` to list them.
+
+## Run results
+
+### Waiting
+
+`skill_<slug>`, `run_skill`, `workflow_<slug>`, and `run_workflow` start the run, then wait up to **75 seconds** for it.
+
+- **Done in time**: the result is the finished run.
+- **Not done yet**: the result has `status: "running"` (or `queued` / `pending`), the `run_id`, and `next_step`: "Call get_run with this run_id in about 30 seconds; cancel_run stops it." The run keeps going and is billed as usual.
+- **A workflow that needs a person** stops waiting at once, with `status: "waiting_for_human"` and a `next_step` telling the user to answer it in the Valendata app.
+
+A client that sends a `progressToken` gets a progress notification about every 10 seconds while it waits. Clients that support the MCP Tasks extension get a task to poll instead of a wait.
+
+### Retry safely: `idempotency_key`
+
+All four run tools take an optional `idempotency_key` (1–255 characters). Calling again with the same key returns the run that key first started, in its current state, with `idempotent_replay: true`. It never starts a second paid run. A key already used for a different skill or workflow is refused with `conflict`. This is the API's `Idempotency-Key`; see [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+### What a skill run answers
+
+A skill run's answer (from a skill tool, `run_skill`, or `get_run`) holds only what the assistant needs to act on:
+
+| Field | What it is |
+| --- | --- |
+| `run_id` | The run's id. |
+| `skill` | The skill's slug. |
+| `status` | `queued`, `running`, `success`, `partial`, `failed`, or `cancelled`. See [Runs](/concepts/runs#status). |
+| `count` | Rows the run produced in all. |
+| `rows` | One page of those rows. |
+| `has_more`, `next_offset` | `has_more` is `true` when there are more rows; call `get_run` with `offset` set to `next_offset`. |
+| `error`, `error_code` | Why a failed run failed. `error_code` is `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap` (see [Errors](#errors)). |
+| `credits_charged` | What the run cost. |
+| `needs_user` | Set when the user must act (a login, a code, a human check): `kind`, `message`, `action_url`. |
+| `diagnosis_summary` | Why rows came back short, in one line. |
+| `next_step` | What to do next, in plain words. |
+
+It also has `suggested_hint_examples` (hints for `improve_skill`) when there are some, and `idempotent_replay: true` on a replay. `get_run` adds `kind` (`skill` or `workflow`). A workflow run answers its own fields (`outputs`, `steps`, and the rest; statuses `pending`, `running`, `waiting_for_human`, `completed`, `failed`, `cancelled`), with each final step's rows paged the same way and `has_more`, `next_offset`, and `next_step` added.
+
+### Less or more: `detail`, `fields`, `offset`, `limit`
+
+| Argument | On | What it does |
+| --- | --- | --- |
+| `detail` | skill tools, `run_skill`, `get_run` | `summary` (default): the fields above. `full`: everything a skill run recorded, as [Get a run](/api-reference/runs/get) returns it (timings, cost estimates, field checks). |
+| `fields` | skill tools, `run_skill`, `get_run` | Only these row columns, for example `["name", "phone"]`. An unknown name is refused with `invalid_arguments`, and `details.valid_fields` lists the valid ones. |
+| `offset` | `get_run` | First row to return. Default `0`. |
+| `limit` | `get_run` | Rows per page. Default `100`, max `500`. |
+
+A run tool answers the first 100 rows. For the rest, call `get_run` with `offset: next_offset`.
+
+### The run as a resource
+
+Every run is also a resource at `valendata://runs/{run_id}`, with optional `?offset=&limit=&fields=&detail=` (for example `valendata://runs/run_3f9a1c2b7d4e?offset=100&limit=100&fields=name,phone`). Reading it returns the same answer as `get_run`, with the same scope and owner checks. When a run has more rows than one answer holds, the tool result also carries a `resource_link` to the next page.
 
 ## Improvements
 
@@ -55,7 +114,7 @@ Older tools that still work: `get_run_status` (`run_id`, a workflow run) and `li
 | `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`), `feedback`, optional `fields`, `example_input`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
 | `get_skill_improvement` | `improvement_id` | `skills:invoke` | [Get an improvement](/api-reference/improvements/get) |
 
-When a skill run comes back short, its result has a `diagnosis` with hints the assistant can pass as `feedback`. See [Improve a skill](/guides/improve-a-skill).
+When a skill run comes back short, its answer has `diagnosis_summary` and `suggested_hint_examples` the assistant can pass as `feedback`. See [Improve a skill](/guides/improve-a-skill).
 
 ## Schedules
 
@@ -83,9 +142,9 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 
 ### One tool per workflow: `workflow_<slug>`
 
-Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow). Clients that support the MCP Tasks extension get a task they can poll instead of waiting.
+Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs plus optional `idempotency_key`, and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow), with the wait described in [Run results](#run-results).
 
-`run_workflow` (`slug` or id, optional `inputs`) runs any workflow you can run, the same way. Use it for a workflow made in this chat.
+`run_workflow` (`slug` or id, optional `inputs`, `idempotency_key`) runs any workflow you can run, the same way. Use it for a workflow made in this chat.
 
 Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows of its last finished run, at no cost. Needs `workflows:read`.
 
@@ -106,6 +165,47 @@ Your knowledge base holds facts the assistant can reuse across chats, such as yo
 | --- | --- | --- | --- |
 | `get_knowledge` | optional `tags` | `knowledge:read` | Reads facts, optionally filtered by tag. |
 | `save_knowledge` | `key`, `value` (a JSON object), optional `tags` | `knowledge:write` | Saves or updates one fact. |
+
+## Errors
+
+Every failed tool call answers the same shape, as structured content and as JSON text:
+
+```json
+{
+  "error": {
+    "code": "invalid_arguments",
+    "message": "Unknown field(s): email. Valid fields: name, phone, website.",
+    "retryable": false,
+    "retry_after_s": null,
+    "next_step": "Call get_run with run_id \"run_3f9a1c2b7d4e\" and fields from valid_fields.",
+    "details": {
+      "unknown_fields": ["email"],
+      "valid_fields": ["name", "phone", "website"],
+      "run_id": "run_3f9a1c2b7d4e"
+    }
+  }
+}
+```
+
+`details` is there only when there is more to say. `retryable` is `true` only for `capacity_full` and `internal`.
+
+| `code` | Meaning | What the assistant should do |
+| --- | --- | --- |
+| `invalid_arguments` | An argument is wrong: a bad type or value, an unknown input or column. `details` names each problem. Nothing started. | Fix the arguments and call again. |
+| `not_found` | No such skill, workflow, run, or schedule, or not one you can see. | Use `list_skills` or `list_workflows` to find the right one. |
+| `missing_scope` | The connection lacks a scope. `details.scope` names it. | Tell the user to reconnect and tick that scope (or use a key that has it). |
+| `key_not_allowed` | The API key is limited to other skills or workflows. | Tell the user; the key's limits are in **Settings → API Keys**. |
+| `forbidden` | Not allowed, and no scope fixes it (for example, only the owner can delete it). | Tell the user. Do not retry. |
+| `unauthenticated` | The call is not signed in. | Tell the user to reconnect Valendata. |
+| `insufficient_credits` | Not enough credits. Nothing ran and nothing was charged. | Tell the user to top up. |
+| `spend_cap` | The user reached their monthly spend cap in this workspace. | Tell the user; the workspace owner can raise it. |
+| `capacity_full` | Too many runs in progress. `retry_after_s` says how long to wait. | Wait `retry_after_s`, then call again with the same `idempotency_key`. |
+| `run_failed` | The run ran and failed. | Follow `next_step`: usually `improve_skill`, or run again if it failed on our side. |
+| `needs_user` | The user must act: a login, a code, or a human check. | Pass on the message and `action_url`, then run again. |
+| `conflict` | The `idempotency_key` was already used for a different run, or the request clashes with the current state. | Use a new `idempotency_key` for a new run. |
+| `internal` | Something failed on our side. The message has a reference. | Try again shortly; if it keeps failing, give the user the reference. |
+
+A run that started and then failed is not a tool error: its answer has `status: "failed"` and an `error_code` of `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap`, with the same meaning as above.
 
 ## Not available as tools
 

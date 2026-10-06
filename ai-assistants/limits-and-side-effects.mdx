@@ -7,9 +7,9 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 
 | Tool | Changes anything? | Uses credits? |
 | --- | --- | --- |
-| `list_*`, `get_*`, `get_run_status`, `list_recent_runs`, workflow resources | No. Read-only. | No |
-| `skill_<slug>`, `run_skill` | Adds a run. Visits websites in a browser. Can sign in with the skill's saved login if you granted `logins:use`. | Yes |
-| `workflow_<slug>`, `run_workflow` | Adds a workflow run. Runs the workflow's own steps, which can write rows to connected sheets or send HTTP requests. | Yes |
+| `list_*`, `get_*`, run and workflow resources | No. Read-only. | No |
+| `skill_<slug>`, `run_skill` | Adds a run (none if its `idempotency_key` already started one). Visits websites in a browser. Can sign in with the skill's saved login if you granted `logins:use`. | Yes |
+| `workflow_<slug>`, `run_workflow` | Adds a workflow run (none if its `idempotency_key` already started one). Runs the workflow's own steps, which can write rows to connected sheets or send HTTP requests. | Yes |
 | `cancel_run` | Stops a run you started, and what a workflow run is running inside. Rows already produced are kept. Credits already used stay charged. | No |
 | `create_skill` | Creates a skill in a cloud browser and adds it to your account as private. If its check run does not pass, it is kept as a draft to fix with `improve_skill`. | Yes |
 | `improve_skill` | Adds a new version. Old versions are kept. A version that does not test better is kept as a candidate, not made live. | Yes |
@@ -24,7 +24,9 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 
 No tool deletes saved logins, and no tool reads or saves a password. No tool deletes runs: deleting a skill or a workflow keeps its runs.
 
-If the account does not have enough credits, a run, `create_skill`, or `improve_skill` does not start, nothing is charged, and the tool says: "Not enough credits on this account to run this."
+If the account does not have enough credits, a run, `create_skill`, or `improve_skill` does not start, nothing is charged, and the tool answers the error `insufficient_credits` (or `spend_cap` when a workspace spend cap is reached). See [Errors](/ai-assistants/mcp-tools#errors).
+
+A run that is still going after the tool's 75-second wait keeps running and is billed as usual, even though the tool has answered. Stop it with `cancel_run`. See [Run results](/ai-assistants/mcp-tools#run-results).
 
 ## Runs in progress
 
@@ -35,9 +37,9 @@ Assistant calls are limited by how many runs can be in progress at once, per Val
 | Runs that need a cloud browser | 6 |
 | Runs a skill's fast path answers without a browser | 20 |
 
-There is also a shared limit across all accounts. When a limit is reached, the tool returns at once and says how many seconds to wait (about 30 for browser runs, 2 for fast runs). On clients that support MCP tasks, a skill run waits in a queue instead, for up to one hour. A run that never starts is not charged.
+There is also a shared limit across all accounts. When a limit is reached, the tool returns at once with the error `capacity_full` and `retry_after_s` (about 30 seconds for browser runs, 2 for fast runs). On clients that support MCP tasks, a skill run waits in a queue instead, for up to one hour. A run that never starts is not charged.
 
-The per-minute request limit for API keys is on [Errors and limits](/api-reference/errors#limits).
+The per-minute request limit for API keys is on [Errors and limits](/api-reference/errors#rate-limits).
 
 ## Human checks
 

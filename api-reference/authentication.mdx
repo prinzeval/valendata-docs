@@ -44,7 +44,7 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 | `knowledge:read` | Read your knowledge base (MCP only). | No | On the consent screen |
 | `knowledge:write` | Save facts to your knowledge base (MCP only). | No | On the consent screen |
 
-The `/v1` routes that change, delete, or schedule a skill take API keys; an AI assistant reaches them through the MCP tools, with `skills:write`.
+The `/v1` routes that change, delete, or schedule a skill take API keys; an AI assistant reaches them through the MCP tools, with `skills:write`. An assistant only sees the MCP tools its scopes allow; see [Which tools the assistant sees](/ai-assistants/mcp-tools#which-tools-the-assistant-sees).
 
 A new key gets `skills:read`, `skills:invoke`, and `runs:read` unless you pick others. A key made before scopes existed has every scope. A key can also be limited to some skills or workflows. See [API keys](/account/api-keys#limit-a-key-to-some-skills-or-workflows).
 

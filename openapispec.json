@@ -3600,7 +3600,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "x-mcp-tool": "get_run_status",
+        "x-mcp-tool": "get_run",
         "deprecated": true
       }
     },
