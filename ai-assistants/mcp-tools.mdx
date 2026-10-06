@@ -21,7 +21,7 @@ For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For
 
 Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
 
-`create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. See [Create a skill](/guides/create-a-skill#from-a-sentence).
+`create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
 
 ### One tool per skill: `skill_<slug>`
 
@@ -35,7 +35,7 @@ Each tool has:
 
 Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
 
-`invoke_skill` (`skill_id`, optional `params`, `max_results`) runs a skill by id. Prefer the `skill_<slug>` tools: they carry typed schemas.
+`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
 
 ## Runs
 
@@ -85,7 +85,7 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 
 Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow). Clients that support the MCP Tasks extension get a task they can poll instead of waiting.
 
-`invoke_workflow` (`workflow_id`, optional `inputs`) starts a workflow by id and returns a `run_id`. Prefer the `workflow_<slug>` tools.
+`run_workflow` (`slug` or id, optional `inputs`) runs any workflow you can run, the same way. Use it for a workflow made in this chat.
 
 Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows of its last finished run, at no cost. Needs `workflows:read`.
 

@@ -1768,7 +1768,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "x-mcp-tool": "invoke_skill"
+        "x-mcp-tool": "run_skill"
       }
     },
     "/v1/skills/{slug}": {
@@ -4281,7 +4281,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "x-mcp-tool": "invoke_workflow"
+        "x-mcp-tool": "run_workflow"
       },
       "get": {
         "tags": [
