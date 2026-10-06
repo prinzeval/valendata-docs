@@ -30,7 +30,7 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 | Scope | What it allows | Spends credits? | AI assistants (OAuth) |
 | --- | --- | --- | --- |
 | `skills:read` | List skills, read a skill, its health, versions, and schedule. | No | On the consent screen |
-| `skills:invoke` | Run a skill, and stop your skill runs. For an AI assistant (OAuth) it also allows creating and improving skills (`create_skill`, `get_skill_creation`, `improve_skill`, `get_skill_improvement`). | Yes | On the consent screen |
+| `skills:invoke` | Run a skill, and stop your skill runs. For an AI assistant (OAuth) it also allows creating and improving skills (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`). | Yes | On the consent screen |
 | `skills:write` | Create, update, delete, and improve skills. Restore and pin versions. Schedule skills. | Yes | Opt-in: "Create, edit and delete your skills" under **Optional extra access**. Editing, deleting, and scheduling skills need it. |
 | `runs:read` | Read and list skill runs. | No | Comes with `skills:read` |
 | `workflows:read` | List workflows, read a workflow, its runs, and its schedule. | No | On the consent screen |

@@ -14,7 +14,7 @@ Every list takes the same two query parameters and answers in the same shape:
 
 | Field | What it is |
 | --- | --- |
-| The items | Under the resource's own key: `skills`, `workflows`, `runs`, `schedules`, `logins`, `versions`, or `improvements`. |
+| The items | Under the resource's own key: `skills`, `workflows`, `runs`, `schedules`, `logins`, `versions`, `improvements`, or `skill_creations`. |
 | `next_cursor` | Pass it back as `cursor` for the next page. `null` on the last page. |
 | `has_more` | `true` when there is a next page (the same as `next_cursor` not being `null`). |
 
@@ -27,6 +27,7 @@ Lists are newest first.
 | [`GET /v1/workflows`](/api-reference/workflows/list) | 25 | `q` |
 | [`GET /v1/workflows/{slug}/runs`](/api-reference/runs/list-workflow-runs) | 25 | `status`, `source`, `since`, `until` |
 | [`GET /v1/skills/{slug}/improvements`](/api-reference/improvements/list) | 5 | |
+| [`GET /v1/skill-creations`](/api-reference/skills/list-creations) | 20 | `status` (a comma list, or `active`) |
 | [`GET /v1/schedules`](/api-reference/schedules/list), [`GET /v1/logins`](/api-reference/logins/list), [`GET /v1/skills/{slug}/versions`](/api-reference/versions/list), and a skill's or workflow's schedules | 100 | `kind` (schedules) |
 
 ```bash

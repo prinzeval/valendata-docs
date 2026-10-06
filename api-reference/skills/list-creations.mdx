@@ -1,0 +1,16 @@
+---
+title: "List skill creations"
+description: "Your own skill creations, newest first. Filter to the ones still running."
+openapi: "GET /v1/skill-creations"
+---
+
+Items are under `skill_creations`, newest first. `status` takes a comma list (such as `needs_fix,failed`) or `active` (queued, recording, validating). Each item has the same fields as [Get a skill creation](/api-reference/skills/get-creation), except that `sample_rows` is `null`. Read one creation to get its sample rows.
+
+Page with `limit` and `cursor`; see [Pagination](/api-reference/pagination-and-idempotency#pagination).
+
+```bash
+curl "https://api.valendata.com/v1/skill-creations?status=active" \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+MCP tool: `list_skill_creations`.

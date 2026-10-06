@@ -1161,6 +1161,121 @@
         }
       }
     },
+    "/v1/skill-creations": {
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "List skill creations",
+        "operationId": "list_skill_creations",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated statuses, e.g. needs_fix,failed; active = queued, recording and validating.",
+              "title": "Status"
+            },
+            "description": "Comma-separated statuses, e.g. needs_fix,failed; active = queued, recording and validating.",
+            "example": "active"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of your skill creations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillCreationPage"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Your skill creations, newest first, each as `GET /v1/skill-creations/{creation_id}` answers it (without `sample_rows`). Filter with `status` — a comma list, or `active` for every creation still in progress (`queued`, `recording`, `validating`) — and page with `limit` (1–100, default 20) and `cursor`. Only your own creations are listed."
+      }
+    },
     "/v1/skill-creations/{creation_id}": {
       "get": {
         "tags": [
@@ -1229,7 +1344,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), or `failed` (`error` says why). Only the account that started it can read it."
+        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) or `failed` (nothing was saved; `error` says why). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
       }
     },
     "/v1/skill-improvements/{improvement_id}": {
@@ -5507,6 +5622,12 @@
             "title": "Quality Flags",
             "description": "Single-run row checks that fired: repeated rows, pages repeating earlier pages, placeholder values."
           },
+          "no_real_rows": {
+            "type": "boolean",
+            "title": "No Real Rows",
+            "description": "Rows came back but every field was empty on every one — the run never reached the results.",
+            "default": false
+          },
           "error": {
             "anyOf": [
               {
@@ -8151,6 +8272,42 @@
         "title": "SkillApiInfo",
         "description": "Everything PublishedSkillPublic has, plus what an integrator needs to call it."
       },
+      "SkillCreationPage": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "skill_creations": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCreationStatus"
+            },
+            "type": "array",
+            "title": "Skill Creations"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_creations",
+          "has_more"
+        ],
+        "title": "SkillCreationPage",
+        "description": "GET /v1/skill-creations: the caller's creations, newest first."
+      },
       "SkillCreationStatus": {
         "properties": {
           "creation_id": {
@@ -8159,11 +8316,46 @@
           },
           "status": {
             "type": "string",
-            "title": "Status"
+            "title": "Status",
+            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why)."
           },
           "status_url": {
             "type": "string",
             "title": "Status Url"
+          },
+          "task": {
+            "type": "string",
+            "title": "Task",
+            "description": "What the skill was asked to do."
+          },
+          "start_url": {
+            "type": "string",
+            "title": "Start Url",
+            "description": "The page the recording started on."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "The skill name used (derived from the task when none was given)."
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress",
+            "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
           },
           "skill_id": {
             "anyOf": [
@@ -8259,9 +8451,50 @@
             "title": "Output Fields"
           },
           "credits_charged": {
-            "type": "integer",
+            "type": "number",
             "title": "Credits Charged",
+            "description": "Credits spent on this creation so far, exact to 0.01.",
             "default": 0
+          },
+          "sample_rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Rows",
+            "description": "Up to 3 rows the recording got, once status is needs_fix or ready. Always null in GET /v1/skill-creations list items — read one creation for them."
+          },
+          "sample_row_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Row Count",
+            "description": "How many rows the recording got (needs_fix or ready; null in list items)."
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Step",
+            "description": "What to do now, in one sentence; null while in progress."
           },
           "created_at": {
             "anyOf": [
@@ -8297,7 +8530,9 @@
         "required": [
           "creation_id",
           "status",
-          "status_url"
+          "status_url",
+          "task",
+          "start_url"
         ],
         "title": "SkillCreationStatus",
         "description": "Where a creation is. ``skill_id``/``slug`` are set once the recording is saved;\n``status`` is ready only after the published skill passed its validation replay."

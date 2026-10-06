@@ -11,7 +11,7 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `skill_<slug>`, `invoke_skill` | Adds a run. Visits websites in a browser. Can sign in with the skill's saved login if you granted `logins:use`. | Yes |
 | `workflow_<slug>`, `invoke_workflow` | Adds a workflow run. Runs the workflow's own steps, which can write rows to connected sheets or send HTTP requests. | Yes |
 | `cancel_run` | Stops a run you started, and what a workflow run is running inside. Rows already produced are kept. Credits already used stay charged. | No |
-| `create_skill` | Creates a skill in a cloud browser and adds it to your account as private. | Yes |
+| `create_skill` | Creates a skill in a cloud browser and adds it to your account as private. If its check run does not pass, it is kept as a draft to fix with `improve_skill`. | Yes |
 | `improve_skill` | Adds a new version. Old versions are kept. A version that does not test better is kept as a candidate, not made live. | Yes |
 | `update_skill` | Changes the skill's settings, inputs, or output fields. A change to its steps becomes a new version; old versions stay restorable. | No |
 | `update_workflow` | Changes the workflow. The state before is kept as a version you can restore in the app. | No |

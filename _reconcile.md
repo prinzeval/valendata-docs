@@ -9,6 +9,7 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/skills/list.mdx | GET /v1/skills (q, status, limit 1–100 default 50, cursor → `skills`, `next_cursor`) | published_skills/manage/router.py |
 | api-reference/skills/create.mdx | POST /v1/skills | skill_creation/router.py |
 | api-reference/skills/get-creation.mdx | GET /v1/skill-creations/{creation_id} | skill_creation/router.py |
+| api-reference/skills/list-creations.mdx | GET /v1/skill-creations (status comma list or `active`, limit 20 max 100, cursor → `data`, `next_cursor`, `has_more`). Manual `api:` page until the spec has the route; then switch to `openapi:` | skill_creation/router.py |
 | api-reference/skills/get.mdx | GET /v1/skills/{slug} | execute_router.py |
 | api-reference/skills/update.mdx | PATCH /v1/skills/{slug} (SkillPatch → SkillEditResult: GET shape + changes, warnings, login) | manage/schemas.py, edit.py |
 | api-reference/skills/delete.mdx | DELETE /v1/skills/{slug}?force (409 lists workflows; runs kept) | manage/delete.py |

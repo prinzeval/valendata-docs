@@ -15,10 +15,13 @@ For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
 | `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
 | `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
+| `list_skill_creations` | optional `status`, `limit`, `cursor` | `skills:invoke` | [List skill creations](/api-reference/skills/list-creations) |
 | `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
 | `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
 
-Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `improve_skill`, `get_skill_improvement`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
+Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
+
+`create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. See [Create a skill](/guides/create-a-skill#from-a-sentence).
 
 ### One tool per skill: `skill_<slug>`
 

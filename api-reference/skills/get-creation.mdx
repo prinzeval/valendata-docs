@@ -1,9 +1,13 @@
 ---
 title: "Get a skill creation"
-description: "Check a skill creation until it is ready to run or has failed."
+description: "Check a skill creation until it is ready to run, needs a fix, or has failed."
 openapi: "GET /v1/skill-creations/{creation_id}"
 ---
 
-`status` moves through `queued`, `recording`, `validating`, then `ready` or `failed`. `slug` is set from `validating` on. A failed creation has `error` and a `diagnosis`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
+`status` moves through `queued`, `recording`, `validating`, then `ready`, `needs_fix`, or `failed`. Check about every 30 seconds and show `progress` while it runs. When it stops, `next_step` says what to do.
+
+`needs_fix` means the skill was saved as a draft but its check run did not pass: fix it with [Improve a skill](/api-reference/improvements/improve), do not create it again. `failed` means nothing was saved.
+
+Every status, every field, and an example `needs_fix` response are in [Create a skill](/guides/create-a-skill#from-a-sentence).
 
 MCP tool: `get_skill_creation`.

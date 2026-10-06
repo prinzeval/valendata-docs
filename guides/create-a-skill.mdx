@@ -55,16 +55,17 @@ creation = requests.post(
     },
 ).json()
 
-while creation["status"] not in ("ready", "failed"):
-    time.sleep(5)
+while creation["status"] not in ("ready", "needs_fix", "failed"):
+    time.sleep(30)
     creation = requests.get(f"{API}{creation['status_url']}", headers=HEADERS).json()
+    print(creation.get("progress"))
 
-print(creation["status"], creation["slug"], creation.get("error"))
+print(creation["status"], creation.get("slug"), creation.get("next_step"))
 ```
 
 </CodeGroup>
 
-The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{creation_id}`](/api-reference/skills/get-creation) every few seconds until it is done:
+The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{creation_id}`](/api-reference/skills/get-creation) about every 30 seconds. Stop when `status` is `ready`, `needs_fix`, or `failed`.
 
 | `status` | Meaning |
 | --- | --- |
@@ -72,7 +73,44 @@ The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{c
 | `recording` | The cloud browser is doing the task. |
 | `validating` | Saved as a skill (`slug` is set). Valendata runs it once more to check it. |
 | `ready` | Passed the check. You can run it. |
-| `failed` | Did not work. `error` says why and `diagnosis` suggests what to try. |
+| `needs_fix` | Saved as a **draft** skill (`slug` is set), but the check run did not pass. Fix it with [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve) (MCP: `improve_skill`). Do not create it again. |
+| `failed` | Did not work and nothing was saved. `error` says why and `diagnosis` suggests what to try. |
+
+Each check also tells you:
+
+| Field | What it is |
+| --- | --- |
+| `task`, `start_url`, `name` | What you asked for. |
+| `progress` | The latest step in plain words, such as `Step 4: typing 'trouser' into the search box`. Show it to whoever is waiting. |
+| `next_step` | One sentence that says what to do next. |
+| `sample_rows` | Up to 3 rows from the recording, set for `needs_fix` and `ready`. `sample_row_count` is how many rows the recording got. |
+| `credits_charged` | Credits used so far, to 0.01. |
+
+A creation that needs a fix looks like this:
+
+```json
+{
+  "creation_id": "sc_3f9a1c2b7d4e5f60",
+  "status": "needs_fix",
+  "status_url": "/v1/skill-creations/sc_3f9a1c2b7d4e5f60",
+  "task": "Search for dentists in Austin and list them",
+  "start_url": "https://www.google.com/maps",
+  "name": "Austin dentists",
+  "slug": "austin-dentists",
+  "progress": "Check run finished: 0 of 3 fields came back",
+  "next_step": "The skill was saved as a draft but its check run came back empty. Fix it with POST /v1/skills/austin-dentists/improve; do not create it again.",
+  "sample_rows": [
+    {"name": "Lone Star Dental", "rating": "4.8", "phone": "(512) 555-0142"},
+    {"name": "Barton Creek Smiles", "rating": "4.6", "phone": "(512) 555-0198"},
+    {"name": "Austin Family Dentistry", "rating": "4.9", "phone": "(512) 555-0117"}
+  ],
+  "sample_row_count": 20,
+  "credits_charged": 14.35,
+  "error": null
+}
+```
+
+To see all your creations, newest first, use [List skill creations](/api-reference/skills/list-creations). Pass `status=active` for the ones still going.
 
 **Limits:** 2 creations in progress at once, at least 10 credits to start, and 30 minutes per creation. A cloud browser starting fresh cannot sign in, so record tasks that need your sign-in instead.
 
