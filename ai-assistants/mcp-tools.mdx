@@ -3,17 +3,17 @@ title: "MCP tools"
 description: "Every tool the Valendata MCP server gives your AI assistant, what it does, the scope it needs, and the API call it matches."
 ---
 
-Tool names follow the API: `list_`, `get_`, `create_`, `update_`, `delete_`, plus one tool per skill (`skill_<slug>`) and per workflow (`workflow_<slug>`). Each tool does the same thing as the API call in its last column, so the API page has the full fields.
+Tool names follow the API: `list_`, `get_`, `search_`, `create_`, `update_`, `delete_`, plus one tool per skill (`skill_<slug>`) and per workflow (`workflow_<slug>`). Each tool does the same thing as the API call in its last column, so the API page has the full fields.
 
 For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For what each tool changes and costs, see [Limits and side effects](/ai-assistants/limits-and-side-effects).
 
 ## Which tools the assistant sees
 
-The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 18 tools, plus one tool per skill and per workflow:
+The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 22 tools, plus one tool per skill and per workflow:
 
-`list_skills`, `get_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
+`search_skills`, `search_workflows`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
@@ -21,6 +21,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 | --- | --- | --- | --- |
 | `list_skills` | optional `q`, `status`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
+| `clone_skill` | `slug` | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
 | `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
 | `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
 | `list_skill_creations` | optional `status`, `limit`, `cursor` | `skills:invoke` | [List skill creations](/api-reference/skills/list-creations) |
@@ -33,17 +34,41 @@ Over OAuth, `skills:invoke` lets an assistant run skills and also create and imp
 
 ### One tool per skill: `skill_<slug>`
 
-Every skill you can run is its own tool, named `skill_` plus its slug. A skill with the slug `austin-dentists` becomes `skill_austin-dentists`. The list holds skills you own and skills shared into your workspaces. Marketplace skills appear once you clone them.
+Every skill you can run is its own tool, named `skill_` plus its slug. A skill with the slug `austin-dentists` becomes `skill_austin-dentists`. The list holds skills you own and skills shared into your workspaces. A marketplace skill appears here once you clone it.
 
 Each tool has:
 
-- **A description**: what the skill does, plus a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one).
-- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `detail`, and `fields` (see [Run results](#run-results)).
+- **A description**: what the skill does, a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one), and what a run usually costs, for example "About 6 credits (\$0.06) per run." See [Price](/api-reference/skills/get#price).
+- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `max_age`, `detail`, and `fields` (see [Run results](#run-results)).
 - **An output schema**: the row shape, so the assistant can rely on field names.
 
 Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill), with the wait described in [Run results](#run-results). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
 
-`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `detail`, `fields`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
+`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `max_age`, `detail`, `fields`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
+
+`run_skill` does not run a public marketplace skill you have not cloned. It answers `not_found` with `'<slug>' is a public marketplace skill you have not cloned. Clone it first with clone_skill(slug="<slug>"), then run the copy's slug.` and `next_step` set to `clone_skill(slug="<slug>")`.
+
+## Marketplace
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `search_skills` | `query` (the task, in plain words), optional `site`, `limit` | None. With `skills:read` it also searches your own skills and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search) |
+| `search_workflows` | `query` (the task, in plain words), optional `limit` | None. With `workflows:read` it also searches your own workflows and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search#workflows) with `kind=workflow` |
+
+Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", what percent of its last 20 runs worked, and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(slug=...)`, and how to clone the others, `clone_skill(slug=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
+
+An assistant can read everything public about a marketplace skill: its inputs, sample rows, price, and health. It runs only its own skills and its workspaces'. To use a marketplace skill:
+
+1. Find it with `search_skills`. Read its inputs, `sample_rows`, and price, or call `get_skill` for the full contract.
+2. Copy it with `clone_skill`. Cloning is free. The answer says `Cloned <slug> as <new slug>. Run it with run_skill(slug="<new slug>").`
+3. Run the copy with `run_skill` and its new slug.
+
+`search_workflows` does the same for workflows. Its text lists one workflow per line: the slug, name, "About N credits (\$X) per run", how many runs it has had so far, and its inputs. One that is not yours ends with "Not yours: clone it first." The text ends with what to do next. To use a marketplace workflow:
+
+1. Find it with `search_workflows`.
+2. Read it with `get_workflow`. A public workflow shows its steps in plain words, its sample rows, what it needs, and its price. See [Get a workflow](/api-reference/workflows/get#a-public-workflow).
+3. Copy it with `clone_workflow`. Cloning is free.
+4. Run the copy with `run_workflow` and its new slug.
 
 ## Runs
 
@@ -71,6 +96,10 @@ A client that sends a `progressToken` gets a progress notification about every 1
 ### Retry safely: `idempotency_key`
 
 All four run tools take an optional `idempotency_key` (1–255 characters). Calling again with the same key returns the run that key first started, in its current state, with `idempotent_replay: true`. It never starts a second paid run. A key already used for a different skill or workflow is refused with `conflict`. This is the API's `Idempotency-Key`; see [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+### Reuse a recent answer: `max_age`
+
+Skill tools and `run_skill` take an optional `max_age` (seconds, 0–86400). When you ran the same skill with the same inputs within that time, the run is answered at once from that run's rows, for a share of the price. Leave it out to always run. See [Cached answers](/api-reference/runs/run-skill#cached-answers).
 
 ### What a skill run answers
 
@@ -133,7 +162,8 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_workflows` | optional `q`, `limit`, `cursor` | `workflows:read` | [List workflows](/api-reference/workflows/list) |
-| `get_workflow` | `slug`, optional `include_graph` (default `true`) | `workflows:read` | [Get a workflow](/api-reference/workflows/get) |
+| `get_workflow` | `slug`, optional `include_graph` (default `true`). A public workflow that is not yours never includes its steps. | `workflows:read` | [Get a workflow](/api-reference/workflows/get) |
+| `clone_workflow` | `slug` | `workflows:invoke` or `workflows:write` | [Clone a workflow](/api-reference/workflows/clone) |
 | `create_workflow` | `name`, optional `description`, `inputs`, `steps`, `connections`, `workspace_id` | `workflows:write` | [Create a workflow](/api-reference/workflows/create) |
 | `update_workflow` | `slug`, optional `name`, `description`, `inputs`, `steps`, `connections` | `workflows:write` | [Update a workflow](/api-reference/workflows/update) |
 | `delete_workflow` | `slug` | `workflows:write` | [Delete a workflow](/api-reference/workflows/delete) |
@@ -144,7 +174,7 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 
 Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs plus optional `idempotency_key`, and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow), with the wait described in [Run results](#run-results).
 
-`run_workflow` (`slug` or id, optional `inputs`, `idempotency_key`) runs any workflow you can run, the same way. Use it for a workflow made in this chat.
+`run_workflow` (`slug` or id, optional `inputs`, `idempotency_key`) runs any workflow you can run, the same way. Use it for a workflow made or cloned in this chat. A public marketplace workflow runs only once you copy it with `clone_workflow`; its answer says `Cloned <slug> as <new slug>. Run it with run_workflow(slug="<new slug>").`
 
 Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows of its last finished run, at no cost. Needs `workflows:read`.
 
@@ -197,15 +227,15 @@ Every failed tool call answers the same shape, as structured content and as JSON
 | `key_not_allowed` | The API key is limited to other skills or workflows. | Tell the user; the key's limits are in **Settings → API Keys**. |
 | `forbidden` | Not allowed, and no scope fixes it (for example, only the owner can delete it). | Tell the user. Do not retry. |
 | `unauthenticated` | The call is not signed in. | Tell the user to reconnect Valendata. |
-| `insufficient_credits` | Not enough credits. Nothing ran and nothing was charged. | Tell the user to top up. |
-| `spend_cap` | The user reached their monthly spend cap in this workspace. | Tell the user; the workspace owner can raise it. |
+| `insufficient_credits` | Not enough credits to start. Nothing ran and nothing was charged. `details` has `current_balance` and `required`. | Tell the user to top up. Do not retry until they have. |
+| `spend_cap` | The user reached their monthly spend cap in this workspace. Nothing ran. `details` has `cap` and `spent`. | Tell the user; the workspace owner can raise it. |
 | `capacity_full` | Too many runs in progress. `retry_after_s` says how long to wait. | Wait `retry_after_s`, then call again with the same `idempotency_key`. |
 | `run_failed` | The run ran and failed. | Follow `next_step`: usually `improve_skill`, or run again if it failed on our side. |
 | `needs_user` | The user must act: a login, a code, or a human check. | Pass on the message and `action_url`, then run again. |
 | `conflict` | The `idempotency_key` was already used for a different run, or the request clashes with the current state. | Use a new `idempotency_key` for a new run. |
 | `internal` | Something failed on our side. The message has a reference. | Try again shortly; if it keeps failing, give the user the reference. |
 
-A run that started and then failed is not a tool error: its answer has `status: "failed"` and an `error_code` of `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap`, with the same meaning as above.
+A run that started and then failed is not a tool error: its answer has `status: "failed"` and an `error_code` of `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap`, with the same meaning as above. A run is checked for credits before it starts, so `insufficient_credits` or `spend_cap` here means the balance ran out after it started.
 
 ## Not available as tools
 

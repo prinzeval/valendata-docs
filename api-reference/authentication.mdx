@@ -21,7 +21,7 @@ The examples in these docs read the key from the `VALENDATA_API_KEY` environment
 export VALENDATA_API_KEY="vd_sk_YOUR_API_KEY"
 ```
 
-Reading a public skill (`GET /v1/skills/{slug}` and its health) needs no key.
+Reading a public skill (`GET /v1/skills/{slug}` and its health) and [searching the marketplace](/api-reference/marketplace/search) need no key.
 
 ## Scopes
 
@@ -29,11 +29,11 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 
 | Scope | What it allows | Spends credits? | AI assistants (OAuth) |
 | --- | --- | --- | --- |
-| `skills:read` | List skills, read a skill, its health, versions, and schedule. | No | On the consent screen |
+| `skills:read` | List skills, read a skill, its health, versions, and schedule. Adds your own skills to a marketplace search. | No | On the consent screen |
 | `skills:invoke` | Run a skill, and stop your skill runs. For an AI assistant (OAuth) it also allows creating and improving skills (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`). | Yes | On the consent screen |
 | `skills:write` | Create, update, delete, and improve skills. Restore and pin versions. Schedule skills. | Yes | Opt-in: "Create, edit and delete your skills" under **Optional extra access**. Editing, deleting, and scheduling skills need it. |
 | `runs:read` | Read and list skill runs. | No | Comes with `skills:read` |
-| `workflows:read` | List workflows, read a workflow, its runs, and its schedule. | No | On the consent screen |
+| `workflows:read` | List workflows, read a workflow, its runs, and its schedule. Adds your own workflows to a marketplace search. | No | On the consent screen |
 | `workflows:invoke` | Run a workflow, stop your workflow runs, and switch a workflow schedule on. | Yes | On the consent screen |
 | `workflows:write` | Create, update, and delete workflows and their schedules. | No | Opt-in: "Create, edit and delete your workflows and schedules" under **Optional extra access** |
 | `account:read` | Read your credit balance, plan, and usage. | No | Opt-in: "See your credits balance and usage" under **Optional extra access** |

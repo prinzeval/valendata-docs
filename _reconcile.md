@@ -10,10 +10,11 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/skills/create.mdx | POST /v1/skills | skill_creation/router.py |
 | api-reference/skills/get-creation.mdx | GET /v1/skill-creations/{creation_id} | skill_creation/router.py |
 | api-reference/skills/list-creations.mdx | GET /v1/skill-creations (status comma list or `active`, limit 20 max 100, cursor → `data`, `next_cursor`, `has_more`). Manual `api:` page until the spec has the route; then switch to `openapi:` | skill_creation/router.py |
-| api-reference/skills/get.mdx | GET /v1/skills/{slug} | execute_router.py |
+| api-reference/skills/get.mdx | GET /v1/skills/{slug} (+ `price`) | execute_router.py, published_skills/price/* |
 | api-reference/skills/update.mdx | PATCH /v1/skills/{slug} (SkillPatch → SkillEditResult: GET shape + changes, warnings, login) | manage/schemas.py, edit.py |
 | api-reference/skills/delete.mdx | DELETE /v1/skills/{slug}?force (409 lists workflows; runs kept) | manage/delete.py |
 | api-reference/skills/health.mdx | GET /v1/skills/{slug}/health | execute_router.py |
+| api-reference/marketplace/search.mdx | GET /v1/marketplace/search (q 2–300, site, category, limit 1–50 default 10, kind skill/workflow; public, `skills:read` / `workflows:read` adds yours) | published_skills/search/*, price/*, workflows/marketplace_public.py |
 | api-reference/runs/run-skill.mdx | POST /v1/skills/{slug}/run | execute_router.py |
 | api-reference/runs/start-skill-run.mdx | POST /v1/skills/{slug}/runs | async_runs/router.py |
 | api-reference/runs/list-skill-runs.mdx | GET /v1/skills/{slug}/runs (status, since, limit 50, cursor) | manage/runs.py |
@@ -35,7 +36,7 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/schedules/delete.mdx | DELETE /v1/schedules/{schedule_id} | api/v1_schedules.py |
 | api-reference/workflows/list.mdx | GET /v1/workflows (q, limit 25, cursor) | workflows/api/manage_router.py |
 | api-reference/workflows/create.mdx | POST /v1/workflows | workflows/api/manage_schemas.py |
-| api-reference/workflows/get.mdx | GET /v1/workflows/{slug} (?include_graph) | workflows/api/router.py |
+| api-reference/workflows/get.mdx | GET /v1/workflows/{slug} (?include_graph; + `price`, `yours`; public: `public_view`, `clone_url`, no graph) | workflows/api/router.py, workflows/api/public_info.py |
 | api-reference/workflows/update.mdx | PATCH /v1/workflows/{slug} | workflows/api/manage.py |
 | api-reference/workflows/delete.mdx | DELETE /v1/workflows/{slug} (runs deleted with it) | workflows/api/manage.py |
 | api-reference/logins/*.mdx | /v1/logins, /v1/logins/{login_id} | logins/router.py |

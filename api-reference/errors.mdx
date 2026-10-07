@@ -10,8 +10,8 @@ description: "Status codes, error bodies, request ids, rate limits, and how many
 | `200` / `201` / `202` / `204` | It worked. `202` means it started and you read the result later. | |
 | `400` | The body is not valid JSON, or a `cursor` or `Idempotency-Key` is not valid. | Fix the request. |
 | `401` | The key is missing, malformed, revoked, or expired. | See [Authentication](/api-reference/authentication). |
-| `402` | Not enough credits to start. `detail` has `current_balance` and `required`. | Top up, then retry. |
-| `403` | The key lacks a scope, or you may not do this to a skill or workflow you can see (for example, only the owner can restore or pin). | Check the scope and the owner. |
+| `402` | Not enough credits to start (`detail` has `current_balance` and `required`), or your workspace spend cap is reached (`detail` has `cap` and `spent`). Every run endpoint checks this before anything starts, background runs included. | Top up or ask the owner to raise the cap, then retry. |
+| `403` | The key lacks a scope, you may not do this to a skill or workflow you can see (for example, only the owner can restore or pin), or you tried to run a public marketplace skill you have not cloned (`clone_required`). | Check the scope and the owner. For `clone_required`, clone the skill and run your copy. |
 | `404` | It does not exist, or it is not yours to see. A private skill, workflow, or run of someone else's is a `404`, never a `403`, so nobody learns it exists. | Check the slug or id. |
 | `405` | The route exists but not with this method. The `Allow` header lists the methods it takes. | Use one of those. |
 | `409` | A conflict: the skill is already being improved, it already has a schedule, a workflow still uses the skill you are deleting, the run is not waiting for a code, or a request with the same `Idempotency-Key` is still running. | `detail` says which. |
@@ -42,6 +42,37 @@ Every error, from every route, has the same shape:
 | `request_id` | Also in the `X-Request-ID` header. Quote it when you contact support. |
 | `param` | On validation errors only: the field at fault, as a dotted path such as `inputs.city`. |
 | `errors` | On a `422` from request validation only: every problem, one object each. |
+
+A `402` from a run endpoint says why the run did not start. `detail.error` is `insufficient_credits` in both cases; a spend cap has `cap` and `spent` instead of `current_balance` and `required`:
+
+```json
+{
+  "detail": {
+    "error": "insufficient_credits",
+    "message": "Not enough credits on this account to run this.",
+    "current_balance": 0.4,
+    "required": 2
+  },
+  "code": "payment_required",
+  "type": "billing_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+A `403` because you ran a public marketplace skill you have not cloned runs nothing. `detail.clone_url` is the route to [clone it](/api-reference/skills/clone); then run your copy's slug:
+
+```json
+{
+  "detail": {
+    "error": "clone_required",
+    "message": "'austin-dentists' is a public marketplace skill you have not cloned. Clone it first, then run your copy.",
+    "clone_url": "/v1/skills/austin-dentists/clone"
+  },
+  "code": "permission_denied",
+  "type": "permission_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
 
 A `422` for a field that does not validate:
 

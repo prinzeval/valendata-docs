@@ -30,12 +30,13 @@ Skills and workflows are named by their **slug**. Runs and schedules by their id
 
 | Resource | Routes |
 | --- | --- |
-| [Skills](/api-reference/skills/list) | `/v1/skills`, `/v1/skills/{slug}`, `/v1/skills/{slug}/health`, `/v1/skill-creations`, `/v1/skill-creations/{creation_id}` |
+| [Skills](/api-reference/skills/list) | `/v1/skills`, `/v1/skills/{slug}`, `/v1/skills/{slug}/clone`, `/v1/skills/{slug}/health`, `/v1/skill-creations`, `/v1/skill-creations/{creation_id}` |
+| [Marketplace](/api-reference/marketplace/search) | `/v1/marketplace/search` |
 | [Runs](/api-reference/runs/get) | `/v1/skills/{slug}/run` (wait), `/v1/skills/{slug}/runs` (background, and list), the same under `/v1/workflows/{slug}`, and `/v1/runs/{run_id}` for any run |
 | [Skill versions](/api-reference/versions/list) | `/v1/skills/{slug}/versions`, `/v1/skills/{slug}/pin` |
 | [Improvements](/api-reference/improvements/improve) | `/v1/skills/{slug}/improve`, `/v1/skills/{slug}/improvements`, `/v1/skill-improvements/{improvement_id}` |
 | [Schedules](/api-reference/schedules/list) | `/v1/schedules`, `/v1/schedules/{schedule_id}`, `/v1/skills/{slug}/schedules`, `/v1/workflows/{slug}/schedules` |
-| [Workflows](/api-reference/workflows/list) | `/v1/workflows`, `/v1/workflows/{slug}` |
+| [Workflows](/api-reference/workflows/list) | `/v1/workflows`, `/v1/workflows/{slug}`, `/v1/workflows/{slug}/clone` |
 | [Logins](/api-reference/logins/list) | `/v1/logins`, `/v1/logins/{login_id}` |
 | [Account and usage](/api-reference/account/get) | `/v1/account`, `/v1/usage` |
 | [Webhooks](/api-reference/webhooks/overview) | `/v1/webhooks/secret` |

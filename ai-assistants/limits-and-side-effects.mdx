@@ -7,7 +7,7 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 
 | Tool | Changes anything? | Uses credits? |
 | --- | --- | --- |
-| `list_*`, `get_*`, run and workflow resources | No. Read-only. | No |
+| `list_*`, `get_*`, `search_skills`, `search_workflows`, run and workflow resources | No. Read-only. | No |
 | `skill_<slug>`, `run_skill` | Adds a run (none if its `idempotency_key` already started one). Visits websites in a browser. Can sign in with the skill's saved login if you granted `logins:use`. | Yes |
 | `workflow_<slug>`, `run_workflow` | Adds a workflow run (none if its `idempotency_key` already started one). Runs the workflow's own steps, which can write rows to connected sheets or send HTTP requests. | Yes |
 | `cancel_run` | Stops a run you started, and what a workflow run is running inside. Rows already produced are kept. Credits already used stay charged. | No |
@@ -16,6 +16,7 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `update_skill` | Changes the skill's settings, inputs, or output fields. A change to its steps becomes a new version; old versions stay restorable. | No |
 | `update_workflow` | Changes the workflow. The state before is kept as a version you can restore in the app. | No |
 | `create_workflow` | Adds a workflow. Does not run it. | No |
+| `clone_skill`, `clone_workflow` | Adds a private copy of a marketplace skill or workflow to your own. Does not run it. | No |
 | `delete_skill` | Deletes a skill you own and stops its schedule. Its runs stay in history. Refused while a workflow uses it, unless `force` is true. | No |
 | `delete_workflow` | Deletes a workflow you own and stops its schedule. Its runs stay in history. | No |
 | `schedule_skill`, `schedule_workflow`, `update_schedule` | Adds or changes a schedule. Each scheduled run then spends the owner's credits. | Not by itself |

@@ -1,0 +1,17 @@
+---
+title: "Clone a skill"
+description: "Copy a public marketplace skill, or one shared into your workspace, into your own skills."
+openapi: "POST /v1/skills/{slug}/clone"
+---
+
+The copy is private, it is yours, and it keeps a link to the original. Cloning is free.
+
+The answer is the copy as [Get a skill](/api-reference/skills/get) shows it, plus `cloned_from`, the slug of the original. The copy has its own `slug`. Run it with that slug, for example with [Run a skill and wait](/api-reference/runs/run-skill).
+
+A skill you may not see answers `404`.
+
+You run a public skill only after you clone it, over the API and from an AI assistant. A run of the original returns `403` `clone_required`. See [MCP tools](/ai-assistants/mcp-tools#marketplace) for the assistant's steps.
+
+Needs `skills:invoke` or `skills:write`. A key with neither gets `403`. MCP tool: `clone_skill`.
+
+To clone in the app instead, see [Use the marketplace](/guides/use-the-marketplace#clone-a-skill).

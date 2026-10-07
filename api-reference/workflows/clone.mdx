@@ -1,0 +1,15 @@
+---
+title: "Clone a workflow"
+description: "Copy a public marketplace workflow, or one shared into your workspace, into your own workflows."
+openapi: "POST /v1/workflows/{slug}/clone"
+---
+
+You run only your own workflows and your workspaces'. To run a public workflow, clone it first. Find one with [a marketplace search](/api-reference/marketplace/search#workflows), and read it with [Get a workflow](/api-reference/workflows/get#a-public-workflow).
+
+The copy is a private draft, it is yours, and it keeps a link to the original. Cloning is free.
+
+The answer is the copy as [Get a workflow](/api-reference/workflows/get) shows it, plus `cloned_from`, the slug of the original. The copy has its own `slug`. Run it with that slug, for example with [Run a workflow and wait](/api-reference/runs/run-workflow).
+
+A workflow you may not see answers `404`.
+
+Needs `workflows:invoke` or `workflows:write`. A key with neither gets `403`. MCP tool: `clone_workflow`.

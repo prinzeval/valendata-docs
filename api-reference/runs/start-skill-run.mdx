@@ -6,4 +6,8 @@ openapi: "POST /v1/skills/{slug}/runs"
 
 Inputs go under `inputs`. If your account is busy, the run waits in a queue (up to about an hour, then it fails uncharged).
 
+A public marketplace skill that is not yours returns `403` `clone_required` and does not start. [Clone it](/api-reference/skills/clone) first. See [Errors](/api-reference/errors#error-body).
+
 The rows are not in this response. Read [Get a run](/api-reference/runs/get) until `status` is no longer `queued` or `running`, or set `webhook_url` to have the finished run sent to you. See [Webhooks](/api-reference/webhooks/overview). Send an `Idempotency-Key` to make retries safe.
+
+Send `max_age` to accept an earlier answer with the same inputs. If one is used, this returns `202` with `status: "success"` and `cached: true`, and the run is already finished when you read it. No webhook is sent for it. See [Cached answers](/api-reference/runs/run-skill#cached-answers).

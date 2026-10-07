@@ -9,7 +9,7 @@ The **marketplace** is a public library of skills. Instead of building a skill f
 
 Open **Marketplace** from the main sidebar. It has two tabs:
 
-- **Skills** — single skills you can run or clone
+- **Skills** — single skills you can clone, then run
 - **Workflows** — workflows shared by the community
 
 The **Skills** tab lists public skills in a searchable grid, sorted by Trending, Most Runs, or Recent. Each card shows the skill name, description, and creator. Click a card to open the full skill detail page, which shows Total Runs, total Clones, Rating, and credits per run before you commit.
@@ -17,6 +17,10 @@ The **Skills** tab lists public skills in a searchable grid, sorted by Trending,
 <Tip>
   Use the search bar to filter by keyword — try the site name, data type, or use case you have in mind.
 </Tip>
+
+From code or an AI assistant, find a skill by its task with [Find a skill for a task](/api-reference/marketplace/search) or the `search_skills` [MCP tool](/ai-assistants/mcp-tools#marketplace). Find a workflow the same way with `kind=workflow` or the `search_workflows` tool.
+
+Anyone may read a public skill or workflow. You run only your own copy. Clone it first with [Clone a skill](/api-reference/skills/clone) or [Clone a workflow](/api-reference/workflows/clone) (MCP tools: `clone_skill`, `clone_workflow`), then run the copy. A run of a public skill you have not cloned returns `403` `clone_required`.
 
 ## Clone a skill
 
@@ -50,7 +54,7 @@ Any skill you have built can be shared with the Valendata community by making it
 - **At publish time** — in the **Publish Skill** modal, set visibility to **Public** before clicking Publish. The skill will appear in the marketplace immediately.
 - **After publishing** — open the skill, click **Edit skill**, and toggle visibility from Private to Public. The skill moves to the marketplace as soon as you save.
 
-Public skills are discoverable by all Valendata users. Other users can run them directly or clone them into their own workspace.
+Public skills are discoverable by all Valendata users. Other users can read them, and run them once they clone them into their own workspace.
 
 ## Next
 

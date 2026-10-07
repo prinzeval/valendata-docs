@@ -29,6 +29,10 @@
       "description": "List, create, read, update, and delete skills."
     },
     {
+      "name": "Marketplace",
+      "description": "Find a skill by the task, with its price per run and track record."
+    },
+    {
       "name": "Runs",
       "description": "Run skills and workflows, read any run, and cancel one."
     },
@@ -535,6 +539,144 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/marketplace/search": {
+      "get": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "Find a skill for a task",
+        "description": "Skills that do the task in `q`, best first, from the public marketplace and (with `skills:read`) your own and your workspaces' (`yours: true`). Each result has its inputs, `price` (the typical cost of its recent runs in credits and dollars, or its base price before any run), `health` (success rate over its last 20 runs) and the route to run it. Matching reads the meaning of `q`, not only its words. When nothing does the task, the closest skills come back with `match: \"near\"` and a `hint`. No key needed for the public marketplace.",
+        "operationId": "search_skills",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          },
+          {}
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 300,
+              "description": "The task, in your words: 'find LinkedIn jobs in Toronto'",
+              "title": "Q"
+            },
+            "description": "The task, in your words: 'find LinkedIn jobs in Toronto'"
+          },
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only skills for this website, e.g. linkedin.com",
+              "title": "Site"
+            },
+            "description": "Only skills for this website, e.g. linkedin.com"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Most results to return, 1–50."
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "skill",
+                "workflow"
+              ],
+              "type": "string",
+              "description": "Search skills or workflows",
+              "default": "skill",
+              "title": "Kind"
+            },
+            "description": "Search skills or workflows"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Skills that do the task, best first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillSearchResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "search_skills"
       }
     },
     "/v1/runs/{run_id}": {
@@ -2024,6 +2166,93 @@
         }
       }
     },
+    "/v1/skills/{slug}/clone": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Clone a skill",
+        "description": "Copy a public marketplace skill (or one shared into your workspace) into your own skills, so you can run it. Free. The copy is private and keeps its lineage; run it at `POST /v1/skills/{new slug}/run`. Answers with the copy as `GET /v1/skills/{slug}` shows it, plus `cloned_from`. Needs `skills:invoke` or `skills:write`.",
+        "operationId": "clone_skill",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            },
+            "example": "indeed-jobs"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Your copy of the skill.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillCloned"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "clone_skill"
+      }
+    },
     "/v1/skills/{slug}/health": {
       "get": {
         "tags": [
@@ -2533,7 +2762,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode, max_age (seconds, 0–86400: accept an earlier answer this fresh, see Cached answers).",
                 "additionalProperties": true
               },
               "example": {
@@ -4055,6 +4284,93 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/workflows/{slug}/clone": {
+      "post": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Clone a workflow",
+        "description": "Copy a public marketplace workflow (or one shared into your workspace) into your own workflows, so you can run it. Free. The copy is a private draft and keeps its lineage. Answers with the copy as `GET /v1/workflows/{slug}` shows it, plus `cloned_from`. Needs `workflows:invoke` or `workflows:write`.",
+        "operationId": "clone_workflow",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            },
+            "example": "daily-leads"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Your copy of the workflow.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowCloned"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "clone_workflow"
       }
     },
     "/v1/workflows/{slug}/run": {
@@ -5759,6 +6075,33 @@
               }
             ],
             "title": "Error"
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached",
+            "default": false
+          },
+          "cached_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached At"
+          },
+          "cached_from_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached From Run Id"
           },
           "credits_charged": {
             "type": "number",
@@ -7589,6 +7932,64 @@
         ],
         "title": "ScheduleView"
       },
+      "SearchHealth": {
+        "properties": {
+          "success_rate_20": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate 20",
+            "description": "Percent of the last 20 runs that worked"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "total_runs": {
+            "type": "integer",
+            "title": "Total Runs",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "SearchHealth"
+      },
+      "SearchInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "SearchInput"
+      },
       "SkillApiInfo": {
         "properties": {
           "id": {
@@ -8171,6 +8572,16 @@
               }
             ]
           },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPrice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "input_schema": {
             "additionalProperties": true,
             "type": "object",
@@ -8271,6 +8682,705 @@
         ],
         "title": "SkillApiInfo",
         "description": "Everything PublishedSkillPublic has, plus what an integrator needs to call it."
+      },
+      "SkillCloned": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/SkillVisibility"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SkillStatus"
+          },
+          "validation_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Status"
+          },
+          "validation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Reason"
+          },
+          "validation_diagnosis": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Diagnosis"
+          },
+          "validated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validated At"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "target_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Domain"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/SkillParameter"
+            },
+            "type": "array",
+            "title": "Parameters"
+          },
+          "output_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Output Schema"
+          },
+          "sample_output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Output"
+          },
+          "start_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Url"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "user_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Rating"
+          },
+          "has_cloned": {
+            "type": "boolean",
+            "title": "Has Cloned",
+            "default": false
+          },
+          "user_cloned_skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Cloned Skill Id"
+          },
+          "total_runs": {
+            "type": "integer",
+            "title": "Total Runs"
+          },
+          "total_clones": {
+            "type": "integer",
+            "title": "Total Clones"
+          },
+          "is_official": {
+            "type": "boolean",
+            "title": "Is Official"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "update_frequency": {
+            "type": "string",
+            "title": "Update Frequency",
+            "default": "manual"
+          },
+          "data_retention_days": {
+            "type": "integer",
+            "title": "Data Retention Days",
+            "default": 90
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "health_status": {
+            "type": "string",
+            "title": "Health Status",
+            "default": "unknown"
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate",
+            "default": 0.0
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "running_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Running Run Id"
+          },
+          "smart_suggestions": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Smart Suggestions"
+          },
+          "enriched_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Enriched Fields"
+          },
+          "expected_shapes": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Expected Shapes"
+          },
+          "default_max_results": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Max Results"
+          },
+          "default_max_pages": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Max Pages"
+          },
+          "browser_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Type"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "login_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Id"
+          },
+          "skill_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Type"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "proxy_config": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Config"
+          },
+          "scrape_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scrape Mode"
+          },
+          "scrape_mode_applies": {
+            "type": "boolean",
+            "title": "Scrape Mode Applies",
+            "default": false
+          },
+          "creator_id": {
+            "type": "string",
+            "title": "Creator Id"
+          },
+          "creator_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Name"
+          },
+          "creator_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Avatar Url"
+          },
+          "cloned_from_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloned From Id"
+          },
+          "cloned_from_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloned From Name"
+          },
+          "is_monetized": {
+            "type": "boolean",
+            "title": "Is Monetized",
+            "default": false
+          },
+          "base_run_cost": {
+            "type": "integer",
+            "title": "Base Run Cost",
+            "default": 0
+          },
+          "avg_duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Duration Seconds"
+          },
+          "clones_this_week": {
+            "type": "integer",
+            "title": "Clones This Week",
+            "default": 0
+          },
+          "uses_remote_browser": {
+            "type": "boolean",
+            "title": "Uses Remote Browser",
+            "default": false
+          },
+          "llm_model": {
+            "type": "string",
+            "title": "Llm Model",
+            "default": "GEMINI 3.5 FLASH"
+          },
+          "total_ratings": {
+            "type": "integer",
+            "title": "Total Ratings",
+            "default": 0
+          },
+          "rating_breakdown": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Breakdown"
+          },
+          "reviews": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Reviews"
+          },
+          "api_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Endpoint"
+          },
+          "config_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config Id"
+          },
+          "health": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillHealth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPrice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Schema"
+          },
+          "output_json_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Output Json Schema"
+          },
+          "reliability": {
+            "$ref": "#/components/schemas/SkillReliability"
+          },
+          "runs_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runs Endpoint"
+          },
+          "recipe_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipe Version"
+          },
+          "pinned_recipe_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned Recipe Version"
+          },
+          "versions_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versions Endpoint"
+          },
+          "fast_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path"
+          },
+          "tiers": {
+            "additionalProperties": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Tiers"
+          },
+          "cloned_from": {
+            "type": "string",
+            "title": "Cloned From",
+            "description": "The slug of the skill this is a copy of"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "name",
+          "slug",
+          "description",
+          "version",
+          "visibility",
+          "status",
+          "parameters",
+          "output_schema",
+          "category",
+          "tags",
+          "total_runs",
+          "total_clones",
+          "is_official",
+          "created_at",
+          "published_at",
+          "creator_id",
+          "cloned_from"
+        ],
+        "title": "SkillCloned",
+        "description": "POST /v1/skills/{slug}/clone: your new copy, as GET /v1/skills/{slug} shows it."
       },
       "SkillCreationPage": {
         "properties": {
@@ -9144,6 +10254,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/SkillHealth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPrice"
               },
               {
                 "type": "null"
@@ -10202,6 +11322,61 @@
         "title": "SkillPatch",
         "description": "Every key is optional; an absent key leaves that setting as it is. To ADD output\nfields, use POST /v1/skills/{slug}/improve with mode add_fields (the skill has to learn\nwhere they are)."
       },
+      "SkillPrice": {
+        "properties": {
+          "estimate_credits": {
+            "type": "number",
+            "title": "Estimate Credits",
+            "description": "Credits a run usually costs — the typical recent run, else the base price"
+          },
+          "estimate_usd": {
+            "type": "number",
+            "title": "Estimate Usd",
+            "description": "estimate_credits in US dollars"
+          },
+          "base_credits": {
+            "type": "integer",
+            "title": "Base Credits",
+            "description": "The least a run costs (its base fee)"
+          },
+          "typical_credits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Credits",
+            "description": "Median cost of the recent successful runs; null before any"
+          },
+          "recent_runs": {
+            "type": "integer",
+            "title": "Recent Runs",
+            "description": "How many recent successful runs the typical cost is read from",
+            "default": 0
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "typical_of_recent_runs",
+              "base_price"
+            ],
+            "title": "Basis",
+            "description": "Where estimate_credits comes from"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estimate_credits",
+          "estimate_usd",
+          "base_credits",
+          "basis"
+        ],
+        "title": "SkillPrice",
+        "description": "What one run of the skill costs, before it runs."
+      },
       "SkillReliability": {
         "properties": {
           "success_rate": {
@@ -10606,6 +11781,175 @@
         ],
         "title": "SkillScheduleList"
       },
+      "SkillSearchHit": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "workflow"
+            ],
+            "title": "Kind",
+            "description": "What the result is",
+            "default": "skill"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site",
+            "description": "The website the skill works on"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "official": {
+            "type": "boolean",
+            "title": "Official",
+            "default": false
+          },
+          "yours": {
+            "type": "boolean",
+            "title": "Yours",
+            "description": "Your own skill, or one shared into your workspace",
+            "default": false
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/SearchInput"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "price": {
+            "$ref": "#/components/schemas/SkillPrice"
+          },
+          "health": {
+            "$ref": "#/components/schemas/SearchHealth"
+          },
+          "sample_rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Sample Rows",
+            "description": "A few rows the skill returned when it was published — what it returns"
+          },
+          "match": {
+            "type": "string",
+            "enum": [
+              "strong",
+              "near"
+            ],
+            "title": "Match",
+            "description": "strong: does this task; near: the closest there is"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Relevance, health-weighted (higher is better)"
+          },
+          "run_url": {
+            "type": "string",
+            "title": "Run Url",
+            "description": "Where to run it — a skill that is not yours runs once you clone it (clone_url)"
+          },
+          "clone_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clone Url",
+            "description": "Clone a skill that is not yours here first, then run the copy"
+          },
+          "info_url": {
+            "type": "string",
+            "title": "Info Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "price",
+          "health",
+          "match",
+          "score",
+          "run_url",
+          "info_url"
+        ],
+        "title": "SkillSearchHit"
+      },
+      "SkillSearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SkillSearchHit"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint",
+            "description": "What to do when nothing does this task exactly"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "results"
+        ],
+        "title": "SkillSearchResponse"
+      },
       "SkillStatus": {
         "type": "string",
         "enum": [
@@ -10740,6 +12084,20 @@
             ],
             "title": "Version",
             "description": "Recipe version to replay (GET /v1/skills/{slug}/versions). Omit for the pinned or live one."
+          },
+          "max_age": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86400.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Age",
+            "description": "Seconds. Accept an earlier answer this fresh (same inputs, your account): the run is answered at once from it, marked cached, for a fraction of the price. Omit to always run."
           }
         },
         "type": "object",
@@ -10768,6 +12126,11 @@
           "draft_run": {
             "type": "boolean",
             "title": "Draft Run",
+            "default": false
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached",
             "default": false
           }
         },
@@ -11117,6 +12480,165 @@
         ],
         "title": "WebhookSecretResponse"
       },
+      "WorkflowCloned": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "input_schema": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Input Schema",
+            "default": []
+          },
+          "input_json_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Json Schema",
+            "default": {}
+          },
+          "output": {
+            "type": "string",
+            "title": "Output",
+            "default": ""
+          },
+          "output_json_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Output Json Schema",
+            "default": {}
+          },
+          "run_json_schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Run Json Schema",
+            "default": {}
+          },
+          "trigger": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Trigger",
+            "default": {}
+          },
+          "reliability": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Reliability",
+            "default": {}
+          },
+          "api_endpoint": {
+            "type": "string",
+            "title": "Api Endpoint"
+          },
+          "runs_endpoint": {
+            "type": "string",
+            "title": "Runs Endpoint"
+          },
+          "run_status_endpoint": {
+            "type": "string",
+            "title": "Run Status Endpoint"
+          },
+          "mcp_tool": {
+            "type": "string",
+            "title": "Mcp Tool"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps",
+            "description": "The graph's steps (on create, change and GET with include_graph=true)."
+          },
+          "connections": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connections"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "description": "How many saved versions came before this one."
+          },
+          "cloned_from": {
+            "type": "string",
+            "title": "Cloned From",
+            "description": "The slug of the workflow this is a copy of"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "api_endpoint",
+          "runs_endpoint",
+          "run_status_endpoint",
+          "mcp_tool",
+          "cloned_from"
+        ],
+        "title": "WorkflowCloned",
+        "description": "POST /v1/workflows/{slug}/clone: your new copy, as GET /v1/workflows/{slug} shows it."
+      },
       "WorkflowInfo": {
         "properties": {
           "id": {
@@ -11255,6 +12777,48 @@
             ],
             "title": "Version",
             "description": "How many saved versions came before this one."
+          },
+          "yours": {
+            "type": "boolean",
+            "title": "Yours",
+            "description": "Yours or your workspace's; false for a public marketplace workflow",
+            "default": true
+          },
+          "public_view": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public View",
+            "description": "Plain step summaries, trigger, sample rows and what it needs (public workflows)"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPrice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What a run usually costs, before it runs"
+          },
+          "clone_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clone Url",
+            "description": "Clone a public workflow here first, then run your copy"
           }
         },
         "type": "object",

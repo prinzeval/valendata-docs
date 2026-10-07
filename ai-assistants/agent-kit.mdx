@@ -1,0 +1,53 @@
+---
+title: "Agent kit"
+description: "Help AI agents find and use Valendata on their own: llms.txt, the Valendata Agent Skill, and the Claude Code plugin."
+---
+
+Three things let an AI agent discover Valendata and use it without help. Each one points to the pages it needs, so it never goes stale.
+
+## llms.txt
+
+Agents that read [llms.txt](https://llmstxt.org) find Valendata in two places:
+
+| File | What it holds |
+| --- | --- |
+| `https://valendata.com/llms.txt` | A short map: the API base, how to sign in, how to find, run, and create a skill, and links to the pages below. |
+| `https://docs.valendata.com/llms.txt` | Every docs page with a one-line summary. |
+| `https://docs.valendata.com/llms-full.txt` | All docs pages in one file. |
+
+Any docs page also reads as Markdown: add `.md` to its URL.
+
+## The Valendata Agent Skill
+
+`skills/valendata/SKILL.md` is an [Agent Skill](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview). It loads when a task needs data from a website, and teaches the agent to:
+
+1. Find a skill for the task with `GET /v1/marketplace/search?q=` (MCP tool: `search_skills`). No key is needed for the public marketplace. Add `kind=workflow` to find a workflow (MCP tool: `search_workflows`).
+2. Read its inputs, sample rows, and price, in the search result or with [Get a skill](/api-reference/skills/get) or [Get a workflow](/api-reference/workflows/get).
+3. Clone one that is not yours with [Clone a skill](/api-reference/skills/clone) or [Clone a workflow](/api-reference/workflows/clone) (MCP tools: `clone_skill`, `clone_workflow`). A public skill never runs directly: the API answers `403` `clone_required`.
+4. Run the copy and wait, or start it in the background and poll. See [Run a skill](/guides/run-a-skill).
+5. Handle `402`, `429`, and `needs_user`. See [Errors and limits](/api-reference/errors).
+6. Create a skill when none fits. See [Create a skill](/guides/create-a-skill#from-a-sentence).
+
+It uses the [MCP tools](/ai-assistants/mcp-tools) when they are connected, and the API with your key when they are not.
+
+## The Claude Code plugin
+
+The agent kit is also a Claude Code plugin. It adds the skill above and the Valendata MCP server, signed in with an API key.
+
+1. Make an [API key](/account/api-keys) with only the scopes the agent needs. Add `workflows:read` and `workflows:invoke` if it should use workflows, and `skills:write` if it should create skills.
+2. Set it in your shell before you start Claude Code:
+
+   ```bash
+   export VALENDATA_API_KEY="vd_sk_YOUR_API_KEY"
+   ```
+
+3. In Claude Code, add the kit as a marketplace and install the plugin:
+
+   ```text
+   /plugin marketplace add <path-or-repo-of-the-agent-kit>
+   /plugin install valendata@valendata
+   ```
+
+4. Run `/mcp` to check that `valendata` is connected.
+
+To sign in with OAuth instead of a key, or to connect another assistant, see [Connect your AI assistant](/ai-assistants/connect).

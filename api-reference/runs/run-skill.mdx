@@ -4,12 +4,33 @@ description: "Run a skill and get its rows in the same call."
 openapi: "POST /v1/skills/{slug}/run"
 ---
 
-Put the skill's inputs at the top level of the body (or in the query). The run settings (`max_results`, `max_pages`, `version`, `browser_type`, `profile_id`, `proxy_config`, `scrape_mode`) sit next to them. See [Run settings](/guides/run-a-skill#run-settings).
+Put the skill's inputs at the top level of the body (or in the query). The run settings (`max_results`, `max_pages`, `version`, `browser_type`, `profile_id`, `proxy_config`, `scrape_mode`, `max_age`) sit next to them. See [Run settings](/guides/run-a-skill#run-settings).
 
 The rows are in `data`. The other fields are explained in [Runs](/concepts/runs#what-a-finished-run-holds).
+
+You run only your own skills and your workspaces'. A public marketplace skill that is not yours returns `403` with `detail.error` `clone_required` and its `clone_url`, and nothing runs. [Clone it](/api-reference/skills/clone), then run your copy. See [Errors](/api-reference/errors#error-body).
 
 If your account already has its maximum of runs in progress, this returns `429` with `Retry-After` instead of waiting. Use [Start a skill run](/api-reference/runs/start-skill-run) to queue instead.
 
 The older `POST /v1/skills/run` with `skill_id` and `parameters` in the body still works. New code should use this route.
+
+## Cached answers
+
+Send `max_age` in the body (seconds, 0–86400) to accept an earlier answer instead of a new run. You get the earlier rows at once when your account ran this skill:
+
+- with exactly the same inputs,
+- successfully, within the last `max_age` seconds,
+- and got rows back: at least `max_results` of them when you set it.
+
+If you ask for fewer rows than that run holds, you get the first `max_results`. Without `max_age`, or with `0`, every call runs.
+
+A cached response has `cached: true`, `cached_at` (when the rows were read), and `cached_from_run_id` (the run they came from). Its `execution_time_ms` is `0`.
+
+- **Price**: a share of what the original run cost, 20% by default. It is rounded up to whole credits, at least 1 credit, and never more than the original run. If your account cannot pay it, you get `402` like any run.
+- **Your account only**: answers are never shared between accounts.
+- **Run history**: a cached answer is listed as its own run. It does not count toward the skill's success rate, run count, or [price](/api-reference/skills/get#price), and it is never reused as a cached answer itself.
+- **Limits**: by default, an answer older than 24 hours is never used, whatever `max_age` says. Valendata can change the share, the minimum, and this longest age, or turn cached answers off. When they are off, every call runs.
+
+To use it on a background run, see [Start a skill run](/api-reference/runs/start-skill-run). To use it from an AI assistant, see [MCP tools](/ai-assistants/mcp-tools#run-results).
 
 MCP tool: `skill_<slug>`.

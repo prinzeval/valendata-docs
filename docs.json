@@ -75,7 +75,8 @@
             "pages": [
               "ai-assistants/connect",
               "ai-assistants/mcp-tools",
-              "ai-assistants/limits-and-side-effects"
+              "ai-assistants/limits-and-side-effects",
+              "ai-assistants/agent-kit"
             ]
           },
           {
@@ -111,9 +112,17 @@
               "api-reference/skills/get-creation",
               "api-reference/skills/list-creations",
               "api-reference/skills/get",
+              "api-reference/skills/clone",
               "api-reference/skills/update",
               "api-reference/skills/delete",
               "api-reference/skills/health"
+            ]
+          },
+          {
+            "group": "Marketplace",
+            "icon": "store",
+            "pages": [
+              "api-reference/marketplace/search"
             ]
           },
           {
@@ -171,6 +180,7 @@
               "api-reference/workflows/list",
               "api-reference/workflows/create",
               "api-reference/workflows/get",
+              "api-reference/workflows/clone",
               "api-reference/workflows/update",
               "api-reference/workflows/delete"
             ]

@@ -11,10 +11,26 @@ The fields you will use most:
 | `input_schema` | JSON Schema for the inputs: each input's `type`, `description`, `default`, and example. `required` lists the ones you must send. Unknown inputs are refused. |
 | `output_json_schema` | JSON Schema for the run result, including each row. |
 | `reliability` | Success rate, runs, and repairs over the last 20 runs, and the last failure kind. |
+| `price` | What a run usually costs, before you run it. See [Price](#price). |
 | `recipe_version`, `pinned_recipe_version` | The live [version](/concepts/keeping-skills-working#versions), and the pinned one (or `null`). |
 | `fast_path` | A short description of the skill's [fast path](/concepts/keeping-skills-working#fast-path), or `null`. |
 | `api_endpoint`, `runs_endpoint`, `versions_endpoint` | The routes to run it and see its versions. |
 
-A public skill needs no key. A private skill returns `404` to anyone who may not run it.
+A public skill needs no key. Anyone may read it, but runs only their own copy: [clone it](/api-reference/skills/clone) first. A private skill returns `404` to anyone who may not run it.
 
 MCP tool: `get_skill`.
+
+## Price
+
+A run is billed what it uses, and never less than the skill's base fee. `price` says what a run usually costs:
+
+| Field | What it is |
+| --- | --- |
+| `estimate_credits` | What a run usually costs: the median of its last 20 successful runs, never below the base fee. Before any run, the base fee. |
+| `estimate_usd` | `estimate_credits` in US dollars. |
+| `base_credits` | The least a run costs: the base fee. |
+| `typical_credits` | The median of the recent successful runs, or `null` before any. |
+| `recent_runs` | How many recent successful runs `typical_credits` is read from. |
+| `basis` | `typical_of_recent_runs`, or `base_price` before any run. |
+
+What each run actually cost is its `credits_charged`. See [Credits](/concepts/credits).

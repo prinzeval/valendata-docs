@@ -8,4 +8,4 @@ Filter with `status` (comma-separated: `queued`, `running`, `success`, `partial`
 
 Each item has `run_id`, `status`, start and finish times, `rows`, `credits`, `failure_class`, `tier_used`, `recipe_version`, `error`, and `run_url`. For the rows themselves, call [Get a run](/api-reference/runs/get).
 
-The skill's owner and workspace see every run. Someone running a public skill sees only their own. Needs `runs:read`. MCP tool: `list_skill_runs`.
+The skill's owner and workspace see every run. Anyone else sees only their own runs of it. Needs `runs:read`. MCP tool: `list_skill_runs`.

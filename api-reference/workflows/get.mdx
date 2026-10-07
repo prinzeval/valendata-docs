@@ -1,9 +1,25 @@
 ---
 title: "Get a workflow"
-description: "A workflow and its contract: inputs, output shape, track record, and routes."
+description: "A workflow and its contract: inputs, output shape, track record, price, and routes."
 openapi: "GET /v1/workflows/{slug}"
 ---
 
-`input_schema` lists the inputs (from the API trigger), `output` says what `outputs` will hold, and `reliability` summarizes the last 20 finished runs. `mcp_tool` is the tool name assistants see. Add `include_graph=true` for its `steps` and `connections`. The slug is on the workflow's **API** tab.
+`input_schema` lists the inputs (from the API trigger), `output` says what `outputs` will hold, and `reliability` summarizes the last 20 finished runs. `price` says what a run usually costs: the typical cost of its last 20 completed runs, or its base fee before any. It has the same fields as a [skill's price](/api-reference/skills/get#price). `mcp_tool` is the tool name assistants see. Add `include_graph=true` for its `steps` and `connections`. The slug is on the workflow's **API** tab.
+
+Your own workflows and your workspaces' have `yours: true`.
 
 MCP tool: `get_workflow` (includes the steps by default).
+
+## A public workflow
+
+You can also read a public marketplace workflow that is not yours. It has `yours: false` and shows what its Marketplace page shows:
+
+| Field | What it is |
+| --- | --- |
+| `public_view` | Its `steps` in plain words, its `trigger`, a `sample_output` of what it returns, and what it `needs` from you. |
+| `price` | What a run usually costs, as above. |
+| `clone_url` | The route to [clone it](/api-reference/workflows/clone). |
+
+It never shows the graph: `steps` and `connections` stay `null`, even with `include_graph=true`. The owner's saved input defaults are left out.
+
+You run only your own copy. Clone it first, then run the copy's slug. A run of the original answers `404`.

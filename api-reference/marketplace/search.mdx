@@ -1,0 +1,49 @@
+---
+title: "Find a skill for a task"
+description: "Skills or workflows that do a task, best first, from the public marketplace and your own, each with its price per run and track record."
+openapi: "GET /v1/marketplace/search"
+---
+
+Put the task in `q`, in plain words, for example `find LinkedIn jobs in Toronto`. Matching reads the meaning of `q`, not only its words. A query that names a site, such as `linkedin`, lifts that site's skills; a skill on another site is then only a near match.
+
+Narrow the search with `site` (only skills for this website, for example `linkedin.com`) and `category`. `limit` is 1–50, default 10.
+
+`kind` picks what to search: `skill` (the default) or `workflow`. See [Workflows](#workflows).
+
+Results are ranked by how well they match, weighed by health (success rate over the last 20 runs, and a recent success) and a little by use.
+
+| Field | What it is |
+| --- | --- |
+| `kind` | `skill` or `workflow`, as you searched. |
+| `slug`, `name`, `description`, `site`, `category` | The skill, and the website it works on. |
+| `official` | `true` for an official Valendata skill. |
+| `yours` | `true` for your own skill, or one shared into your workspace. |
+| `inputs` | Each input's `name`, `type`, and `required`. For the full contract, call [Get a skill](/api-reference/skills/get). |
+| `price` | What a run usually costs, in credits and dollars. See [Price](/api-reference/skills/get#price). |
+| `health` | `success_rate_20` (percent of the last 20 runs that worked), `last_success_at`, and `total_runs`. |
+| `sample_rows` | Up to 3 rows the skill returned when it was published, so you can see what it returns. |
+| `match` | `strong`: it does this task. `near`: the closest there is. |
+| `score` | How well it matches, weighed by health. Higher is better. |
+| `run_url`, `info_url` | The routes to [run it](/api-reference/runs/run-skill) and to [read its contract](/api-reference/skills/get). |
+| `clone_url` | The route to [clone it](/api-reference/skills/clone) into your own skills. `null` when `yours` is `true`. |
+
+When no skill does the task, up to 3 of the closest come back with `match: "near"`, and `hint` says so. You can then record exactly this task with [Create a skill](/api-reference/skills/create). Otherwise `hint` is `null`.
+
+Searching the public marketplace needs no key. With a key or session that holds `skills:read`, your own skills and your workspaces' are searched too. A key without `skills:read` searches the marketplace only. A bad key is still a `401`.
+
+A skill that is not yours runs only after you clone it. Running it directly returns `403` `clone_required`. See [Errors](/api-reference/errors#error-body).
+
+MCP tool: `search_skills`.
+
+## Workflows
+
+With `kind=workflow`, the results are workflows, in the same shape:
+
+- `inputs`, `price`, `sample_rows`, `match`, and `score` work as for skills. `price` is the typical cost of its last 20 completed runs, or its base fee before any. Sample rows hold no secret fields, and long values are cut short.
+- `health` has `total_runs` only.
+- `site` and `official` are not used. The `site` filter does not apply.
+- `run_url` is [Run a workflow and wait](/api-reference/runs/run-workflow), `info_url` is [Get a workflow](/api-reference/workflows/get), and `clone_url` is [Clone a workflow](/api-reference/workflows/clone). `clone_url` is `null` when `yours` is `true`. A workflow that is not yours answers `404` to a run until you clone it.
+
+With a key or session that holds `workflows:read`, your own workflows and your workspaces' are searched too. When no workflow does the task, the closest come back with `match: "near"`, and `hint` points to [Create a workflow](/api-reference/workflows/create).
+
+MCP tool: `search_workflows`.

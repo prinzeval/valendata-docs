@@ -103,6 +103,7 @@ These go next to the inputs and are not inputs themselves:
 | `profile_id` | The [browser profile](/concepts/logins-and-browser-profiles) to use. |
 | `proxy_config` | Region: a country code, `random`, or `none`. |
 | `scrape_mode` | `deep` or `flash`, for skills that support it. |
+| `max_age` | Seconds. Accept an earlier answer with the same inputs, for a share of the price. See [Cached answers](/api-reference/runs/run-skill#cached-answers). |
 
 Inputs are checked before anything runs. A missing input, a wrong type, or an unknown name returns `422` with every problem listed, and nothing is charged. See [Errors and limits](/api-reference/errors).
 

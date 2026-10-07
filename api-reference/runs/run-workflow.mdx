@@ -6,6 +6,8 @@ openapi: "POST /v1/workflows/{slug}/run"
 
 Send the workflow's inputs under `inputs`, and how long to wait in `wait` (default 60, max 120 seconds).
 
+You run only your own workflows and your workspaces'. A public marketplace workflow answers `404` until you [clone it](/api-reference/workflows/clone).
+
 - `200`: the run finished. `outputs` holds the rows of the final step.
 - `202`: still running. Read [Get a run](/api-reference/runs/get) with its `run_id`.
 
