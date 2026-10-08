@@ -1,0 +1,11 @@
+---
+title: "Take a marketplace update"
+description: "Bring the marketplace's newer version into your copy, merged onto your own changes."
+openapi: "POST /v1/skills/{slug}/marketplace-update"
+---
+
+Your copy gets the changes made to the original since you copied it. Changes you made yourself are kept, and `kept_yours` lists them. The result is saved as a new version, so you can [restore](/api-reference/versions/restore) the one before.
+
+If you and the author changed the same step in different ways, nothing is applied. The update is saved as version `candidate_version`, unapplied. [Compare it](/api-reference/versions/diff) and restore it if you want it.
+
+Owner or workspace editor. Needs `skills:write`. MCP tool: `update_from_marketplace` with `apply: true`.

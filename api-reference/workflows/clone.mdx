@@ -8,7 +8,9 @@ You run only your own workflows and your workspaces'. To run a public workflow, 
 
 The copy is a private draft, it is yours, and it keeps a link to the original. Cloning is free.
 
-The answer is the copy as [Get a workflow](/api-reference/workflows/get) shows it, plus `cloned_from`, the slug of the original. The copy has its own `slug`. Run it with that slug, for example with [Run a workflow and wait](/api-reference/runs/run-workflow).
+The skills and sub-workflows it runs come along as copies of your own, so the author's later changes never reach your workflow. A copied skill can still take the author's newer versions when you choose: see [Check for a marketplace update](/api-reference/versions/marketplace-update-check). A step that used the author's login loses it, and you connect your own.
+
+The answer is the copy as [Get a workflow](/api-reference/workflows/get) shows it, plus `cloned_from`, the slug of the original, and `copied`: the skills and sub-workflows copied with it, and the steps that need your own login (`needs_login`) or saved credential (`needs_credentials`). The copy has its own `slug`. Run it with that slug, for example with [Run a workflow and wait](/api-reference/runs/run-workflow).
 
 A workflow you may not see answers `404`.
 

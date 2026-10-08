@@ -1,0 +1,11 @@
+---
+title: "Check for a marketplace update"
+description: "See whether the marketplace skill your copy came from has a newer version."
+openapi: "GET /v1/skills/{slug}/marketplace-update"
+---
+
+A skill you clone, or one that comes with a workflow you clone, is yours. When its author edits, repairs, hides, or deletes the original, your copy does not change.
+
+This tells you whether the original has a newer version. `copied_version` is the version your copy holds, and `latest_version` is the marketplace's newest. When nothing is offered, `reason` says why: `not_a_copy`, `source_gone`, or `up_to_date`.
+
+Take the update with [Take a marketplace update](/api-reference/versions/marketplace-update-take). Owner or workspace only. Needs `skills:read`. MCP tool: `update_from_marketplace`.

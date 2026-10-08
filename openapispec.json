@@ -218,6 +218,7 @@
           "Logins"
         ],
         "summary": "List logins",
+        "description": "Your saved logins, masked — never a password, seed or code. A login an agent registered itself (auto sign-up) says so, and whether its sign-up was confirmed. Needs `logins:use` or `logins:write`.",
         "operationId": "list_logins",
         "security": [
           {
@@ -307,8 +308,7 @@
           "500": {
             "$ref": "#/components/responses/InternalError"
           }
-        },
-        "description": "Your saved logins, masked. Needs `logins:write`."
+        }
       }
     },
     "/v1/logins/{login_id}": {
@@ -381,7 +381,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "description": "One saved login, masked: the site, a hint of the username, its label and notes, and whether it has an authenticator seed. Needs `logins:write`."
+        "description": "One saved login, masked: the site, a hint of the username, its label and notes, whether it has an authenticator seed, and — for one an agent registered itself — whether its sign-up was confirmed. Needs `logins:use` or `logins:write`."
       },
       "patch": {
         "tags": [
@@ -570,7 +570,8 @@
               "description": "The task, in your words: 'find LinkedIn jobs in Toronto'",
               "title": "Q"
             },
-            "description": "The task, in your words: 'find LinkedIn jobs in Toronto'"
+            "description": "The task, in your words: 'find LinkedIn jobs in Toronto'",
+            "example": "find software jobs in Toronto"
           },
           {
             "name": "site",
@@ -616,10 +617,12 @@
               "type": "integer",
               "maximum": 50,
               "minimum": 1,
+              "description": "Most results to return, 1–50.",
               "default": 10,
               "title": "Limit"
             },
-            "description": "Most results to return, 1–50."
+            "description": "Most results to return, 1–50.",
+            "example": 10
           },
           {
             "name": "kind",
@@ -844,7 +847,7 @@
           "Runs"
         ],
         "summary": "Send a sign-in code",
-        "description": "When a site texts a sign-in code, the run waits up to 3 minutes for it. Send it here; the run types it into the page and carries on. Only the account that started the run. Needs `logins:use` on an API key.",
+        "description": "When a site texts a sign-in code, the run waits up to 3 minutes for it. Send it here; the run types it into the page and carries on. A skill creation (`sc_…`) signing in or up waits the same way: send its creation id. Only the account that started it. Needs `logins:use` on an API key.",
         "operationId": "send_run_code",
         "security": [
           {
@@ -1701,7 +1704,7 @@
           "Skills"
         ],
         "summary": "Create a skill",
-        "description": "Record `task` in a cloud browser from `start_url` and publish it as a Skill. Answers at once with a creation id; poll `GET /v1/skill-creations/{creation_id}`. Up to 2 recordings in progress per account; needs at least 10 credits. Recordings cannot sign in to websites.",
+        "description": "Record `task` in a cloud browser from `start_url` and publish it as a Skill. Answers at once with a creation id; poll `GET /v1/skill-creations/{creation_id}`. Up to 2 recordings in progress per account; needs at least 10 credits. Behind a sign-in, pass `login_id` (needs `logins:use`); without one the creation fails with `needs_user` (kind `no_login`) — unless auto sign-up is on, then it registers an account for the site with your Valendata email and binds it.",
         "operationId": "create_skill",
         "security": [
           {
@@ -2533,6 +2536,164 @@
         }
       }
     },
+    "/v1/skills/{slug}/marketplace-update": {
+      "get": {
+        "tags": [
+          "Skill versions"
+        ],
+        "summary": "Check for a marketplace update",
+        "operationId": "check_marketplace_update",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateCheckOut"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Whether the marketplace skill this copy came from has a newer version. A cloned skill, or one that came with a cloned workflow, is yours: the author's later changes never reach it on their own. `reason` says why none is offered: `not_a_copy`, `source_gone`, or `up_to_date`. Owner or workspace only. Needs `skills:read`.",
+        "x-mcp-tool": "update_from_marketplace"
+      },
+      "post": {
+        "tags": [
+          "Skill versions"
+        ],
+        "summary": "Take a marketplace update",
+        "operationId": "take_marketplace_update",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTakenOut"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Take the newer marketplace version into your copy, merged onto your own changes and saved as a new version you can restore away from. Where you and the author changed the same step differently, nothing is applied: the update is saved as an unapplied version (`candidate_version`) for you to compare. Owner or workspace editor only. Needs `skills:write`.",
+        "x-mcp-tool": "update_from_marketplace"
+      }
+    },
     "/v1/skills/{slug}/pin": {
       "put": {
         "tags": [
@@ -2762,7 +2923,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode, max_age (seconds, 0–86400: accept an earlier answer this fresh, see Cached answers).",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
                 "additionalProperties": true
               },
               "example": {
@@ -4292,7 +4453,7 @@
           "Workflows"
         ],
         "summary": "Clone a workflow",
-        "description": "Copy a public marketplace workflow (or one shared into your workspace) into your own workflows, so you can run it. Free. The copy is a private draft and keeps its lineage. Answers with the copy as `GET /v1/workflows/{slug}` shows it, plus `cloned_from`. Needs `workflows:invoke` or `workflows:write`.",
+        "description": "Copy a public marketplace workflow (or one shared into your workspace) into your own workflows, so you can run it. Free. The copy is a private draft and keeps its lineage. The skills and sub-workflows it runs that are not yours come along as copies of your own, so the author's later changes never reach it; `copied` lists them, and the steps that need your own login or credential. Answers with the copy as `GET /v1/workflows/{slug}` shows it, plus `cloned_from` and `copied`. Needs `workflows:invoke` or `workflows:write`.",
         "operationId": "clone_workflow",
         "security": [
           {
@@ -5124,7 +5285,7 @@
         }
       },
       "PaymentRequired": {
-        "description": "Not enough credits to start. `detail` includes `current_balance` and `required`.",
+        "description": "Not enough credits to start (`detail` includes `current_balance` and `required`), or the workspace spend cap is reached (`detail` includes `cap` and `spent`).",
         "headers": {
           "X-RateLimit-Limit": {
             "$ref": "#/components/headers/X-RateLimit-Limit"
@@ -5145,7 +5306,7 @@
               "$ref": "#/components/schemas/Error"
             },
             "example": {
-              "detail": "Not enough credits to start. `detail` includes `current_balance` and `required`.",
+              "detail": "Not enough credits to start (`detail` includes `current_balance` and `required`), or the workspace spend cap is reached (`detail` includes `cap` and `spent`).",
               "code": "payment_required",
               "type": "billing_error",
               "request_id": "3f9a1c2b7d4e"
@@ -5679,7 +5840,7 @@
               }
             ],
             "title": "Login Id",
-            "description": "Your saved login (POST /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way."
+            "description": "Your saved login (POST /v1/logins, GET /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way. Without one, a start page behind a sign-in ends the creation with needs_user (kind no_login) — unless auto sign-up is on, then an account is made for the site with your Valendata email and bound the same way (needs logins:use)."
           }
         },
         "type": "object",
@@ -5943,6 +6104,19 @@
             "title": "No Real Rows",
             "description": "Rows came back but every field was empty on every one — the run never reached the results.",
             "default": false
+          },
+          "needs_user": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs User",
+            "description": "Set when it stopped at a login wall: {kind, message, action_url, site} — kind no_login, bad_password, otp_email, otp_sms or captcha. No hint fixes it; the owner has to."
           },
           "error": {
             "anyOf": [
@@ -6877,6 +7051,36 @@
             "title": "Has Totp",
             "default": false
           },
+          "created_by_agent": {
+            "type": "boolean",
+            "title": "Created By Agent",
+            "description": "True when an agent registered this account itself (auto sign-up) with your Valendata email and a generated password.",
+            "default": false
+          },
+          "verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified",
+            "description": "Agent-made logins only: true once the sign-up went through, false when it did not (see unverified_reason), null while it is being made or for a login you saved."
+          },
+          "unverified_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unverified Reason",
+            "description": "Why an agent-made sign-up was not confirmed."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -7606,6 +7810,33 @@
                 "type": "null"
               }
             ]
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached",
+            "default": false
+          },
+          "cached_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached At"
+          },
+          "cached_from_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached From Run Id"
           }
         },
         "type": "object",
@@ -9605,6 +9836,19 @@
             ],
             "title": "Next Step",
             "description": "What to do now, in one sentence; null while in progress."
+          },
+          "needs_user": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs User",
+            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Do what it says (save a login for the site, or allow auto sign-up), then create it again with login_id."
           },
           "created_at": {
             "anyOf": [
@@ -12213,6 +12457,148 @@
         "type": "object",
         "title": "TierHealth"
       },
+      "UpdateCheckOut": {
+        "properties": {
+          "skill_slug": {
+            "type": "string",
+            "title": "Skill Slug"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "not_a_copy | source_gone | up_to_date"
+          },
+          "source_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Slug"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "copied_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Copied Version",
+            "description": "The marketplace version this copy holds"
+          },
+          "latest_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Version",
+            "description": "The marketplace's newest version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_slug",
+          "available"
+        ],
+        "title": "UpdateCheckOut"
+      },
+      "UpdateTakenOut": {
+        "properties": {
+          "skill_slug": {
+            "type": "string",
+            "title": "Skill Slug"
+          },
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "taken_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taken Version"
+          },
+          "recipe_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipe Version",
+            "description": "Your skill's new live version"
+          },
+          "candidate_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Version",
+            "description": "On a conflict: the version the update was saved as, unapplied"
+          },
+          "kept_yours": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Kept Yours",
+            "description": "Recipe parts you changed, kept as yours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill_slug",
+          "applied",
+          "message"
+        ],
+        "title": "UpdateTakenOut"
+      },
       "UpdateWorkflowRequest": {
         "properties": {
           "name": {
@@ -12619,10 +13005,58 @@
             "title": "Version",
             "description": "How many saved versions came before this one."
           },
+          "yours": {
+            "type": "boolean",
+            "title": "Yours",
+            "description": "Yours or your workspace's; false for a public marketplace workflow",
+            "default": true
+          },
+          "public_view": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public View",
+            "description": "Plain step summaries, trigger, sample rows and what it needs (public workflows)"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillPrice"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What a run usually costs, before it runs"
+          },
+          "clone_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clone Url",
+            "description": "Clone a public workflow here first, then run your copy"
+          },
           "cloned_from": {
             "type": "string",
             "title": "Cloned From",
             "description": "The slug of the workflow this is a copy of"
+          },
+          "copied": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Copied",
+            "description": "What came with it: skills_copied and workflows_copied (the author's skills and sub-workflows it runs, now copies of your own), needs_login and needs_credentials (steps that need your own account connected)."
           }
         },
         "type": "object",

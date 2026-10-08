@@ -22,6 +22,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 | `list_skills` | optional `q`, `status`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
 | `clone_skill` | `slug` | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
+| `update_from_marketplace` | `slug`, optional `apply` (default `false`: only check) | `skills:write` | [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take) |
 | `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
 | `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
 | `list_skill_creations` | optional `status`, `limit`, `cursor` | `skills:invoke` | [List skill creations](/api-reference/skills/list-creations) |

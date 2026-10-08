@@ -147,7 +147,9 @@
               "api-reference/versions/list",
               "api-reference/versions/diff",
               "api-reference/versions/restore",
-              "api-reference/versions/pin"
+              "api-reference/versions/pin",
+              "api-reference/versions/marketplace-update-check",
+              "api-reference/versions/marketplace-update-take"
             ]
           },
           {
