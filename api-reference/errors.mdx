@@ -18,6 +18,8 @@ description: "Status codes, error bodies, request ids, rate limits, and how many
 | `422` | A field is invalid (`param` names it), inputs do not match the contract, the `version` does not exist, `webhook_url` is not allowed, or the `Idempotency-Key` was already used with a different request. | Fix the request. The body lists every problem. |
 | `429` | Too many requests for your key, or too many runs, creations, or improvements in progress. | Wait `Retry-After` seconds, or run in the background. |
 | `500` | Something broke on our side. | Retry. Runs that fail on our side are refunded. |
+| `502` | A [connected app](/concepts/connected-apps) refused the call or could not be reached. `detail` gives its reason. | Fix the inputs it names, or retry later. |
+| `503` | This part of the API is not available right now. | Retry later. |
 
 A request refused before it starts (`400`, `401`, `402`, `403`, `404`, `409`, `422`, `429`) runs nothing and costs nothing.
 
@@ -136,12 +138,15 @@ A `429` because too many runs are in progress has a `Retry-After` header, and `d
 | `not_found` | `404` | It does not exist, or it is not yours to see. |
 | `method_not_allowed` | `405` | Wrong method for this route. |
 | `conflict` | `409` | The current state does not allow it. |
+| `app_not_connected` | `409` | The connected app is not connected, or its connection expired. `detail.connect_url` connects it. |
 | `idempotency_key_in_use` | `409` | The first request with this key is still running. |
 | `idempotent_replay_unavailable` | `409` | The first request with this key succeeded, but its answer was too large to keep. `detail` names what it started. |
 | `validation_error` | `422` | A field or input is invalid. |
 | `idempotency_key_reused` | `422` | This key was already used with a different request. |
 | `rate_limited` | `429` | Too many requests for this key, or too many runs in progress. |
 | `internal_error` | `500` | Something broke on our side. |
+| `upstream_error` | `502` | A connected app refused the call or could not be reached. |
+| `service_unavailable` | `503` | This part of the API is not available right now. |
 
 New codes may be added; treat an unknown `code` by its `type` and status.
 

@@ -1,0 +1,18 @@
+---
+title: "Run an app tool"
+description: "Run one tool on your connected account and get what the app answered."
+openapi: "POST /v1/apps/{app}/tools/{tool}/run"
+---
+
+Send the tool's inputs in `inputs`, by the names [List an app's tools](/api-reference/apps/list-tools) gives. `data` is the app's answer, as the app gave it.
+
+A `read` tool needs `apps:read`. A `write` tool needs `apps:write` and acts in your real account: the email is sent, the event is created. Send an `Idempotency-Key` so a retry after a timeout does not send it twice. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+| Status | Why |
+| --- | --- |
+| `404` | The app has no such tool. `detail` points to its tool list. |
+| `409` `app_not_connected` | You have not connected the app, or its connection expired. `detail.connect_url` connects it. |
+| `422` | The body is not valid. |
+| `502` | The app refused the call, for example a missing or wrong input. `detail` gives the app's reason. |
+
+MCP tools: `read_from_app` runs a `read` tool, `act_in_app` a `write` tool.

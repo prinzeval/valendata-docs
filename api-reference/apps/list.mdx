@@ -1,0 +1,11 @@
+---
+title: "List apps"
+description: "Apps you can connect, each with whether you already have."
+openapi: "GET /v1/apps"
+---
+
+Search with `q`, for example `calendar`. `limit` is 1–50, default 25.
+
+`connectable` is `false` for an app whose sign-in is not set up on Valendata yet. `connected` is `true` for one you connected; [List connected apps](/api-reference/apps/list-connected) says whether it still works.
+
+What connected apps are, and read versus write: [Connected apps](/concepts/connected-apps). Needs `apps:read`. MCP tool: `list_apps`.

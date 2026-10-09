@@ -1,0 +1,9 @@
+---
+title: "Disconnect an app"
+description: "Remove your connection to an app."
+openapi: "DELETE /v1/apps/{app}/connection"
+---
+
+The sign-in is deleted. Workflows, the API, and AI assistants can no longer use the app until you connect it again. `disconnected` is `false` when the app was not connected.
+
+Needs `apps:write`. MCP tool: `disconnect_app`.

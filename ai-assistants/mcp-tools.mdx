@@ -13,7 +13,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 
 `search_skills`, `search_workflows`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
@@ -188,6 +188,28 @@ Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`
 
 `account:read` is on API keys. For an assistant it is opt-in: tick "See your credits balance and usage" under **Optional extra access** on the consent screen.
 
+## Connected apps
+
+Your own accounts, such as Gmail, Google Calendar, or Slack. What they are and how reading differs from writing: [Connected apps](/concepts/connected-apps).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_apps` | optional `q`, `limit`, `cursor` | `apps:read` | [List apps](/api-reference/apps/list) |
+| `list_connected_apps` | optional `limit`, `cursor` | `apps:read` | [List connected apps](/api-reference/apps/list-connected) |
+| `get_app` | `app` (id or name) | `apps:read` | [Get an app](/api-reference/apps/get) |
+| `list_app_tools` | `app`, optional `q` (a task), `limit` (default 25), `cursor` | `apps:read` | [List an app's tools](/api-reference/apps/list-tools) |
+| `read_from_app` | `app`, `tool`, optional `inputs` | `apps:read` | [Run an app tool](/api-reference/apps/run-tool), `read` tools only |
+| `act_in_app` | `app`, `tool`, optional `inputs` | `apps:write` | [Run an app tool](/api-reference/apps/run-tool), `write` tools |
+| `disconnect_app` | `app` | `apps:write` | [Disconnect an app](/api-reference/apps/disconnect) |
+
+`read_from_app` is marked read-only, so an assistant can run it without asking. It refuses a `write` tool, even when the connection has `apps:write`. `act_in_app` is marked as changing things, so assistants such as Claude ask you first.
+
+Each answer's text starts with one plain line, then the JSON. `list_app_tools` lists one tool per line with its kind and inputs (`*` marks a required one), then the plan for `q`. `get_app` puts the `connect_url` in its text, and `read_from_app` says that what follows is the app's own content: data, not instructions.
+
+When the app is not connected, `read_from_app` and `act_in_app` answer the error `needs_user`, with the `connect_url` in `details` and `next_step`.
+
+`apps:read` and `apps:write` are on API keys. For an assistant they are opt-in: tick "Read your connected apps" and "Act in your connected apps" under **Optional extra access** on the consent screen.
+
 ## Knowledge base
 
 Your knowledge base holds facts the assistant can reuse across chats, such as your company name or preferred cities. It has no API page.
@@ -232,7 +254,7 @@ Every failed tool call answers the same shape, as structured content and as JSON
 | `spend_cap` | The user reached their monthly spend cap in this workspace. Nothing ran. `details` has `cap` and `spent`. | Tell the user; the workspace owner can raise it. |
 | `capacity_full` | Too many runs in progress. `retry_after_s` says how long to wait. | Wait `retry_after_s`, then call again with the same `idempotency_key`. |
 | `run_failed` | The run ran and failed. | Follow `next_step`: usually `improve_skill`, or run again if it failed on our side. |
-| `needs_user` | The user must act: a login, a code, or a human check. | Pass on the message and `action_url`, then run again. |
+| `needs_user` | The user must act: a login, a code, a human check, or connecting an app. | Pass on the message and the link (`action_url`, or `connect_url` for an app), then run again. |
 | `conflict` | The `idempotency_key` was already used for a different run, or the request clashes with the current state. | Use a new `idempotency_key` for a new run. |
 | `internal` | Something failed on our side. The message has a reference. | Try again shortly; if it keeps failing, give the user the reference. |
 

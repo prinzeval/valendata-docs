@@ -43,6 +43,7 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/account/get.mdx | GET /v1/account (account:read) | account_api/schemas.py |
 | api-reference/account/usage.mdx | GET /v1/usage (from/to, ≤366 days, by_source, goodwill_refunds) | account_api/usage.py |
 | api-reference/webhooks/*.mdx | /v1/webhooks/secret, /rotate | async_runs/router.py |
+| api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
 
 Open follow-ups:
 - `workflows:write` and `account:read` are API-key only today. When the OAuth consent opt-in ships, the

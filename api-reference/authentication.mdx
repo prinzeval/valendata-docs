@@ -37,6 +37,8 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 | `workflows:invoke` | Run a workflow, stop your workflow runs, and switch a workflow schedule on. | Yes | On the consent screen |
 | `workflows:write` | Create, update, and delete workflows and their schedules. | No | Opt-in: "Create, edit and delete your workflows and schedules" under **Optional extra access** |
 | `account:read` | Read your credit balance, plan, and usage. | No | Opt-in: "See your credits balance and usage" under **Optional extra access** |
+| `apps:read` | See the apps you can connect and the ones you did, get a connect link, list an app's tools, and run its `read` tools (your emails, events, files). See [Connected apps](/concepts/connected-apps). | No | Opt-in: "Read your connected apps" under **Optional extra access** |
+| `apps:write` | Run an app's `write` tools (send an email, post a message, delete a file) and disconnect an app. | No | Opt-in: "Act in your connected apps" under **Optional extra access** |
 | `logins:write` | Save, change, and delete logins, and pick the login a skill signs in with. | No | API keys only |
 | `logins:use` | Run skills that [sign in with your saved login](/guides/use-a-saved-login), and send a run a sign-in code. Without it a run never signs in. | No | Comes with `skills:invoke` |
 | `webhooks:read` | Read your webhook signing secret. | No | API keys only |

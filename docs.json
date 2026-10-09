@@ -51,6 +51,7 @@
               "concepts/runs",
               "concepts/keeping-skills-working",
               "concepts/logins-and-browser-profiles",
+              "concepts/connected-apps",
               "concepts/workspaces",
               "concepts/credits"
             ]
@@ -196,6 +197,18 @@
               "api-reference/logins/get",
               "api-reference/logins/update",
               "api-reference/logins/delete"
+            ]
+          },
+          {
+            "group": "Connected apps",
+            "icon": "plug",
+            "pages": [
+              "api-reference/apps/list",
+              "api-reference/apps/list-connected",
+              "api-reference/apps/get",
+              "api-reference/apps/disconnect",
+              "api-reference/apps/list-tools",
+              "api-reference/apps/run-tool"
             ]
           },
           {

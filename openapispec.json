@@ -57,6 +57,10 @@
       "description": "Saved website logins a skill can sign in with."
     },
     {
+      "name": "Connected apps",
+      "description": "Your own accounts (Gmail, Calendar, Slack …): connect them, list their tools, and run one."
+    },
+    {
       "name": "Account and usage",
       "description": "Your plan, credit balance, and usage."
     },
@@ -126,6 +130,754 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/apps": {
+      "get": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "List apps",
+        "description": "Apps you can connect (Gmail, Google Calendar, Slack, Notion, HubSpot and hundreds more), each with `connected` (you have) and `connectable` (its sign-in works on Valendata today). Search with `q`; page with `limit` (1–50, default 25) and `cursor`. Needs `apps:read`.",
+        "operationId": "list_apps",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search app names and descriptions.",
+              "title": "Q"
+            },
+            "description": "Search app names and descriptions.",
+            "example": "calendar"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Items per page, 1–50.",
+              "default": 25,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–50."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of apps.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppList"
+                },
+                "example": {
+                  "apps": [
+                    {
+                      "slug": "googlecalendar",
+                      "name": "Google Calendar",
+                      "description": "Google Calendar is a time management and scheduling service.",
+                      "logo": "https://logos.composio.dev/api/googlecalendar",
+                      "categories": [
+                        "productivity"
+                      ],
+                      "connectable": true,
+                      "connected": true
+                    },
+                    {
+                      "slug": "calendly",
+                      "name": "Calendly",
+                      "description": "Calendly is an appointment scheduling tool.",
+                      "logo": "https://logos.composio.dev/api/calendly",
+                      "categories": [
+                        "scheduling"
+                      ],
+                      "connectable": true,
+                      "connected": false
+                    }
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/apps/connected": {
+      "get": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "List connected apps",
+        "description": "The apps you connected, each with `status`: `active` (it works) or `expired` (its sign-in lapsed; connect it again with the `connect_url` from `GET /v1/apps/{app}`). Needs `apps:read`.",
+        "operationId": "list_connected_apps",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The apps you connected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectedAppList"
+                },
+                "example": {
+                  "apps": [
+                    {
+                      "slug": "gmail",
+                      "name": "Gmail",
+                      "logo": "https://logos.composio.dev/api/gmail",
+                      "status": "active"
+                    },
+                    {
+                      "slug": "slack",
+                      "name": "Slack",
+                      "logo": "https://logos.composio.dev/api/slack",
+                      "status": "expired"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/apps/{app}": {
+      "get": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "Get an app",
+        "description": "One app, by id (`gmail`) or name (`Google Calendar`): whether you connected it, whether it can be connected, and `connect_url`, the page that connects it. Open it signed in to Valendata, then sign in to the app. The link does not expire, so you can send it to yourself. Needs `apps:read`.",
+        "operationId": "get_app",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "App"
+            },
+            "example": "gmail"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The app and the link that connects it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppDetail"
+                },
+                "example": {
+                  "slug": "gmail",
+                  "name": "Gmail",
+                  "logo": "https://logos.composio.dev/api/gmail",
+                  "connectable": true,
+                  "connected": false,
+                  "connect_url": "https://app.valendata.com/connect/gmail"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/apps/{app}/connection": {
+      "delete": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "Disconnect an app",
+        "description": "Remove your connection to the app. Its sign-in is deleted, and its tools stop working (for you, your workflows and your assistants) until you connect it again. `disconnected` is `false` when it was not connected. Needs `apps:write`.",
+        "operationId": "disconnect_app",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "App"
+            },
+            "example": "gmail"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disconnected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisconnectedApp"
+                },
+                "example": {
+                  "slug": "gmail",
+                  "disconnected": true
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/apps/{app}/tools": {
+      "get": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "List an app's tools",
+        "description": "The app's tools, most used first, each with its `inputs` and `kind`: `read` (only reads) or `write` (sends, creates, changes, or deletes something). Page with `limit` and `cursor`. With `q`, a task in plain words, you get only the few tools that do it, best first, plus a `plan` and `pitfalls`, with no paging. Needs `apps:read`.",
+        "operationId": "list_app_tools",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "App"
+            },
+            "example": "gmail"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A task in plain words: only the tools that do it, best first, with a plan (no paging).",
+              "title": "Q"
+            },
+            "description": "A task in plain words: only the tools that do it, best first, with a plan (no paging).",
+            "example": "unread emails from my boss"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The app's tools.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppToolList"
+                },
+                "example": {
+                  "tools": [
+                    {
+                      "slug": "GMAIL_FETCH_EMAILS",
+                      "name": "Fetch emails",
+                      "description": "Fetches emails from the mailbox, filtered by a Gmail search query.",
+                      "app": "gmail",
+                      "kind": "read",
+                      "inputs": [
+                        {
+                          "name": "query",
+                          "type": "string",
+                          "description": "Gmail search query, e.g. is:unread from:boss@example.com.",
+                          "required": false
+                        },
+                        {
+                          "name": "max_results",
+                          "type": "integer",
+                          "description": "Most emails to return.",
+                          "required": false
+                        }
+                      ]
+                    }
+                  ],
+                  "plan": [
+                    "Fetch with query 'is:unread from:<boss address>'."
+                  ],
+                  "pitfalls": [
+                    "Without a query, the newest emails of every sender come back."
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/apps/{app}/tools/{tool}/run": {
+      "post": {
+        "tags": [
+          "Connected apps"
+        ],
+        "summary": "Run an app tool",
+        "description": "Run one tool on your connected account with `inputs`, and get what the app answered in `data`. A `read` tool needs `apps:read`; a `write` tool needs `apps:write` and acts in your real account (an email is sent, an event is created), so send an `Idempotency-Key` to make a retry safe. `409` with code `app_not_connected` when you have not connected the app: `detail.connect_url` connects it. `502` when the app refused the call (`detail` says why).",
+        "operationId": "run_app_tool",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "App"
+            },
+            "example": "gmail"
+          },
+          {
+            "name": "tool",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tool"
+            },
+            "example": "GMAIL_FETCH_EMAILS"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAppToolRequest"
+              },
+              "example": {
+                "inputs": {
+                  "query": "is:unread",
+                  "max_results": 2
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "What the app answered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppToolResult"
+                },
+                "example": {
+                  "app": "gmail",
+                  "tool": "GMAIL_FETCH_EMAILS",
+                  "kind": "read",
+                  "data": {
+                    "messages": [
+                      {
+                        "messageId": "19a2f0c4e1b7d3a5",
+                        "sender": "Ada <ada@example.com>",
+                        "subject": "Q4 plan",
+                        "messageTimestamp": "2026-10-08T09:12:00Z",
+                        "preview": {
+                          "body": "Here is the plan for Q4…"
+                        }
+                      }
+                    ],
+                    "nextPageToken": null
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        },
+        "x-mcp-tool": "read_from_app, act_in_app"
       }
     },
     "/v1/logins": {
@@ -5510,6 +6262,66 @@
             }
           }
         }
+      },
+      "BadGateway": {
+        "description": "A connected app, or the service that connects it, answered with an error or could not be reached.",
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Request-ID": {
+            "$ref": "#/components/headers/X-Request-ID"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "detail": "A connected app, or the service that connects it, answered with an error or could not be reached.",
+              "code": "upstream_error",
+              "type": "api_error",
+              "request_id": "3f9a1c2b7d4e"
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "This part of the API is not available on the server right now. Retry later.",
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "X-Request-ID": {
+            "$ref": "#/components/headers/X-Request-ID"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "detail": "This part of the API is not available on the server right now. Retry later.",
+              "code": "service_unavailable",
+              "type": "api_error",
+              "request_id": "3f9a1c2b7d4e"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -5624,6 +6436,295 @@
         ],
         "title": "AnyScheduleList"
       },
+      "AppDetail": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "logo": {
+            "type": "string",
+            "title": "Logo",
+            "default": ""
+          },
+          "connectable": {
+            "type": "boolean",
+            "title": "Connectable",
+            "description": "Whether it can be connected today (its sign-in works on Valendata)."
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected",
+            "description": "Whether you have connected it and the connection works."
+          },
+          "connect_url": {
+            "type": "string",
+            "title": "Connect Url",
+            "description": "The page that connects it: you sign in to Valendata, then to the app. It does not expire."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "connectable",
+          "connected",
+          "connect_url"
+        ],
+        "title": "AppDetail"
+      },
+      "AppList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/AppSummary"
+            },
+            "type": "array",
+            "title": "Apps"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "apps",
+          "has_more"
+        ],
+        "title": "AppList"
+      },
+      "AppSummary": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug",
+            "description": "The app's id, used in every /v1/apps/{app} route, e.g. `gmail`."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "logo": {
+            "type": "string",
+            "title": "Logo",
+            "description": "URL of the app's logo.",
+            "default": ""
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "connectable": {
+            "type": "boolean",
+            "title": "Connectable",
+            "description": "Whether you can connect it today (its sign-in works on Valendata)."
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected",
+            "description": "Whether you have connected it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "connectable",
+          "connected"
+        ],
+        "title": "AppSummary"
+      },
+      "AppTool": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug",
+            "description": "The tool's id, e.g. `GMAIL_FETCH_EMAILS`."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "app": {
+            "type": "string",
+            "title": "App",
+            "description": "The app it belongs to."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Kind",
+            "description": "`read` only reads. `write` sends, creates, changes or deletes something."
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/AppToolInput"
+            },
+            "type": "array",
+            "title": "Inputs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "app",
+          "kind"
+        ],
+        "title": "AppTool"
+      },
+      "AppToolInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "JSON type: string, integer, boolean, array, object …"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "AppToolInput"
+      },
+      "AppToolList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/AppTool"
+            },
+            "type": "array",
+            "title": "Tools"
+          },
+          "plan": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Plan",
+            "description": "With `q`: steps that usually do the task."
+          },
+          "pitfalls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pitfalls",
+            "description": "With `q`: mistakes to avoid."
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "tools",
+          "has_more"
+        ],
+        "title": "AppToolList"
+      },
+      "AppToolResult": {
+        "properties": {
+          "app": {
+            "type": "string",
+            "title": "App"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Kind"
+          },
+          "data": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data",
+            "description": "What the app answered, as it answered it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "app",
+          "tool",
+          "kind"
+        ],
+        "title": "AppToolResult"
+      },
       "AutoRecharge": {
         "properties": {
           "enabled": {
@@ -5711,6 +6812,74 @@
           "cancelled"
         ],
         "title": "CancelRunResponse"
+      },
+      "ConnectedApp": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "logo": {
+            "type": "string",
+            "title": "Logo",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired"
+            ],
+            "title": "Status",
+            "description": "`active`: it works. `expired`: its sign-in lapsed; connect it again with `connect_url`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "status"
+        ],
+        "title": "ConnectedApp"
+      },
+      "ConnectedAppList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectedApp"
+            },
+            "type": "array",
+            "title": "Apps"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "apps",
+          "has_more"
+        ],
+        "title": "ConnectedAppList"
       },
       "CreateScheduleRequest": {
         "properties": {
@@ -6139,6 +7308,25 @@
         "type": "object",
         "title": "Diagnosis",
         "description": "Why the run came back short, and what a hint could say to fix it (POST /v1/skills/{slug}/improve)."
+      },
+      "DisconnectedApp": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "disconnected": {
+            "type": "boolean",
+            "title": "Disconnected",
+            "description": "False when there was no connection to remove."
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "disconnected"
+        ],
+        "title": "DisconnectedApp"
       },
       "ExecuteSkillRequest": {
         "properties": {
@@ -7550,6 +8738,18 @@
           "changed"
         ],
         "title": "RestoreResponse"
+      },
+      "RunAppToolRequest": {
+        "properties": {
+          "inputs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inputs",
+            "description": "The tool's inputs, by name."
+          }
+        },
+        "type": "object",
+        "title": "RunAppToolRequest"
       },
       "RunCode": {
         "properties": {
@@ -13642,7 +14842,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Stable machine-readable code. Known values: `bad_request`, `invalid_json`, `invalid_cursor`, `invalid_idempotency_key`, `unauthorized`, `payment_required`, `permission_denied`, `not_found`, `method_not_allowed`, `conflict`, `idempotency_key_in_use`, `idempotent_replay_unavailable`, `payload_too_large`, `unsupported_media_type`, `validation_error`, `idempotency_key_reused`, `rate_limited`, `internal_error`, `upstream_error`, `service_unavailable`.",
+            "description": "Stable machine-readable code. Known values: `bad_request`, `invalid_json`, `invalid_cursor`, `invalid_idempotency_key`, `unauthorized`, `payment_required`, `permission_denied`, `not_found`, `method_not_allowed`, `conflict`, `app_not_connected`, `idempotency_key_in_use`, `idempotent_replay_unavailable`, `payload_too_large`, `unsupported_media_type`, `validation_error`, `idempotency_key_reused`, `rate_limited`, `internal_error`, `upstream_error`, `service_unavailable`.",
             "example": "not_found"
           },
           "type": {

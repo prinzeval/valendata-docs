@@ -1,0 +1,9 @@
+---
+title: "List connected apps"
+description: "The apps you connected, and whether each still works."
+openapi: "GET /v1/apps/connected"
+---
+
+`status` is `active` when the connection works and `expired` when its sign-in lapsed. Connect an expired app again with the `connect_url` from [Get an app](/api-reference/apps/get).
+
+Needs `apps:read`. MCP tool: `list_connected_apps`.

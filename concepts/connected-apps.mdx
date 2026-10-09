@@ -1,0 +1,69 @@
+---
+title: "Connected apps"
+description: "Your own accounts on other services, such as Gmail, Google Calendar, Slack, or Notion, that Valendata can read from and act in for you."
+---
+
+A connected app is one of your own accounts on another service. Once you connect it, Valendata can use it for you: read your newest emails, check tomorrow's calendar, post in a Slack channel, or add a row to a Notion database.
+
+Skills read websites. Connected apps reach accounts that have their own API, so there is nothing to record and nothing to repair.
+
+You can use a connected app from:
+
+- **The app**: Igris, the in-app assistant.
+- **Workflows**: a **Connected App** step reads rows from an app or acts in it. See [Workflows](/concepts/workflows#steps).
+- **The API**: the [Connected apps](/api-reference/apps/list) routes.
+- **AI assistants**: the connected-app MCP tools. See [MCP tools](/ai-assistants/mcp-tools#connected-apps).
+
+All of them use the same connections. Connect Gmail once and every one of them can use it.
+
+## Connect an app
+
+1. Open **Integrations** in the app, or open the app's `connect_url` from [Get an app](/api-reference/apps/get).
+2. Sign in to the app on its own sign-in page and approve the access it asks for.
+3. You come back to Valendata with the app connected.
+
+The `connect_url` is a page on Valendata, such as `https://app.valendata.com/connect/gmail`. It does not expire and works on any device. You must be signed in to Valendata to use it, so a connection is always made by you, never by a key or an assistant on its own.
+
+Valendata never sees your password for the app. The sign-in the app issues is held, encrypted, by Composio, the service that connects the apps, and used only for tasks you start. See the [Privacy Policy](https://www.valendata.com/privacy-policy).
+
+`connectable: false` means the app's sign-in is not set up on Valendata yet, so it cannot be connected today.
+
+### Expired connections
+
+A connection can stop working, for example when you change your password or the app ends the sign-in. It then shows as `expired`. Connect it again the same way; your workflows pick it up on their next run.
+
+## Read and write
+
+Each app has tools. Every tool is one of two kinds:
+
+| Kind | What it does | Examples |
+| --- | --- | --- |
+| `read` | Only reads. Nothing changes in your account. | Find emails, list calendar events, search files. |
+| `write` | Sends, creates, changes, or deletes something in your real account. | Send an email, create an event, post a message, delete a file. |
+
+The kind comes from the app's own description of the tool. Anything not marked as only reading counts as `write`.
+
+A `write` happens only when you ask for it:
+
+| From | Before a write |
+| --- | --- |
+| Igris | Asks for your yes first. |
+| A workflow | Only in an app step you added. **Test step** never writes; it shows what would be sent. |
+| The API | The key needs `apps:write`. |
+| An AI assistant | The connection needs **Act in your connected apps** (`apps:write`). The tool that writes is marked as one that changes things, so assistants such as Claude ask you before they use it. |
+
+A write cannot be undone from Valendata. An email that was sent stays sent.
+
+An API key or an AI assistant needs `apps:read` to see your apps and run `read` tools, and `apps:write` to run `write` tools or disconnect an app. For an assistant both are opt-in. See [Authentication and scopes](/api-reference/authentication#scopes).
+
+## Disconnect an app
+
+Click **Disconnect** on the app in **Integrations** (or in **Vault**), or use [Disconnect an app](/api-reference/apps/disconnect). The sign-in is deleted, and nothing can use the app until you connect it again. You can also remove Valendata's access in the app's own account settings.
+
+## Limits
+
+- **Credits**: each call to an app costs credits — 0.1 for a read, 0.5 for a write (sending, creating, changing). A call that fails or is refused costs nothing, and a builder's Test step is never charged. Every call is listed under Activity on the Integrations page.
+- **Writes per workflow run**: at most 100. A run that reaches the limit stops, so a mistaken loop cannot email a whole list.
+- **Your own account only**: every call uses your own connections. An API key or an assistant never reaches a teammate's apps.
+- **The app's own limits**: each app has its own rate limits and rules. When the app refuses a call, the API answers `502` with the app's reason.
+- **Large answers**: the API returns the app's whole answer. An AI assistant may get a shortened copy, so ask the tool for fewer results, for example with its `max_results` input.

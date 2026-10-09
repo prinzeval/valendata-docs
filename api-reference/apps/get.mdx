@@ -1,0 +1,11 @@
+---
+title: "Get an app"
+description: "Whether you connected an app, and the link that connects it."
+openapi: "GET /v1/apps/{app}"
+---
+
+`{app}` is the app's id (`gmail`) or its name (`Google Calendar`). The answer always has the id in `slug`.
+
+Open `connect_url` to connect the app: sign in to Valendata, then to the app. The link does not expire and works on any device. It connects the app to the Valendata account that opens it, so open it signed in as yourself. An API key cannot connect an app on its own; a person always signs in. See [Connect an app](/concepts/connected-apps#connect-an-app).
+
+Needs `apps:read`. MCP tool: `get_app`.

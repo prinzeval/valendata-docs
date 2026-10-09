@@ -1,0 +1,13 @@
+---
+title: "List an app's tools"
+description: "Everything an app can do, with each tool's inputs and kind."
+openapi: "GET /v1/apps/{app}/tools"
+---
+
+Without `q`, every tool of the app, most used first. Some apps have hundreds; page with `limit` and `cursor`.
+
+With `q`, a task in plain words such as `unread emails from my boss`, you get only the few tools that do it, best first, with `plan` (steps that usually do the task) and `pitfalls`. This answer is one page.
+
+Each tool has its `inputs` (`name`, `type`, `description`, `required`) and its `kind`: `read` or `write`. See [Read and write](/concepts/connected-apps#read-and-write). Run one with [Run an app tool](/api-reference/apps/run-tool).
+
+Needs `apps:read`. MCP tool: `list_app_tools`.

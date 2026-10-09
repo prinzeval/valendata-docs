@@ -22,6 +22,9 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `schedule_skill`, `schedule_workflow`, `update_schedule` | Adds or changes a schedule. Each scheduled run then spends the owner's credits. | Not by itself |
 | `delete_schedule` | Turns a schedule off and forgets its settings. | No |
 | `save_knowledge` | Saves a fact. Overwrites the fact with the same `key`. | No |
+| `read_from_app` | No. Reads from your own connected app, such as your emails. | Yes, 0.1 credit per call |
+| `act_in_app` | Acts in your own connected app: sends, creates, changes, or deletes something there. It cannot be undone from Valendata. | Yes, 0.5 credit per call |
+| `disconnect_app` | Removes your connection to an app. Nothing can use it until you connect it again. | No |
 
 No tool deletes saved logins, and no tool reads or saves a password. No tool deletes runs: deleting a skill or a workflow keeps its runs.
 
