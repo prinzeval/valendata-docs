@@ -1,0 +1,9 @@
+---
+title: "Get a note"
+description: "One note in full."
+openapi: "GET /v1/notes/{note_id}"
+---
+
+The note's `title`, Markdown `body`, `topic`, `tags`, and `pinned`, who wrote it first (`source`, see [Notes](/concepts/notes)), `created_at`, `updated_at`, and `link`, its page in the app.
+
+Only your own; anyone else gets `404`. Needs `notes:read`. MCP tool: `get_note`.

@@ -45,6 +45,7 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/webhooks/*.mdx | /v1/webhooks/secret, /rotate | async_runs/router.py |
 | api-reference/followups/*.mdx, concepts/follow-ups.mdx | /v1/followups, /v1/followups/{followup_id}, /cancel (followups:read / followups:write, + apps:read for email_app / app_tool) | followups/api/*, followups/service.py (MAX_ACTIVE_PER_USER, MAX_WAIT_HOURS), mcp/followup_tools.py |
 | api-reference/jobs/*.mdx, concepts/background-jobs.mdx | /v1/jobs (POST start 1–6 items, 202, `refused`, 422 when none start), /v1/jobs/{job_id}, /cancel (jobs:read / jobs:write, + skills:invoke / workflows:invoke to start) | jobs/__init__.py, jobs/api/*, jobs/cancel.py, jobs/delivery/note.py, mcp/job_tools.py, agents/job_tools.py (MAX_ITEMS), services/subtask_service.py (MAX_FANOUT) |
+| api-reference/notes/*.mdx, concepts/notes.mdx | /v1/notes (q, topic, tag, pinned, limit/cursor), /v1/notes/{note_id} GET/PATCH (body / append / find+replace_with)/DELETE (notes:read / notes:write; source `api`) | notes/api/*, notes/service.py (MAX_TITLE, MAX_BODY, MAX_TAGS, MAX_TAG, MAX_TOPIC), notes/agent_tools.py (write_note, appended, edited), notes/models.py (SOURCES), mcp/note_tools.py |
 | api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
 
 Open follow-ups:

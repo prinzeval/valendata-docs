@@ -29,6 +29,9 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `cancel_followup` | Ends a waiting follow-up. Checks already made stay charged. | No |
 | `start_jobs` | Starts up to 6 skill or workflow runs in the background, each as a job, the same as `run_skill` and `run_workflow` would (a workflow's steps can write to sheets or send requests). See [Background jobs](/concepts/background-jobs). | Yes, what each run costs |
 | `cancel_job` | Stops a background job and the run it drives, or every open job in a batch. Rows already found are kept. Credits already used stay charged. | No |
+| `create_note` | Adds a note to your **Notes** page. | No |
+| `update_note` | Changes a note. A new `body` replaces the old one, which is not kept. | No |
+| `delete_note` | Deletes a note for good. | No |
 
 No tool deletes saved logins, and no tool reads or saves a password. No tool deletes runs: deleting a skill or a workflow keeps its runs.
 

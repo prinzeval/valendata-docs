@@ -1,0 +1,11 @@
+---
+title: "List notes"
+description: "Your notes, pinned first then the most recently changed, or the ones matching a search."
+openapi: "GET /v1/notes"
+---
+
+Without `q`, pinned notes come first, then the most recently changed. With `q`, only the notes that contain any of its words (in the title, body, tags, or topic) come back, best match first, at most the best 200. See [Search](/concepts/notes#search).
+
+`topic` keeps the notes with that topic, `tag` the notes with that tag, and `pinned` the pinned (`true`) or unpinned (`false`) ones. They combine with `q` and with each other. Each note comes in full, with the fields of [Get a note](/api-reference/notes/get).
+
+Needs `notes:read`. MCP tool: `list_notes`.

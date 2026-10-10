@@ -54,6 +54,7 @@
               "concepts/connected-apps",
               "concepts/follow-ups",
               "concepts/background-jobs",
+              "concepts/notes",
               "concepts/workspaces",
               "concepts/credits"
             ]
@@ -231,6 +232,17 @@
               "api-reference/jobs/list",
               "api-reference/jobs/get",
               "api-reference/jobs/cancel"
+            ]
+          },
+          {
+            "group": "Notes",
+            "icon": "note-sticky",
+            "pages": [
+              "api-reference/notes/list",
+              "api-reference/notes/create",
+              "api-reference/notes/get",
+              "api-reference/notes/update",
+              "api-reference/notes/delete"
             ]
           },
           {

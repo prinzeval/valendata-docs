@@ -1,0 +1,18 @@
+---
+title: "Create a note"
+description: "Write a new note on your Notes page."
+openapi: "POST /v1/notes"
+---
+
+Give a `title`, a Markdown `body`, or both. Without a title, the body's first line becomes it. `topic`, `tags`, and `pinned` are optional. Tags are kept lowercase, without a leading `#`, each once. The note is marked `source: api`.
+
+The answer is the note (`201`), with its `id` and `link`, its page in the app.
+
+Creating twice makes two notes, so send an `Idempotency-Key` to make a retry safe. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+| Status | Why |
+| --- | --- |
+| `403` | The key lacks `notes:write`. |
+| `422` | No title and no body, or a field is too long (`param` names it). See [Limits](/concepts/notes#limits). |
+
+MCP tool: `create_note`.

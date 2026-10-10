@@ -69,6 +69,10 @@
       "description": "What your agents started to run in the background (skill runs, workflow runs, research), what came back, and stopping it."
     },
     {
+      "name": "Notes",
+      "description": "The notes on your Notes page: list and search them, read one, write, change, and delete them."
+    },
+    {
       "name": "Account and usage",
       "description": "Your plan, credit balance, and usage."
     },
@@ -2464,6 +2468,594 @@
           }
         },
         "x-mcp-tool": "search_skills"
+      }
+    },
+    "/v1/notes": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "List notes",
+        "description": "Your notes: pinned first, then the most recently changed. With `q`, only the notes matching any of its words (in the title, body, tags or topic), best match first, at most the best 200. `topic`, `tag` and `pinned` keep only the notes that have them. Each note comes in full. Page with `limit` (1–100) and `cursor`. Needs `notes:read`. `503` until notes are switched on for your account.",
+        "operationId": "list_notes",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Words to search for in the title, body, tags and topic. Matches come best first.",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "Words to search for in the title, body, tags and topic. Matches come best first.",
+            "example": "dinner"
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only notes with this topic.",
+              "title": "Topic"
+            },
+            "description": "Only notes with this topic."
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only notes with this tag.",
+              "title": "Tag"
+            },
+            "description": "Only notes with this tag."
+          },
+          {
+            "name": "pinned",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only pinned notes (`true`) or unpinned ones (`false`).",
+              "title": "Pinned"
+            },
+            "description": "Only pinned notes (`true`) or unpinned ones (`false`).",
+            "example": true
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of your notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteList"
+                },
+                "example": {
+                  "notes": [
+                    {
+                      "id": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b",
+                      "title": "Dinner split 27 Sep",
+                      "body": "| Who | Owes | Status |\n| --- | --- | --- |\n| Ada | 12,000 | paid |\n| Tobi | 12,000 | owes |",
+                      "topic": "Money",
+                      "tags": [
+                        "dinner",
+                        "split"
+                      ],
+                      "pinned": true,
+                      "source": "api",
+                      "created_at": "2026-10-10T09:00:00Z",
+                      "updated_at": "2026-10-10T09:00:00Z",
+                      "link": "/notes/3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Create a note",
+        "description": "Write a new note on your Notes page: a `title`, a Markdown `body` (tables and checklists work), and optionally a `topic`, `tags` and `pinned`. Give a title or a body; without a title, the body's first line becomes it. Tags are kept lowercase, each once. The note is marked `source: api`. Answers `201` with the note. Needs `notes:write`.",
+        "operationId": "create_note",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNoteRequest"
+              },
+              "example": {
+                "title": "Dinner split 27 Sep",
+                "body": "| Who | Owes | Status |\n| --- | --- | --- |\n| Ada | 12,000 | paid |\n| Tobi | 12,000 | owes |",
+                "topic": "Money",
+                "tags": [
+                  "dinner",
+                  "split"
+                ],
+                "pinned": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The note, saved on your Notes page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                },
+                "example": {
+                  "id": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b",
+                  "title": "Dinner split 27 Sep",
+                  "body": "| Who | Owes | Status |\n| --- | --- | --- |\n| Ada | 12,000 | paid |\n| Tobi | 12,000 | owes |",
+                  "topic": "Money",
+                  "tags": [
+                    "dinner",
+                    "split"
+                  ],
+                  "pinned": true,
+                  "source": "api",
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "updated_at": "2026-10-10T09:00:00Z",
+                  "link": "/notes/3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/notes/{note_id}": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Get a note",
+        "description": "One note in full: its title, Markdown body, topic, tags, whether it is pinned, who wrote it first (`source`), when, and `link`, its page in the app. Only your own; anyone else gets 404. Needs `notes:read`.",
+        "operationId": "get_note",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            },
+            "example": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The note, in full.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                },
+                "example": {
+                  "id": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b",
+                  "title": "Dinner split 27 Sep",
+                  "body": "| Who | Owes | Status |\n| --- | --- | --- |\n| Ada | 12,000 | paid |\n| Tobi | 12,000 | owes |",
+                  "topic": "Money",
+                  "tags": [
+                    "dinner",
+                    "split"
+                  ],
+                  "pinned": true,
+                  "source": "api",
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "updated_at": "2026-10-10T09:00:00Z",
+                  "link": "/notes/3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Update a note",
+        "description": "Change a note; only what you send changes. The body changes one way per request: `body` replaces all of it, `append` adds text at the end (on the next line when it continues a list or a table), or `find` with `replace_with` changes one exact place, such as a table row. `find` must appear exactly once, or nothing changes and you get 422. Also sets `title`, `topic` (empty clears it), `tags` (replaces them; an empty list clears them) and `pinned`. Answers with the note as it is now. Only your own; anyone else gets 404. Needs `notes:write`.",
+        "operationId": "update_note",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            },
+            "example": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNoteRequest"
+              },
+              "example": {
+                "find": "| Tobi | 12,000 | owes |",
+                "replace_with": "| Tobi | 12,000 | paid |"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The note as it is now.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                },
+                "example": {
+                  "id": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b",
+                  "title": "Dinner split 27 Sep",
+                  "body": "| Who | Owes | Status |\n| --- | --- | --- |\n| Ada | 12,000 | paid |\n| Tobi | 12,000 | paid |",
+                  "topic": "Money",
+                  "tags": [
+                    "dinner",
+                    "split"
+                  ],
+                  "pinned": true,
+                  "source": "api",
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "updated_at": "2026-10-10T09:30:00Z",
+                  "link": "/notes/3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Delete a note",
+        "description": "Delete a note for good; it cannot be brought back. Answers with its id and title and `deleted: true`. Only your own; anyone else gets 404. Needs `notes:write`.",
+        "operationId": "delete_note",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            },
+            "example": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The note is gone for good.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteDeleted"
+                },
+                "example": {
+                  "id": "3b9e6f2a-1c4d-4e8f-9a7b-5d2c0e1f8a6b",
+                  "title": "Dinner split 27 Sep",
+                  "deleted": true
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
       }
     },
     "/v1/runs/{run_id}": {
@@ -7977,6 +8569,55 @@
         ],
         "title": "CreateFollowupRequest"
       },
+      "CreateNoteRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "description": "One line. Left out, the body's first line becomes the title. A title or a body is needed.",
+            "default": ""
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Body",
+            "description": "The note, in Markdown.",
+            "default": ""
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic",
+            "description": "One short topic, e.g. 'Travel'."
+          },
+          "tags": {
+            "items": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Tags",
+            "description": "Up to 10 short tags (each at most 40 characters). They are kept lowercase, without a leading #, each once."
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "description": "Pin it to the top of the list.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CreateNoteRequest"
+      },
       "CreateScheduleRequest": {
         "properties": {
           "cron": {
@@ -10170,6 +10811,160 @@
           "into"
         ],
         "title": "MergedField"
+      },
+      "Note": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "One line, at most 200 characters."
+          },
+          "body": {
+            "type": "string",
+            "title": "Body",
+            "description": "The note itself, in Markdown (tables and checklists work)."
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic",
+            "description": "One short topic, e.g. 'Travel'; null when none."
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "description": "Short lowercase tags."
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "description": "Pinned notes come first in the list.",
+            "default": false
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "user",
+              "igris",
+              "session",
+              "brain",
+              "api"
+            ],
+            "title": "Source",
+            "description": "Who wrote it first: `user` (you, on the Notes page), `igris` (the assistant), `session` (a chat session's agent), `brain` (a workflow's Brain) or `api` (the API or an AI assistant you connected)."
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "link": {
+            "type": "string",
+            "title": "Link",
+            "description": "The path of the note's page in the Valendata app, e.g. /notes/{id}."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "body",
+          "source",
+          "link"
+        ],
+        "title": "Note"
+      },
+      "NoteDeleted": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The title the note had."
+          },
+          "deleted": {
+            "type": "boolean",
+            "title": "Deleted",
+            "description": "Always true: the note is gone for good.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "NoteDeleted"
+      },
+      "NoteList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "notes",
+          "has_more"
+        ],
+        "title": "NoteList"
       },
       "OutputUpdate": {
         "properties": {
@@ -15654,6 +16449,123 @@
           "available"
         ],
         "title": "UpdateCheckOut"
+      },
+      "UpdateNoteRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "A new title."
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body",
+            "description": "A new body: replaces all of it."
+          },
+          "append": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Append",
+            "description": "Text to add at the end of the body: on the next line when it continues a list or a table, after a blank line otherwise."
+          },
+          "find": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Find",
+            "description": "Exact text in the body to change, e.g. a whole table row. It must appear exactly once. Send with `replace_with`."
+          },
+          "replace_with": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replace With",
+            "description": "What `find` becomes; empty removes it."
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic",
+            "description": "A new topic; empty clears it."
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags",
+            "description": "The new tags, replacing the old ones; an empty list clears them. Up to 10 short tags (each at most 40 characters). They are kept lowercase, without a leading #, each once."
+          },
+          "pinned": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned",
+            "description": "Pin or unpin it."
+          }
+        },
+        "type": "object",
+        "title": "UpdateNoteRequest",
+        "description": "Only what is sent changes. The body changes one way per call: ``body`` (all of it),\n``append`` (added at the end) or ``find`` + ``replace_with`` (one exact place)."
       },
       "UpdateTakenOut": {
         "properties": {

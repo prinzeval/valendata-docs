@@ -1,0 +1,23 @@
+---
+title: "Update a note"
+description: "Change a note's title, body, topic, tags, or pin. Only what you send changes."
+openapi: "PATCH /v1/notes/{note_id}"
+---
+
+The body changes one way per request:
+
+- `body` replaces all of it.
+- `append` adds text at the end. A list item or table row goes on the next line, anything else after a blank line.
+- `find` with `replace_with` changes one exact place, such as a table row. `find` must appear exactly once; otherwise nothing changes and you get `422`. An empty `replace_with` removes the text.
+
+`title` sets a new title. `topic` sets the topic, and an empty string clears it. `tags` replaces all the tags, and an empty list clears them. `pinned` pins or unpins the note. `source` never changes.
+
+The answer is the note as it is now. Read the note first with [Get a note](/api-reference/notes/get) when you change one place, so `find` matches it exactly.
+
+| Status | Why |
+| --- | --- |
+| `403` | The key lacks `notes:write`. |
+| `404` | No such note, or it is not yours. |
+| `422` | Nothing to change, more than one way to change the body, `find` without `replace_with` (or the other way round), `find` not in the body or in it more than once, or the body would be longer than 20,000 characters. |
+
+MCP tool: `update_note`.

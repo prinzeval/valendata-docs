@@ -43,6 +43,8 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 | `followups:write` | Create and cancel follow-ups. A follow-up that looks in a connected app also needs `apps:read`. | Only for checks that read a connected app | Opt-in: "Create follow-ups" under **Optional extra access** |
 | `jobs:read` | List and read [background jobs](/concepts/background-jobs) and what came back, including the ones your in-app agents started. | No | Opt-in: "See background jobs" under **Optional extra access** |
 | `jobs:write` | Start and stop background jobs. Starting one also needs `skills:invoke` or `workflows:invoke` for what it runs. | Yes, through the runs it starts | Opt-in: "Start and stop background jobs" under **Optional extra access** |
+| `notes:read` | List, search, and read your [notes](/concepts/notes). | No | Opt-in: "Read your notes" under **Optional extra access** |
+| `notes:write` | Create, change, and delete your notes. | No | Opt-in: "Write your notes" under **Optional extra access** |
 | `logins:write` | Save, change, and delete logins, and pick the login a skill signs in with. | No | API keys only |
 | `logins:use` | Run skills that [sign in with your saved login](/guides/use-a-saved-login), and send a run a sign-in code. Without it a run never signs in. | No | Comes with `skills:invoke` |
 | `webhooks:read` | Read your webhook signing secret. | No | API keys only |

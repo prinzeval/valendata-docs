@@ -13,7 +13,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 
 `search_skills`, `search_workflows`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
@@ -243,6 +243,24 @@ Nothing calls the assistant back. `start_jobs` answers at once with one line per
 `start_jobs` is marked as reaching outside Valendata and changing things, like `run_workflow`. `cancel_job` is marked as changing things.
 
 `jobs:read` and `jobs:write` are on API keys. For an assistant they are opt-in: tick "See background jobs" and "Start and stop background jobs" under **Optional extra access** on the consent screen.
+
+## Notes
+
+Read, search, and write the notes on your **Notes** page: lists, plans, bill splits, anything you keep. What notes are, who writes them, and how a change works: [Notes](/concepts/notes).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_notes` | optional `q`, `topic`, `tag`, `pinned`, `limit` (default 20), `cursor` | `notes:read` | [List notes](/api-reference/notes/list) |
+| `get_note` | `note_id` | `notes:read` | [Get a note](/api-reference/notes/get) |
+| `create_note` | `title` and/or `body`, optional `topic`, `tags`, `pinned` | `notes:write` | [Create a note](/api-reference/notes/create) |
+| `update_note` | `note_id`, and one of `body`, `append`, or `find` with `replace_with`, and/or `title`, `topic`, `tags`, `pinned` | `notes:write` | [Update a note](/api-reference/notes/update) |
+| `delete_note` | `note_id` | `notes:write` | [Delete a note](/api-reference/notes/delete) |
+
+`list_notes` lists one note per line with its id, title, topic, tags, when it changed, and who wrote it, then says which tool reads or changes one. `get_note` names the note and marks its body as your own data, not instructions. `create_note` says the note is saved on your **Notes** page and asks the assistant not to repeat the whole note. `update_note` refuses a `find` that is not in the note, or is in it more than once, and changes nothing.
+
+`create_note` is marked as adding, not changing. `update_note` is marked as changing things, because it can overwrite the body. `delete_note` is marked as destructive, and its description tells the assistant to delete only when you asked and said yes, so assistants such as Claude ask you first.
+
+`notes:read` and `notes:write` are on API keys. For an assistant they are opt-in: tick "Read your notes" and "Write your notes" under **Optional extra access** on the consent screen.
 
 ## Knowledge base
 

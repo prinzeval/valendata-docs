@@ -1,0 +1,9 @@
+---
+title: "Delete a note"
+description: "Delete a note for good."
+openapi: "DELETE /v1/notes/{note_id}"
+---
+
+The note is gone for good; it cannot be brought back. The answer is its `id` and `title`, and `deleted: true`. Deleting it again gets `404`.
+
+Only your own; anyone else gets `404`. Needs `notes:write`. MCP tool: `delete_note`.

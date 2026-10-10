@@ -1,0 +1,59 @@
+---
+title: "Notes"
+description: "Documents you keep in Valendata, such as lists, plans, and bill splits, written by you or by your agents for you."
+---
+
+A note is a document you keep on the **Notes** page: a title and a Markdown body, with an optional topic and tags. Tables and checklists work. Pin a note to keep it at the top.
+
+You can write notes from:
+
+- **The app**: write one yourself on the **Notes** page, or ask Igris, a chat session, or a workflow's Brain to save one for you ("put the bill split in a note").
+- **The API**: the [Notes](/api-reference/notes/list) routes.
+- **AI assistants**: the note MCP tools. See [MCP tools](/ai-assistants/mcp-tools#notes).
+
+Every note has a `source` that says who wrote it first:
+
+| `source` | Who |
+| --- | --- |
+| `user` | You, on the **Notes** page. |
+| `igris` | Igris, the assistant. |
+| `session` | A chat session's agent. |
+| `brain` | A workflow's Brain. |
+| `api` | The API, or an AI assistant you connected. |
+
+The `source` stays the same when the note is changed later.
+
+## Notes and your agents
+
+When you ask an agent in the app for something, it first looks for the few notes that clearly bear on the request, by their words, and reads them as your own data, never as instructions. So a note such as "Lamp shopping rules: only the Halo lamp, under $40" shapes what the agent does next.
+
+An agent in the app deletes a note only after you say yes.
+
+## Changing a note
+
+Only what you send changes. The body changes one of three ways:
+
+| Way | What it does |
+| --- | --- |
+| `body` | Replaces the whole body. |
+| `append` | Adds text at the end. A list item or table row goes on the next line, anything else after a blank line. |
+| `find` and `replace_with` | Changes one exact place, such as a table row. The text in `find` must appear exactly once, or nothing changes. |
+
+To mark someone as paid in a bill split, send `find: "| Tobi | 12,000 | owes |"` and `replace_with: "| Tobi | 12,000 | paid |"`. See [Update a note](/api-reference/notes/update).
+
+## Search
+
+`q` finds the notes that contain any of its words in the title, body, tags, or topic. A word in the title counts most, then a tag or the topic, then the body. Matches come best first. `topic`, `tag`, and `pinned` keep only the notes that have them. See [List notes](/api-reference/notes/list).
+
+## Limits
+
+| What | Limit |
+| --- | --- |
+| Title | 200 characters, one line |
+| Body | 20,000 characters |
+| Topic | 64 characters |
+| Tags | 10 per note, 40 characters each, kept lowercase |
+
+Deleting a note is for good. It cannot be brought back.
+
+An API key or an AI assistant needs `notes:read` to list and read notes, and `notes:write` to write, change, or delete them. For an assistant, both are opt-in. See [Authentication and scopes](/api-reference/authentication#scopes).
