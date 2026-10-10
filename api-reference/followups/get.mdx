@@ -1,0 +1,11 @@
+---
+title: "Get a follow-up"
+description: "One follow-up: its status, and once it ended, its outcome and what was found."
+openapi: "GET /v1/followups/{followup_id}"
+---
+
+Poll this after [Create a follow-up](/api-reference/followups/create). While `status` is `waiting`, `next_check_at` is when the place is looked in next and `checks` how many times it has been. Once `status` is `done`, `outcome` is `found`, `time_up`, or `expired`, and `found` holds only the thing that arrived: its `kind`, a one-line `summary`, and the `code`, `link`, `file_url` and `file_name`, or a short `text`, with `sender`, `subject`, and `received_at`. `note` is one plain line on how it ended.
+
+`cancelled` and `failed` follow-ups stay readable; `failed` means the place could not be checked (`note` says why, for example the app was disconnected).
+
+Only your own; anyone else gets `404`. Needs `followups:read`. MCP tool: `get_followup`.

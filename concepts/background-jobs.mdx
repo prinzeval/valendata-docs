@@ -1,0 +1,64 @@
+---
+title: "Background jobs"
+description: "Work an agent starts and leaves running while you keep talking: a skill run, a workflow run, or research. Results come back into the same chat."
+---
+
+A background job is work an agent sets going and leaves running while the conversation goes on. It is one of three things:
+
+- a run of one of your **skills**,
+- a run of one of your **workflows**,
+- a **research helper**: a helper with its own chat and browser, given one task to look into.
+
+You keep talking. When the job ends, its result comes back into the chat that started it.
+
+Jobs can be started from:
+
+- **The app**: Igris and your chat sessions start them when you ask for something to run while you keep talking, or when the work is slow (several sites, a long scrape). When Igris runs one of your skills, it always runs as a job.
+- **The API**: the [Background jobs](/api-reference/jobs/start) routes.
+- **AI assistants**: the job MCP tools. See [MCP tools](/ai-assistants/mcp-tools#background-jobs).
+
+A job started through the API or an assistant tells nobody when it ends. Read it back with [Get a background job](/api-reference/jobs/get) (or `get_job`) until it has ended.
+
+A job is not a different kind of run. It wraps a normal [run](/concepts/runs) and keeps track of it for the chat, so the run still shows in your run history and costs the same as running it yourself.
+
+## How results come back
+
+- **While it runs**, the job shows in the chat with its name and status. The chip by the chat box (for example **2 agents**) counts the jobs running in all your chats. Press it to see them, open the chat that started one, or cancel one.
+- **When it ends**, its result lands in the chat that started it: one plain line of what came back and a link to the full run. The agent tells you right away, even in the middle of other work.
+- **One by one**: each job reports as soon as it ends. You do not wait for the slowest one.
+
+The result in the chat is short on purpose: a line, the row count, and the first few rows. The run's own page has every row.
+
+## Batches
+
+Start two or more things together and they form a **batch**, for example "check this product on Amazon and on eBay". Each result still comes back as it lands. When the last one has ended, the agent gives you **one combined answer** from all of them, the way you asked (compared, ranked, or merged), and says which ones did not work and why.
+
+A batch is a job too, of kind `batch`. It ends when every job in it has ended.
+
+## Status
+
+| Status | Means |
+| --- | --- |
+| `queued` | Started, waiting its turn. |
+| `running` | Working. |
+| `completed` | Done. `summary` says what came back. |
+| `failed` | It did not work. `error` says why. |
+| `cancelled` | Stopped before it finished. |
+
+Once a job has ended, its status never changes. The other fields are on [Get a background job](/api-reference/jobs/get).
+
+## Stop a job
+
+Press **Cancel** on the job in the chat, ask the agent to stop it, or use [Cancel a background job](/api-reference/jobs/cancel). Stopping a job stops its run too. Rows the run already found are kept, and credits already used stay charged. Stopping a batch stops every job in it that is still running.
+
+## If Valendata restarts
+
+Jobs are saved, so a restart does not lose them: work still waiting starts when Valendata is back, and every job still reports how it ended. A skill run cut off in the middle ends as `failed` and you are told, rather than being run twice.
+
+## Limits
+
+- **Per start**: up to 6 things at once. Two or more make a batch.
+- **Research helpers**: only an agent in a chat in the app can start them, at most 3 at a time. The API and AI assistants start skills and workflows only. A research helper cannot start jobs of its own.
+- **Credits**: a job costs what the run inside it costs. See [Credits](/concepts/credits).
+
+An API key or an AI assistant needs `jobs:read` to see jobs and `jobs:write` to start or stop them, plus `skills:invoke` or `workflows:invoke` for what it starts. A key limited to some skills or workflows may start only those. For an assistant, `jobs:read` and `jobs:write` are opt-in. See [Authentication and scopes](/api-reference/authentication#scopes).

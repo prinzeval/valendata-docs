@@ -1,0 +1,69 @@
+---
+title: "Follow-ups"
+description: "Wait for something to arrive, such as a sign-in code, a verify link, a file, or a reply, or check back later, and carry on when it comes."
+---
+
+A follow-up is a wait with a place to look and a deadline. "The site emailed a code", "the recruiter will send the offer letter", "the export is ready in ten minutes": an agent records what it is waiting for and where it will land, Valendata watches that place, and the agent carries on when the thing arrives or the time is up.
+
+You can make follow-ups from:
+
+- **The app**: Igris and your in-app agents make them as they work, and are woken in their own chat when the thing comes.
+- **The API**: the [Follow-ups](/api-reference/followups/create) routes.
+- **AI assistants**: the follow-up MCP tools. See [MCP tools](/ai-assistants/mcp-tools#follow-ups).
+
+A follow-up made through the API or an assistant wakes nobody. You create it, then read it back with [Get a follow-up](/api-reference/followups/get) (or `get_followup`) until it has ended.
+
+## Wait, or check back
+
+| Kind | What it does | Ends with |
+| --- | --- | --- |
+| **Wait** | Watches a place for something that fits, until the deadline. | `found` (with the thing), or `expired` when nothing came in time. |
+| **Check back** | Nothing to watch: a reminder at a time, for "come back when the export is ready". | `time_up`. |
+
+A check-back is a follow-up whose place is `time`.
+
+## Where things can land
+
+| `where.kind` | The place | Checked |
+| --- | --- | --- |
+| `inbox` | Your Valendata address, the one you hand to sites. | The moment mail arrives. |
+| `email_app` | A connected mail app, such as Gmail or Outlook, by its account address. | Every so often, by reading the app. |
+| `app_tool` | Any `read` tool of a [connected app](/concepts/connected-apps), run with the same inputs each time: a Slack channel, a Drive folder, a CRM record. | Every so often, by running the tool. |
+| `webpage` | A page that will change, such as "your export is ready". | Every so often, by reading the page. |
+| `run` | A workflow run reaching its end. | When the run ends. |
+| `time` | Nothing: a check-back. | At the time. |
+
+Give a mailbox address and Valendata works out whether it is your Valendata inbox or a connected mail app. A place in a connected app needs that app connected; otherwise the answer is `app_not_connected` with the link that connects it.
+
+## What counts as arrived
+
+`match` says what you are waiting for and who it should come from. Every field you give must hold; the ones you leave empty are not checked.
+
+| Field | Meaning |
+| --- | --- |
+| `kind` | `code` (a one-time code), `link` (a link to click: verify, reset, sign in), `file` (an attachment), `message` (a message itself, such as a reply or an offer), or `any`. |
+| `from_domain` | The sender's domain, such as `greenhouse.io`. A sender on it or a sub-domain counts. |
+| `sender`, `recipient` | The exact addresses. `recipient` keeps two runs to different addresses apart. |
+| `subject_has`, `text_has` | Words the subject, or the subject or body, must contain. Case does not matter. |
+
+Three rules are built in and cannot be switched off:
+
+- Only things that arrive **after the follow-up was made** count. An old code in the mailbox never matches.
+- The agent is handed **only the thing it waited for**: the code, the link, the file, or a short excerpt. Never the rest of the mailbox.
+- A place in a connected app is read **as you**, with your own connection, and only with tools that read. A follow-up never sends or changes anything.
+
+## What you get back
+
+Each follow-up has a `status`: `waiting`, `done`, `cancelled`, or `failed` (it could not be checked, for example the app was disconnected; `note` says why). Once it is `done`, `outcome` says how (`found`, `time_up`, `expired`) and `found` holds what arrived: its `kind`, a one-line `summary`, and the `code`, `link`, `file_url`, or `text`. The fields are on [Get a follow-up](/api-reference/followups/get).
+
+## Limits
+
+- **Waiting at once**: up to 25 per account. Cancel one to make room.
+- **How long**: up to 72 hours each. After the deadline a wait ends as `expired`.
+- **How often**: `check_every` is at least 30 seconds. Leave it out for what suits the place; an inbox and a run are told on arrival and need no polling.
+
+## Credits
+
+Watching your Valendata inbox, a web page, a run, or the time is free. Each check that reads a **connected app** (`email_app`, `app_tool`) is an app call and costs the app-call price, the same as reading the app yourself (see [Connected apps](/concepts/connected-apps#limits)). A wait of two hours that checks every minute is 120 calls, so choose `check_every` with that in mind. Every call is listed under Activity on the Integrations page.
+
+An API key or an AI assistant needs `followups:read` to see follow-ups and `followups:write` to create or cancel them, plus `apps:read` for a place in a connected app. For an assistant all of them are opt-in. See [Authentication and scopes](/api-reference/authentication#scopes).

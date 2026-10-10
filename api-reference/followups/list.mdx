@@ -1,0 +1,9 @@
+---
+title: "List follow-ups"
+description: "Your follow-ups, newest first: the waiting ones, or every one."
+openapi: "GET /v1/followups"
+---
+
+Without `active=false` only follow-ups still `waiting` are listed. `kind` keeps one kind of place; `agent` keeps one kind of waiter: `api` for follow-ups made through the API or an assistant, `igris`, `session`, or `brain` for ones your in-app agents made. Each item has the fields of [Get a follow-up](/api-reference/followups/get).
+
+Needs `followups:read`. MCP tool: `list_followups`.

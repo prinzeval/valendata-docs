@@ -1,0 +1,22 @@
+---
+title: "Create a follow-up"
+description: "Wait for something to arrive somewhere, or check back later."
+openapi: "POST /v1/followups"
+---
+
+`where` is the place, `match` what counts as arrived, `within` how long to wait, all explained in [Follow-ups](/concepts/follow-ups). Durations are strings such as `15m`, `2h`, `1h30m`, `10 minutes`, or a number of seconds.
+
+The answer is the follow-up as `waiting`, with its `id`. Nothing calls you back: poll [Get a follow-up](/api-reference/followups/get) until `status` is `done`. For `kind: time`, leave `match` and `check_every` out.
+
+Creating twice makes two waits, so send an `Idempotency-Key` to make a retry safe. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+| Status | Why |
+| --- | --- |
+| `403` | The key lacks `followups:write`, or `apps:read` for a place in a connected app. |
+| `404` | The app has no such tool. `detail` points to its tool list. |
+| `409` `app_not_connected` | The app is not connected, or its connection expired. `detail.connect_url` connects it. |
+| `422` | A field is wrong (`param` names it): a tool that writes, a `within` over 72 hours, a field that does not go with that `kind`, or you have no Valendata address yet. |
+
+You can have 25 follow-ups waiting at once; one more is refused with a sentence that says so. Cancel one to make room.
+
+MCP tool: `create_followup`.

@@ -1,0 +1,9 @@
+---
+title: "Cancel a follow-up"
+description: "Call a waiting follow-up off."
+openapi: "POST /v1/followups/{followup_id}/cancel"
+---
+
+No more checks, and the follow-up ends as `cancelled`; it stays readable. `cancelled` is `true` when it was waiting, and `false` when it had already ended (it is left as it is, and `status` says how).
+
+Needs `followups:write`. MCP tool: `cancel_followup`.

@@ -43,6 +43,8 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/account/get.mdx | GET /v1/account (account:read) | account_api/schemas.py |
 | api-reference/account/usage.mdx | GET /v1/usage (from/to, ≤366 days, by_source, goodwill_refunds) | account_api/usage.py |
 | api-reference/webhooks/*.mdx | /v1/webhooks/secret, /rotate | async_runs/router.py |
+| api-reference/followups/*.mdx, concepts/follow-ups.mdx | /v1/followups, /v1/followups/{followup_id}, /cancel (followups:read / followups:write, + apps:read for email_app / app_tool) | followups/api/*, followups/service.py (MAX_ACTIVE_PER_USER, MAX_WAIT_HOURS), mcp/followup_tools.py |
+| api-reference/jobs/*.mdx, concepts/background-jobs.mdx | /v1/jobs (POST start 1–6 items, 202, `refused`, 422 when none start), /v1/jobs/{job_id}, /cancel (jobs:read / jobs:write, + skills:invoke / workflows:invoke to start) | jobs/__init__.py, jobs/api/*, jobs/cancel.py, jobs/delivery/note.py, mcp/job_tools.py, agents/job_tools.py (MAX_ITEMS), services/subtask_service.py (MAX_FANOUT) |
 | api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
 
 Open follow-ups:

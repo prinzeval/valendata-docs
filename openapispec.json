@@ -61,6 +61,14 @@
       "description": "Your own accounts (Gmail, Calendar, Slack …): connect them, list their tools, and run one."
     },
     {
+      "name": "Follow-ups",
+      "description": "Wait for something to arrive (a code, a link, a file, a message) or check back later, and read what came."
+    },
+    {
+      "name": "Jobs",
+      "description": "What your agents started to run in the background (skill runs, workflow runs, research), what came back, and stopping it."
+    },
+    {
       "name": "Account and usage",
       "description": "Your plan, credit balance, and usage."
     },
@@ -878,6 +886,1030 @@
           }
         },
         "x-mcp-tool": "read_from_app, act_in_app"
+      }
+    },
+    "/v1/followups": {
+      "post": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Create a follow-up",
+        "description": "Wait for something to arrive, or check back later. `where.kind` says where it will land: `inbox` (your Valendata address), `email_app` (a connected mail app, by its `address`), `app_tool` (a read tool of a connected app, run with `arguments` on each check), `webpage` (a page that will change, by `url`), `run` (a workflow run reaching its end, by `run_id`), or `time` (nothing to look in: a check-back when `within` is up). `match` says what counts as arrived: its `kind` (`code`, `link`, `file`, `message`, `any`) and the sender's domain, address, recipient, or words it must contain. Only things that arrive after now count. `within` (at most 72 hours) is how long to wait, `check_every` how often to look. Answers `201` with the follow-up as `waiting`; poll `GET /v1/followups/{followup_id}` for its outcome (nothing calls you back). Up to 25 waiting at once. Needs `followups:write`, plus `apps:read` for `email_app` and `app_tool` (each check reads the app and costs the app-call price). `409` with code `app_not_connected` when the app is not connected: `detail.connect_url` connects it.",
+        "operationId": "create_followup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFollowupRequest"
+              },
+              "example": {
+                "what": "the sign-in code from greenhouse.io",
+                "where": {
+                  "kind": "inbox"
+                },
+                "match": {
+                  "kind": "code",
+                  "from_domain": "greenhouse.io"
+                },
+                "within": "15m"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The follow-up, waiting. Poll `GET /v1/followups/{followup_id}` for its outcome.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Followup"
+                },
+                "example": {
+                  "id": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c",
+                  "agent": "api",
+                  "conversation_id": "",
+                  "what": "the sign-in code from greenhouse.io",
+                  "where": {
+                    "kind": "inbox",
+                    "app": "",
+                    "address": "ada.lovelace@mail.valendata.com",
+                    "tool": "",
+                    "url": "",
+                    "run_id": ""
+                  },
+                  "match": {
+                    "kind": "code",
+                    "from_domain": "greenhouse.io",
+                    "sender": "",
+                    "recipient": "",
+                    "subject_has": "",
+                    "text_has": ""
+                  },
+                  "status": "waiting",
+                  "outcome": null,
+                  "found": null,
+                  "note": null,
+                  "since": "2026-10-10T09:00:00Z",
+                  "next_check_at": "2026-10-10T09:00:30Z",
+                  "deadline": "2026-10-10T09:15:00Z",
+                  "checks": 0,
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "ended_at": null
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "List follow-ups",
+        "description": "Your follow-ups, newest first: the waiting ones, or every one with `active=false`. `kind` keeps one kind of place (`inbox`, `email_app`, `app_tool`, `webpage`, `run`, `time`); `agent` keeps one kind of waiter (`api` for follow-ups made here, `igris`, `session` or `brain` for ones your in-app agents made). Page with `limit` (1–100) and `cursor`. Needs `followups:read`.",
+        "operationId": "list_followups",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only follow-ups still waiting (default). `false`: every one.",
+              "default": true,
+              "title": "Active"
+            },
+            "description": "Only follow-ups still waiting (default). `false`: every one.",
+            "example": true
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "inbox",
+                    "email_app",
+                    "app_tool",
+                    "webpage",
+                    "run",
+                    "time"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only follow-ups looking in this kind of place.",
+              "title": "Kind"
+            },
+            "description": "Only follow-ups looking in this kind of place.",
+            "example": "inbox"
+          },
+          {
+            "name": "agent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "igris",
+                    "session",
+                    "brain",
+                    "api"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only follow-ups made by this kind of agent.",
+              "title": "Agent"
+            },
+            "description": "Only follow-ups made by this kind of agent."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of your follow-ups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowupList"
+                },
+                "example": {
+                  "followups": [
+                    {
+                      "id": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c",
+                      "agent": "api",
+                      "conversation_id": "",
+                      "what": "the sign-in code from greenhouse.io",
+                      "where": {
+                        "kind": "inbox",
+                        "app": "",
+                        "address": "ada.lovelace@mail.valendata.com",
+                        "tool": "",
+                        "url": "",
+                        "run_id": ""
+                      },
+                      "match": {
+                        "kind": "code",
+                        "from_domain": "greenhouse.io",
+                        "sender": "",
+                        "recipient": "",
+                        "subject_has": "",
+                        "text_has": ""
+                      },
+                      "status": "waiting",
+                      "outcome": null,
+                      "found": null,
+                      "note": null,
+                      "since": "2026-10-10T09:00:00Z",
+                      "next_check_at": "2026-10-10T09:00:30Z",
+                      "deadline": "2026-10-10T09:15:00Z",
+                      "checks": 0,
+                      "created_at": "2026-10-10T09:00:00Z",
+                      "ended_at": null
+                    }
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/followups/{followup_id}": {
+      "get": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Get a follow-up",
+        "description": "One follow-up: `status` (`waiting`, `done`, `cancelled`, `failed`), and once it ended, `outcome` (`found`, `time_up`, `expired`) with `found` holding only the thing that arrived — the code, link, file or a short excerpt — never the rest of the mailbox. `note` is one plain line on how it ended. Only your own; anyone else gets 404. Needs `followups:read`.",
+        "operationId": "get_followup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "followup_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Followup Id"
+            },
+            "example": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The follow-up: once it ended, its outcome and what was found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Followup"
+                },
+                "example": {
+                  "id": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c",
+                  "agent": "api",
+                  "conversation_id": "",
+                  "what": "the sign-in code from greenhouse.io",
+                  "where": {
+                    "kind": "inbox",
+                    "app": "",
+                    "address": "ada.lovelace@mail.valendata.com",
+                    "tool": "",
+                    "url": "",
+                    "run_id": ""
+                  },
+                  "match": {
+                    "kind": "code",
+                    "from_domain": "greenhouse.io",
+                    "sender": "",
+                    "recipient": "",
+                    "subject_has": "",
+                    "text_has": ""
+                  },
+                  "status": "done",
+                  "outcome": "found",
+                  "found": {
+                    "kind": "code",
+                    "summary": "a 6-digit code from greenhouse.io",
+                    "code": "482913",
+                    "link": "",
+                    "file_url": "",
+                    "file_name": "",
+                    "text": "",
+                    "sender": "no-reply@greenhouse.io",
+                    "subject": "Your Greenhouse verification code",
+                    "received_at": "2026-10-10T09:01:12Z",
+                    "ref": "msg_01HZX"
+                  },
+                  "note": "A 6-digit code from greenhouse.io arrived.",
+                  "since": "2026-10-10T09:00:00Z",
+                  "next_check_at": "2026-10-10T09:01:12Z",
+                  "deadline": "2026-10-10T09:15:00Z",
+                  "checks": 3,
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "ended_at": "2026-10-10T09:01:12Z"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/followups/{followup_id}/cancel": {
+      "post": {
+        "tags": [
+          "Follow-ups"
+        ],
+        "summary": "Cancel a follow-up",
+        "description": "Call a waiting follow-up off: no more checks, and it ends as `cancelled`. One that already ended is left as it is (`cancelled: false`). Needs `followups:write`.",
+        "operationId": "cancel_followup",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "followup_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Followup Id"
+            },
+            "example": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled, or left as it was because it had already ended.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowupCancelled"
+                },
+                "example": {
+                  "id": "7f1c2e4a-9b3d-4c5e-8a6f-0d1e2f3a4b5c",
+                  "status": "cancelled",
+                  "cancelled": true
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/jobs": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Start background jobs",
+        "description": "Start your skills and workflows to run in the background, each as a job with its own status. One item starts one job; two or more start a batch (`batch`) that ends when they all have. The answer comes at once (202) with the jobs; poll each with `GET /v1/jobs/{job_id}` (or the batch). An item that cannot start is listed in `refused` and the others still start; when none can, 422. Research helpers start from a chat, not the API. Needs `jobs:write`, plus `skills:invoke` / `workflows:invoke` for what you start.",
+        "operationId": "start_jobs",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartJobs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartedJobs"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "List background jobs",
+        "description": "Your background jobs, newest first: skill runs, workflow runs and research that your in-app agents (the assistant, a chat session) or you over the API started to run on their own. `open=true` keeps the ones still `queued` or `running`; `origin_kind` (`session`, `igris`, `brain`, `api`) and `origin_id` keep the ones one agent or chat started. Page with `limit` (1–100) and `cursor`. Needs `jobs:read`.",
+        "operationId": "list_jobs",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "open",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only jobs still queued or running. Default: every one.",
+              "default": false,
+              "title": "Open"
+            },
+            "description": "Only jobs still queued or running. Default: every one.",
+            "example": true
+          },
+          {
+            "name": "origin_kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "igris",
+                    "session",
+                    "brain",
+                    "api"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only jobs started by this kind of caller.",
+              "title": "Origin Kind"
+            },
+            "description": "Only jobs started by this kind of caller.",
+            "example": "session"
+          },
+          {
+            "name": "origin_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only jobs started by this session or workflow.",
+              "title": "Origin Id"
+            },
+            "description": "Only jobs started by this session or workflow."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of your background jobs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobList"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "id": "job_3f9a1c2b7d4e",
+                      "origin_kind": "session",
+                      "origin_id": "sess_8c1d2e3f",
+                      "group_id": null,
+                      "kind": "skill",
+                      "label": "eBay search",
+                      "target_id": "skl_ebay_listings",
+                      "run_ref": "run_5b6c7d8e9f0a",
+                      "status": "completed",
+                      "summary": "12 results",
+                      "result": {
+                        "count": 12,
+                        "preview": [
+                          {
+                            "title": "Nikon F3 body",
+                            "price": "$289"
+                          },
+                          {
+                            "title": "Nikon F3HP, boxed",
+                            "price": "$340"
+                          }
+                        ]
+                      },
+                      "error": null,
+                      "cancel_requested": false,
+                      "attempts": 1,
+                      "created_at": "2026-10-10T09:00:00Z",
+                      "started_at": "2026-10-10T09:00:01Z",
+                      "ended_at": "2026-10-10T09:02:40Z",
+                      "link": "/skills/runs/run_5b6c7d8e9f0a"
+                    }
+                  ],
+                  "next_cursor": null,
+                  "has_more": false
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get a background job",
+        "description": "One job: `status` (`queued`, `running`, `completed`, `failed`, `cancelled`), and once it ended, `summary` (one plain line), `result` (`count` and a `preview` of the first rows) and `error`. `run_ref` is the run it drives: `GET /v1/runs/{run_id}` has every row. Only your own; anyone else gets 404. Needs `jobs:read`.",
+        "operationId": "get_job",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            },
+            "example": "job_3f9a1c2b7d4e"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The job: once it ended, its summary and result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                },
+                "example": {
+                  "id": "job_3f9a1c2b7d4e",
+                  "origin_kind": "session",
+                  "origin_id": "sess_8c1d2e3f",
+                  "group_id": null,
+                  "kind": "skill",
+                  "label": "eBay search",
+                  "target_id": "skl_ebay_listings",
+                  "run_ref": "run_5b6c7d8e9f0a",
+                  "status": "completed",
+                  "summary": "12 results",
+                  "result": {
+                    "count": 12,
+                    "preview": [
+                      {
+                        "title": "Nikon F3 body",
+                        "price": "$289"
+                      },
+                      {
+                        "title": "Nikon F3HP, boxed",
+                        "price": "$340"
+                      }
+                    ]
+                  },
+                  "error": null,
+                  "cancel_requested": false,
+                  "attempts": 1,
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "started_at": "2026-10-10T09:00:01Z",
+                  "ended_at": "2026-10-10T09:02:40Z",
+                  "link": "/skills/runs/run_5b6c7d8e9f0a"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/jobs/{job_id}/cancel": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Cancel a background job",
+        "description": "Stop an open job and the run it drives; it ends as `cancelled` (rows the run already produced are kept). The answer is the job as it is now: `cancel_requested: true` while it stops. One that already ended is left as it is. Needs `jobs:write`.",
+        "operationId": "cancel_job",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            },
+            "example": "job_3f9a1c2b7d4e"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The job as it is now: stopping, or left as it was because it had already ended.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                },
+                "example": {
+                  "id": "job_3f9a1c2b7d4e",
+                  "origin_kind": "session",
+                  "origin_id": "sess_8c1d2e3f",
+                  "group_id": null,
+                  "kind": "skill",
+                  "label": "eBay search",
+                  "target_id": "skl_ebay_listings",
+                  "run_ref": "run_5b6c7d8e9f0a",
+                  "status": "running",
+                  "summary": null,
+                  "result": null,
+                  "error": null,
+                  "cancel_requested": true,
+                  "attempts": 1,
+                  "created_at": "2026-10-10T09:00:00Z",
+                  "started_at": "2026-10-10T09:00:01Z",
+                  "ended_at": null,
+                  "link": "/skills/runs/run_5b6c7d8e9f0a"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
       }
     },
     "/v1/logins": {
@@ -6881,6 +7913,70 @@
         ],
         "title": "ConnectedAppList"
       },
+      "CreateFollowupRequest": {
+        "properties": {
+          "what": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "What",
+            "description": "What you are waiting for, in plain words: shown to the user and read back with the outcome, e.g. 'the sign-in code from greenhouse.io'."
+          },
+          "where": {
+            "$ref": "#/components/schemas/WhereRequest"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MatchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Not with kind `time`."
+          },
+          "within": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Within",
+            "description": "How long to wait (or when to check back): '90s', '15m', '2h', '1d', '1h30m', '10 minutes', or a number of seconds. At most 72 hours.",
+            "examples": [
+              "15m",
+              900
+            ]
+          },
+          "check_every": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Check Every",
+            "description": "How often to look, '90s', '15m', '2h', '1d', '1h30m', '10 minutes', or a number of seconds; at least 30 seconds. Default: what suits the place (an inbox is told on arrival; a web page is read every few minutes). Not for `time`.",
+            "examples": [
+              "15m",
+              900
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "what",
+          "where",
+          "within"
+        ],
+        "title": "CreateFollowupRequest"
+      },
       "CreateScheduleRequest": {
         "properties": {
           "cron": {
@@ -7813,6 +8909,407 @@
         "type": "object",
         "title": "FieldFill"
       },
+      "Followup": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "agent": {
+            "type": "string",
+            "enum": [
+              "igris",
+              "session",
+              "brain",
+              "api"
+            ],
+            "title": "Agent",
+            "description": "Who is waiting: `api` for one made here; `igris`, `session` or `brain` for one an in-app agent made."
+          },
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id",
+            "description": "The session or workflow of an in-app agent; empty here.",
+            "default": ""
+          },
+          "what": {
+            "type": "string",
+            "title": "What"
+          },
+          "where": {
+            "$ref": "#/components/schemas/FollowupWhere"
+          },
+          "match": {
+            "$ref": "#/components/schemas/FollowupMatch"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "done",
+              "cancelled",
+              "failed"
+            ],
+            "title": "Status",
+            "description": "`waiting`: timed and checked. `done`: ended (`outcome` says how). `cancelled`. `failed`: could not be checked (`note` says why)."
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "found",
+                  "time_up",
+                  "expired"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome",
+            "description": "`found`: it arrived (`found` holds it). `time_up`: a check-back's time came. `expired`: nothing came in time."
+          },
+          "found": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FollowupFound"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "One plain line on how it ended."
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since",
+            "description": "Only things that arrived after this count."
+          },
+          "next_check_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Check At"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "checks": {
+            "type": "integer",
+            "title": "Checks",
+            "description": "How many times the place was looked in.",
+            "default": 0
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "what",
+          "where",
+          "status"
+        ],
+        "title": "Followup"
+      },
+      "FollowupCancelled": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "done",
+              "cancelled",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "cancelled": {
+            "type": "boolean",
+            "title": "Cancelled",
+            "description": "A cancel was done now (false: it had already ended)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "cancelled"
+        ],
+        "title": "FollowupCancelled"
+      },
+      "FollowupFound": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "code",
+              "link",
+              "file",
+              "message",
+              "any"
+            ],
+            "title": "Kind"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "One plain line, e.g. 'a 6-digit code from greenhouse.io'."
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": ""
+          },
+          "link": {
+            "type": "string",
+            "title": "Link",
+            "default": ""
+          },
+          "file_url": {
+            "type": "string",
+            "title": "File Url",
+            "default": ""
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name",
+            "default": ""
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "A short excerpt, never a whole mailbox.",
+            "default": ""
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender",
+            "default": ""
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject",
+            "default": ""
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          },
+          "ref": {
+            "type": "string",
+            "title": "Ref",
+            "description": "The source's own id for it (a message id, a run id).",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "summary"
+        ],
+        "title": "FollowupFound",
+        "description": "The thing that arrived — only it, never the rest of the mailbox."
+      },
+      "FollowupList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "followups": {
+            "items": {
+              "$ref": "#/components/schemas/Followup"
+            },
+            "type": "array",
+            "title": "Followups"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "followups",
+          "has_more"
+        ],
+        "title": "FollowupList"
+      },
+      "FollowupMatch": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "code",
+              "link",
+              "file",
+              "message",
+              "any"
+            ],
+            "title": "Kind",
+            "default": "any"
+          },
+          "from_domain": {
+            "type": "string",
+            "title": "From Domain",
+            "default": ""
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender",
+            "default": ""
+          },
+          "recipient": {
+            "type": "string",
+            "title": "Recipient",
+            "default": ""
+          },
+          "subject_has": {
+            "type": "string",
+            "title": "Subject Has",
+            "default": ""
+          },
+          "text_has": {
+            "type": "string",
+            "title": "Text Has",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "FollowupMatch"
+      },
+      "FollowupWhere": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "email_app",
+              "app_tool",
+              "webpage",
+              "run",
+              "time"
+            ],
+            "title": "Kind"
+          },
+          "app": {
+            "type": "string",
+            "title": "App",
+            "description": "`email_app` / `app_tool`: the app's id.",
+            "default": ""
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "description": "`inbox` / `email_app`: the mailbox address.",
+            "default": ""
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool",
+            "description": "`app_tool`: the tool's slug.",
+            "default": ""
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "`webpage`: the page.",
+            "default": ""
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id",
+            "description": "`run`: the run.",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "FollowupWhere"
+      },
       "ImproveSkillRequest": {
         "properties": {
           "mode": {
@@ -8097,6 +9594,224 @@
         "type": "object",
         "title": "InputsPatch"
       },
+      "Job": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "origin_kind": {
+            "type": "string",
+            "enum": [
+              "session",
+              "igris",
+              "brain",
+              "api"
+            ],
+            "title": "Origin Kind",
+            "description": "Who started it: `session` (a chat session's agent), `igris` (the assistant), `brain` (a workflow's Brain, which may report results) or `api`."
+          },
+          "origin_id": {
+            "type": "string",
+            "title": "Origin Id",
+            "description": "The session or workflow that started it; empty for the assistant and the API.",
+            "default": ""
+          },
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id",
+            "description": "The batch job it belongs to, when several were started together."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "workflow",
+              "research",
+              "batch"
+            ],
+            "title": "Kind",
+            "description": "What it runs: a `skill`, a `workflow`, a `research` helper, or a `batch` grouping jobs started together."
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "What it is, in the words it was started with, e.g. 'eBay search'.",
+            "default": ""
+          },
+          "target_id": {
+            "type": "string",
+            "title": "Target Id",
+            "description": "The skill or workflow it runs.",
+            "default": ""
+          },
+          "run_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Ref",
+            "description": "The run it drives (GET /v1/runs/{run_id} for a skill or workflow); null until it has started."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "description": "`queued`, `running`, then one of `completed`, `failed`, `cancelled`."
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "One plain line of what came back, once it ended."
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result",
+            "description": "A small result: `count` and a `preview` of the first rows. The run has the rest."
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Why it failed."
+          },
+          "cancel_requested": {
+            "type": "boolean",
+            "title": "Cancel Requested",
+            "description": "A stop was asked for; it ends `cancelled` soon.",
+            "default": false
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts",
+            "description": "How many times its run was started.",
+            "default": 0
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "link": {
+            "type": "string",
+            "title": "Link",
+            "description": "The path of the page in the Valendata app that shows its run (e.g. /skills/runs/run_…); empty until it has started.",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "origin_kind",
+          "kind",
+          "status"
+        ],
+        "title": "Job"
+      },
+      "JobList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobs",
+          "has_more"
+        ],
+        "title": "JobList"
+      },
       "LoginCreate": {
         "properties": {
           "site": {
@@ -8371,6 +10086,61 @@
         "type": "object",
         "title": "LoginUpdate",
         "description": "Every field optional; given ones replace the stored value. totp_secret \"\" removes it."
+      },
+      "MatchRequest": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "code",
+              "link",
+              "file",
+              "message",
+              "any"
+            ],
+            "title": "Kind",
+            "description": "`code`: a one-time code. `link`: a link to click (verify, reset, sign in). `file`: an attachment. `message`: a message itself (a reply, an offer). `any`: whatever comes.",
+            "default": "any"
+          },
+          "from_domain": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "From Domain",
+            "description": "The sender's domain, e.g. `greenhouse.io` — it or a sub-domain.",
+            "default": ""
+          },
+          "sender": {
+            "type": "string",
+            "maxLength": 320,
+            "title": "Sender",
+            "description": "The exact sender address.",
+            "default": ""
+          },
+          "recipient": {
+            "type": "string",
+            "maxLength": 320,
+            "title": "Recipient",
+            "description": "The address it was sent to.",
+            "default": ""
+          },
+          "subject_has": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Subject Has",
+            "description": "Words the subject must contain (any case).",
+            "default": ""
+          },
+          "text_has": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Text Has",
+            "description": "Words the subject or body must contain (any case).",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "MatchRequest",
+        "description": "What counts as \"it arrived\". Every field given must hold; empty ones are not checked."
       },
       "MergedField": {
         "properties": {
@@ -13414,6 +15184,122 @@
         "title": "SkillVisibility",
         "description": "Skill visibility settings."
       },
+      "StartItem": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "skill",
+              "workflow"
+            ],
+            "title": "Kind",
+            "description": "What to run: one of your skills or one of your workflows. (Research helpers start from a chat.)"
+          },
+          "skill": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill",
+            "description": "kind `skill`: the skill's id or slug."
+          },
+          "workflow_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Id",
+            "description": "kind `workflow`: the workflow's id."
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs",
+            "description": "Its inputs, by name."
+          },
+          "max_results": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Results",
+            "description": "kind `skill`: at most this many rows."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "A short name for it, e.g. 'eBay search'."
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "StartItem"
+      },
+      "StartJobs": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StartItem"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Items",
+            "description": "1 to 6 things to run. Two or more start a batch."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "Two or more items: the batch's name."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "StartJobs"
+      },
       "StartRunRequest": {
         "properties": {
           "inputs": {
@@ -13613,6 +15499,42 @@
           "status_url"
         ],
         "title": "StartWorkflowRunResponse"
+      },
+      "StartedJobs": {
+        "properties": {
+          "batch": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Job"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The batch grouping them, when two or more were started: it ends when they all have."
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            },
+            "type": "array",
+            "title": "Jobs",
+            "description": "The jobs that started, each running on its own."
+          },
+          "refused": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refused",
+            "description": "Each item that could not start, and why."
+          }
+        },
+        "type": "object",
+        "required": [
+          "jobs"
+        ],
+        "title": "StartedJobs"
       },
       "TierHealth": {
         "properties": {
@@ -14065,6 +15987,99 @@
           "signature_header"
         ],
         "title": "WebhookSecretResponse"
+      },
+      "WhereRequest": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "email_app",
+              "app_tool",
+              "webpage",
+              "run",
+              "time"
+            ],
+            "title": "Kind",
+            "description": "Where it will land. `inbox`: your Valendata address. `email_app`: a connected mail app (Gmail, Outlook …) by its account `address`. `app_tool`: a read tool of a connected app, run with `arguments` on each check. `webpage`: a page that will change, by `url`. `run`: a workflow run reaching its end, by `run_id`. `time`: nothing to look in — a check-back when `within` is up."
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address",
+            "description": "`inbox` / `email_app`: the mailbox address. For `inbox` it may be left out (your Valendata address)."
+          },
+          "app": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App",
+            "description": "`app_tool`: the app's id, e.g. `slack`."
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool",
+            "description": "`app_tool`: the read tool's slug from GET /v1/apps/{app}/tools."
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments",
+            "description": "`app_tool`: the tool's inputs, by name."
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "`webpage`: the page, http(s)."
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "`run`: the workflow run's id."
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "WhereRequest"
       },
       "WorkflowCloned": {
         "properties": {

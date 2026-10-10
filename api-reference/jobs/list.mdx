@@ -1,0 +1,9 @@
+---
+title: "List background jobs"
+description: "Your background jobs, newest first: every one, or only the open ones."
+openapi: "GET /v1/jobs"
+---
+
+This lists the jobs you started here and the ones your in-app agents started. `open=true` keeps only jobs still `queued` or `running`. `origin_kind` keeps one kind of starter: `session` (a chat session), `igris` (Igris), `brain` (a workflow's Brain), or `api` (the API or an AI assistant). `origin_id` keeps the jobs one session or workflow started. Each item has the fields of [Get a background job](/api-reference/jobs/get).
+
+Needs `jobs:read`. MCP tool: `list_jobs`.

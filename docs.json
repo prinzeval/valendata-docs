@@ -52,6 +52,8 @@
               "concepts/keeping-skills-working",
               "concepts/logins-and-browser-profiles",
               "concepts/connected-apps",
+              "concepts/follow-ups",
+              "concepts/background-jobs",
               "concepts/workspaces",
               "concepts/credits"
             ]
@@ -209,6 +211,26 @@
               "api-reference/apps/disconnect",
               "api-reference/apps/list-tools",
               "api-reference/apps/run-tool"
+            ]
+          },
+          {
+            "group": "Follow-ups",
+            "icon": "hourglass-half",
+            "pages": [
+              "api-reference/followups/create",
+              "api-reference/followups/list",
+              "api-reference/followups/get",
+              "api-reference/followups/cancel"
+            ]
+          },
+          {
+            "group": "Background jobs",
+            "icon": "layer-group",
+            "pages": [
+              "api-reference/jobs/start",
+              "api-reference/jobs/list",
+              "api-reference/jobs/get",
+              "api-reference/jobs/cancel"
             ]
           },
           {

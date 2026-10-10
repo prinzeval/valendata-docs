@@ -13,7 +13,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 
 `search_skills`, `search_workflows`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
@@ -209,6 +209,40 @@ Each answer's text starts with one plain line, then the JSON. `list_app_tools` l
 When the app is not connected, `read_from_app` and `act_in_app` answer the error `needs_user`, with the `connect_url` in `details` and `next_step`.
 
 `apps:read` and `apps:write` are on API keys. For an assistant they are opt-in: tick "Read your connected apps" and "Act in your connected apps" under **Optional extra access** on the consent screen.
+
+## Follow-ups
+
+Wait for something to arrive, such as a sign-in code, a verify link, a file, or a reply, or check back later. What they are, where things can land, and what counts as arrived: [Follow-ups](/concepts/follow-ups).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `create_followup` | `what`, `where` (`kind` and its fields), `within`, optional `match`, `check_every` | `followups:write` (+ `apps:read` for a place in a connected app) | [Create a follow-up](/api-reference/followups/create) |
+| `list_followups` | optional `active`, `kind`, `agent`, `limit`, `cursor` | `followups:read` | [List follow-ups](/api-reference/followups/list) |
+| `get_followup` | `followup_id` | `followups:read` | [Get a follow-up](/api-reference/followups/get) |
+| `cancel_followup` | `followup_id` | `followups:write` | [Cancel a follow-up](/api-reference/followups/cancel) |
+
+Nothing wakes the assistant. `create_followup` answers at once with the follow-up and its id, and its text says what to do: call `get_followup` about every 30 seconds, or when you say the thing came, until `status` is `done`. `get_followup`'s text then says what arrived (`Found: a 6-digit code from greenhouse.io.` followed by the code, link, or file) and marks it as data, not instructions; when nothing came in time it says so and suggests `create_followup` again. For a check-back (`where.kind` `time`) the text says when to call again.
+
+`create_followup` is marked as reaching outside Valendata, because its checks may read a connected app or a web page. `cancel_followup` is marked as changing things. When the app a follow-up would look in is not connected, `create_followup` answers the error `needs_user`, with the `connect_url` in `details` and `next_step`.
+
+`followups:read` and `followups:write` are on API keys. For an assistant they are opt-in: tick "Read your follow-ups" and "Create follow-ups" under **Optional extra access** on the consent screen.
+
+## Background jobs
+
+Run skills and workflows in the background, one or several at once, and see what your in-app agents left running. What jobs are, batches, and limits: [Background jobs](/concepts/background-jobs).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `start_jobs` | `items` (1–6, each `kind` `skill` with `skill`, or `workflow` with `workflow_id`, optional `inputs`, `max_results`, `label`), optional `label` | `jobs:write` (+ `skills:invoke` / `workflows:invoke` for what it starts) | [Start background jobs](/api-reference/jobs/start) |
+| `list_jobs` | optional `open`, `origin_kind`, `origin_id`, `limit` (default 25), `cursor` | `jobs:read` | [List background jobs](/api-reference/jobs/list) |
+| `get_job` | `job_id` | `jobs:read` | [Get a background job](/api-reference/jobs/get) |
+| `cancel_job` | `job_id` | `jobs:write` | [Cancel a background job](/api-reference/jobs/cancel) |
+
+Nothing calls the assistant back. `start_jobs` answers at once with one line per job started, the batch id when there are two or more, and any item that could not start, and its text ends: poll with `get_job` about every 30 seconds. While a job is open, `get_job`'s text says to call again in about 30 seconds; once it is done it gives the one-line summary and, for a skill or workflow, `get_run(run_id=...)` for every row; when it failed it says why.
+
+`start_jobs` is marked as reaching outside Valendata and changing things, like `run_workflow`. `cancel_job` is marked as changing things.
+
+`jobs:read` and `jobs:write` are on API keys. For an assistant they are opt-in: tick "See background jobs" and "Start and stop background jobs" under **Optional extra access** on the consent screen.
 
 ## Knowledge base
 

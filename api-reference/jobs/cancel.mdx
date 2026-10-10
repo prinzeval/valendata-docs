@@ -1,0 +1,11 @@
+---
+title: "Cancel a background job"
+description: "Stop a job and the run it drives."
+openapi: "POST /v1/jobs/{job_id}/cancel"
+---
+
+The job ends as `cancelled`, and its run is stopped too. Rows the run already found are kept. Cancelling a batch stops every job in it that is still open.
+
+The answer is the job as it is now: while it stops, `status` is still `queued` or `running` with `cancel_requested: true`. A job that already ended is left as it is, and `status` says how it ended.
+
+Only your own; anyone else gets `404`. Needs `jobs:write`. MCP tool: `cancel_job`.

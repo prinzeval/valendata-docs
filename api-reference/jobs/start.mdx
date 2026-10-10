@@ -1,0 +1,20 @@
+---
+title: "Start background jobs"
+description: "Run your skills and workflows in the background, one at a time or several as a batch."
+openapi: "POST /v1/jobs"
+---
+
+Give `items`, 1 to 6 things to run. Each is `kind: skill` with `skill` (its id or slug) or `kind: workflow` with `workflow_id`, plus optional `inputs`, `max_results` (skills, 1–500), and a short `label`. Two or more items start a [batch](/concepts/background-jobs#batches); `label` at the top names it.
+
+The answer comes at once (`202`): `jobs` holds each job that started, and `batch` the batch when there are two or more. Nothing calls you back: poll [Get a background job](/api-reference/jobs/get) for each job, or for the batch, which ends when they all have.
+
+An item that cannot start (no such skill, inputs that do not fit, not enough credits) is listed in `refused` with the reason, and the others still start. Research helpers start only from a chat in the app, not here.
+
+Starting twice runs twice, so send an `Idempotency-Key` to make a retry safe. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+| Status | Why |
+| --- | --- |
+| `403` | The key lacks `jobs:write`, `skills:invoke` or `workflows:invoke` for what you start, or is limited to other skills or workflows. |
+| `422` | A field is wrong (`param` names it), more than 6 items, or none of the items could start (`detail` lists why for each). |
+
+MCP tool: `start_jobs`.

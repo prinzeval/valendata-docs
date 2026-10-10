@@ -1,0 +1,11 @@
+---
+title: "Get a background job"
+description: "One job: its status, and once it ended, what came back."
+openapi: "GET /v1/jobs/{job_id}"
+---
+
+Poll this after [Start background jobs](/api-reference/jobs/start), about every 30 seconds, until `status` is `completed`, `failed`, or `cancelled`. Then `summary` is one plain line of what came back, `result` has the row `count` and a `preview` of the first rows, and `error` says why it failed. `cancel_requested` is `true` while a job is being stopped.
+
+`run_ref` is the run the job drives: read every row with [Get a run](/api-reference/runs/get). `link` is the page in Valendata that shows it. A `batch` job has no run of its own; the jobs in it have its id as their `group_id`.
+
+Only your own; anyone else gets `404`. Needs `jobs:read`. MCP tool: `get_job`.
