@@ -1,0 +1,51 @@
+---
+title: "Site APIs"
+description: "Your skills on one website, grouped into one API. Each skill is an endpoint you call by name."
+---
+
+A **Site API** is all your skills on one website, grouped together. If you have three skills on `linkedin.com`, you have one `linkedin.com` Site API with three endpoints, such as `search_companies`, `get_company`, and `list_jobs`.
+
+Nothing new is built for it. Each endpoint is one of your [skills](/concepts/skills), and keeps its own inputs, output fields, [versions](/concepts/keeping-skills-working#versions), login, browser mode, and proxy. A run through a Site API is the same run, at the same price, as running the skill itself.
+
+In the app, open **My Skills** and switch to **By website**: one card per website, each opening its endpoints. From code, call [List your site APIs](/api-reference/site-apis/list). It gives each site with how many endpoints it has, how many are healthy and failing, and when one last ran. [Get a site API](/api-reference/site-apis/get) lists a site's endpoints with their inputs and fields.
+
+## Endpoint names
+
+Each skill gets an endpoint name made from its task, in `snake_case`. A skill that searches companies becomes `search_companies`. The name is also on the skill itself, as `endpoint_name` (next to `site_domain`) in [Get a skill](/api-reference/skills/get).
+
+You can rename an endpoint with [Rename an endpoint](/api-reference/site-apis/rename-endpoint). A name is 3–41 characters of `snake_case`, and two endpoints on the same site cannot share one. Renaming changes only the name: the skill, its slug, and its runs stay the same.
+
+## Call an endpoint
+
+Call it by site and name:
+
+```bash
+curl -X POST https://api.valendata.com/v1/apis/linkedin.com/search_companies/run \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"keyword": "fintech", "max_results": 20}'
+```
+
+This works exactly like [Run a skill and wait](/api-reference/runs/run-skill): the same inputs, run settings, and answer. The difference is only the address: you use the site and endpoint name instead of the skill's slug. See [Run an endpoint](/api-reference/site-apis/run).
+
+An AI assistant does the same with `list_site_apis` and `call_site_api`. See [MCP tools](/ai-assistants/mcp-tools#site-apis).
+
+## Defaults for new skills
+
+Each site can have defaults: a [browser profile](/concepts/logins-and-browser-profiles#browser-profiles), a [saved login](/concepts/logins-and-browser-profiles#saved-logins), a browser mode, and a proxy. A new skill you make on that site starts with them, so you do not set them again for every skill.
+
+Existing skills keep their own settings. Changing the defaults never changes a skill you already have. To change one skill, use [Update a skill](/api-reference/skills/update).
+
+Set them with [Set a site's defaults](/api-reference/site-apis/update-defaults).
+
+## Yours only
+
+A Site API holds only your own skills and your workspaces' skills. Nothing in it is shared with other people: someone else's skills on the same site never show up in yours, and yours never show up in theirs. If you have no skill on a site, it has no Site API for you, and [Get a site API](/api-reference/site-apis/get) answers `404`.
+
+To see how a site does for everyone, see [Get a site](/api-reference/sites/get) instead.
+
+## Related
+
+- [Skills](/concepts/skills)
+- [Run a skill](/guides/run-a-skill)
+- [Site APIs reference](/api-reference/site-apis/list)

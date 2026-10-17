@@ -48,12 +48,26 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/notes/*.mdx, concepts/notes.mdx | /v1/notes (q, topic, tag, pinned, limit/cursor), /v1/notes/{note_id} GET/PATCH (body / append / find+replace_with)/DELETE (notes:read / notes:write; source `api`) | notes/api/*, notes/service.py (MAX_TITLE, MAX_BODY, MAX_TAGS, MAX_TAG, MAX_TOPIC), notes/agent_tools.py (write_note, appended, edited), notes/models.py (SOURCES), mcp/note_tools.py |
 | api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
 | api-reference/sites/*.mdx, guides/when-a-site-does-not-work.mdx | GET /v1/sites/proven (q, limit 50, offset; public), GET /v1/sites/{domain} (public; counts null under 3 people), POST /v1/site-requests, GET /v1/site-requests/mine, DELETE /v1/site-requests/{id}/vote; MCP site_status, request_site. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be sites routes (being built) |
+| api-reference/site-apis/*.mdx, concepts/site-apis.mdx | GET /v1/apis, GET /v1/apis/{domain} (404 with no skill there), POST /v1/apis/{domain}/{endpoint_name}/run (= POST /v1/skills/{slug}/run), PATCH /v1/apis/{domain}/endpoints/{skill_id} (`name` snake_case 3–41, unique per site; 422 / 409), PUT /v1/apis/{domain}/defaults (new skills only); GET /v1/skills/{slug} + `site_domain`, `endpoint_name`; MCP list_site_apis, call_site_api. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be site APIs routes (being built) |
+| api-reference/skills/cancel-creation.mdx | POST /v1/skill-creations/{creation_id}/cancel (stops at its next step, credits used not refunded, 409 when finished). Manual `api:` page until the spec has the route | skill_creation/router.py (being built) |
 
 Open follow-ups:
 - Sites pages (2026-10-17): confirm against the shipped backend — the scope (if any) for /v1/site-requests and
   `request_site`, whether `success_rate` is 0–1 or 0–100 (examples use 0.97), the `status` values of a site request
   (examples use `open`), the id prefix (examples use `sreq_`), and the error codes. Then re-export openapispec.json
   and switch the five pages to `openapi:`. Add both tools to "Which tools the assistant sees" on ai-assistants/mcp-tools.mdx once their scope is known. Check that **Make this site work** is the app's button label.
+- Site APIs pages (2026-10-17): confirm against the shipped backend — the scopes (pages say `skills:read` for both
+  GETs and `list_site_apis`, `skills:invoke` for run and `call_site_api`, `skills:write` for rename and defaults; does
+  `login_id` in defaults also need `logins:write`?), the shape of each item in `inputs` / `fields` (examples use
+  `name`, `type`, `required`), the `health_status` values (examples use `healthy`), whether `success_rate` is 0–1
+  (examples use 0.95), what PATCH and PUT answer (rename shows no response; defaults is written as `domain` +
+  `defaults`), whether PUT clears a default you leave out or keeps it, whether `{domain}` takes a full address, and
+  that run answers `404` for an unknown endpoint name. Check whether `call_site_api` waits like `run_skill`. Then
+  re-export openapispec.json, switch the five pages to `openapi:`, and add both tools to "Which tools the assistant
+  sees" on ai-assistants/mcp-tools.mdx (and its tool count) once their scopes are known.
+- Cancel a skill creation (2026-10-17): confirm the scope, the response body (the page shows none), the status a
+  cancelled creation ends in (add it to the status table in guides/create-a-skill.mdx and to get-creation.mdx), and
+  whether an MCP tool comes with it. Then switch to `openapi:`.
 - `workflows:write` and `account:read` are API-key only today. When the OAuth consent opt-in ships, the
   "AI assistants (OAuth)" column in api-reference/authentication.mdx already says "assistants you allowed to …";
   check the consent-screen label matches.

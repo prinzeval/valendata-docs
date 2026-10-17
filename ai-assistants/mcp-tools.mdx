@@ -80,6 +80,17 @@ An assistant can read everything public about a marketplace skill: its inputs, s
 
 Before building a skill for a site, or after a run on it fails, the assistant can check the site with `site_status`. When a site does not work, `request_site` asks us to fix it, with the failure details from `run_id` attached. One vote per person per site, and the user gets an email when it is fixed. See [When a site does not work](/guides/when-a-site-does-not-work).
 
+## Site APIs
+
+Your skills grouped by website, each one an endpoint you call by name. What they are: [Site APIs](/concepts/site-apis).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_site_apis` | none | `skills:read` | [List your site APIs](/api-reference/site-apis/list) |
+| `call_site_api` | `domain`, `endpoint`, optional `inputs`, `max_results` | `skills:invoke` | [Run an endpoint](/api-reference/site-apis/run) |
+
+`call_site_api` runs the skill behind that endpoint, the same as `run_skill`, and answers the same way. See [Run results](#run-results).
+
 ## Runs
 
 | Tool | Arguments | Scope | Same as |

@@ -1,0 +1,62 @@
+---
+title: "Set a site's defaults"
+description: "Choose the browser profile, login, browser mode, and proxy that new skills on a site start with."
+api: "PUT https://api.valendata.com/v1/apis/{domain}/defaults"
+---
+
+A new skill you make on this site starts with these settings. Skills you already have keep their own; to change one, use [Update a skill](/api-reference/skills/update). See [Defaults for new skills](/concepts/site-apis#defaults-for-new-skills).
+
+Needs `skills:write`.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ParamField path="domain" type="string" required>
+  The site, such as `linkedin.com`.
+</ParamField>
+
+<ParamField body="profile_id" type="string">
+  The [browser profile](/concepts/logins-and-browser-profiles#browser-profiles) new skills use.
+</ParamField>
+
+<ParamField body="login_id" type="string">
+  The [saved login](/concepts/logins-and-browser-profiles#saved-logins) new skills sign in with. Only your own runs sign in with it.
+</ParamField>
+
+<ParamField body="browser_type" type="string">
+  The browser mode. Values are in [Run settings](/guides/run-a-skill#run-settings).
+</ParamField>
+
+<ParamField body="proxy_config" type="string">
+  The proxy region. Values are in [Run settings](/guides/run-a-skill#run-settings).
+</ParamField>
+
+The answer has the site's `domain` and its `defaults`, as [Get a site API](/api-reference/site-apis/get) shows them.
+
+<RequestExample>
+
+```bash curl
+curl -X PUT https://api.valendata.com/v1/apis/linkedin.com/defaults \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"profile_id": "prof_7a2c9e41", "browser_type": "remote", "proxy_config": "us"}'
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "domain": "linkedin.com",
+  "defaults": {
+    "profile_id": "prof_7a2c9e41",
+    "login_id": null,
+    "browser_type": "remote",
+    "proxy_config": "us"
+  }
+}
+```
+
+</ResponseExample>

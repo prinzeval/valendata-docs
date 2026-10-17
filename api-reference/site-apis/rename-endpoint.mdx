@@ -1,0 +1,44 @@
+---
+title: "Rename an endpoint"
+description: "Give one of your skills a different endpoint name on its site."
+api: "PATCH https://api.valendata.com/v1/apis/{domain}/endpoints/{skill_id}"
+---
+
+Only the endpoint name changes. The skill, its slug, and its runs stay the same. Calls to the old name stop working, so update your code. How names are made: [Endpoint names](/concepts/site-apis#endpoint-names).
+
+Needs `skills:write`.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ParamField path="domain" type="string" required>
+  The site, such as `linkedin.com`.
+</ParamField>
+
+<ParamField path="skill_id" type="string" required>
+  The skill's id, from `skill_id` in [Get a site API](/api-reference/site-apis/get).
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  The new name: `snake_case` (lowercase letters, digits, and `_`), 3–41 characters.
+</ParamField>
+
+| Status | When |
+| --- | --- |
+| `422` | The name is not `snake_case`, or is shorter than 3 or longer than 41 characters. |
+| `409` | Another endpoint on this site already has that name. |
+| `404` | No such skill of yours on this site. |
+
+The error body is described in [Errors](/api-reference/errors#error-body).
+
+<RequestExample>
+
+```bash curl
+curl -X PATCH https://api.valendata.com/v1/apis/linkedin.com/endpoints/sk_5d1e8b3a9c20 \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "find_companies"}'
+```
+
+</RequestExample>

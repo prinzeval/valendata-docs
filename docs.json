@@ -47,6 +47,7 @@
             "icon": "lightbulb",
             "pages": [
               "concepts/skills",
+              "concepts/site-apis",
               "concepts/workflows",
               "concepts/runs",
               "concepts/keeping-skills-working",
@@ -116,6 +117,7 @@
               "api-reference/skills/create",
               "api-reference/skills/get-creation",
               "api-reference/skills/list-creations",
+              "api-reference/skills/cancel-creation",
               "api-reference/skills/get",
               "api-reference/skills/clone",
               "api-reference/skills/update",
@@ -139,6 +141,17 @@
               "api-reference/sites/create-request",
               "api-reference/sites/list-requests",
               "api-reference/sites/delete-vote"
+            ]
+          },
+          {
+            "group": "Site APIs",
+            "icon": "sitemap",
+            "pages": [
+              "api-reference/site-apis/list",
+              "api-reference/site-apis/get",
+              "api-reference/site-apis/run",
+              "api-reference/site-apis/rename-endpoint",
+              "api-reference/site-apis/update-defaults"
             ]
           },
           {

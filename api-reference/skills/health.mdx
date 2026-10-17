@@ -12,6 +12,7 @@ openapi: "GET /v1/skills/{slug}/health"
 | `last_failure_kind` | Why the latest failure failed. See [failure kinds](/concepts/keeping-skills-working#why-runs-fail). |
 | `recipe_version` | The version runs use. |
 | `fast_path` | `{tier, status, median_seconds, description}`, or `null`. |
+| `fast_path_progress` | While a faster way is being found: `{state, tier, matches, needed, needs_other_inputs, reason}`. `state` is `proving` (it matched `matches` of the `needed` runs; `needs_other_inputs` means it also needs a run with different inputs) or `blocked` (the site refused it, e.g. `reason: "blocked: HTTP 403"`, so the skill runs in a browser). `null` once the skill is on its fast path or when no faster way was found. |
 | `tiers` | For each route: `attempts`, `ok`, `success_rate`, `median_seconds`, and `status` (`healthy` or `broken`). |
 
 A public skill's health needs no key.

@@ -1,0 +1,101 @@
+---
+title: "Get a site API"
+description: "One website's endpoints, with their inputs, output fields, and health, and the defaults new skills there start with."
+api: "GET https://api.valendata.com/v1/apis/{domain}"
+---
+
+Needs `skills:read`. Returns `404` when you have no skill on that site.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ParamField path="domain" type="string" required>
+  The site, as [List your site APIs](/api-reference/site-apis/list) gives it, such as `linkedin.com`.
+</ParamField>
+
+<ResponseField name="domain" type="string">The site.</ResponseField>
+
+<ResponseField name="defaults" type="object">
+  What a new skill on this site starts with. Existing skills keep their own settings. See [Set a site's defaults](/api-reference/site-apis/update-defaults).
+
+  <Expandable title="properties">
+    <ResponseField name="profile_id" type="string | null">The [browser profile](/concepts/logins-and-browser-profiles#browser-profiles).</ResponseField>
+    <ResponseField name="login_id" type="string | null">The [saved login](/concepts/logins-and-browser-profiles#saved-logins).</ResponseField>
+    <ResponseField name="browser_type" type="string | null">The browser mode. Values are in [Run settings](/guides/run-a-skill#run-settings).</ResponseField>
+    <ResponseField name="proxy_config" type="string | null">The proxy region. Values are in [Run settings](/guides/run-a-skill#run-settings).</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="endpoints" type="object[]">
+  One per skill on this site.
+
+  <Expandable title="properties">
+    <ResponseField name="name" type="string">The endpoint name, such as `search_companies`. Call it with [Run an endpoint](/api-reference/site-apis/run). See [Endpoint names](/concepts/site-apis#endpoint-names).</ResponseField>
+    <ResponseField name="skill_id" type="string">The skill's id. Use it in [Rename an endpoint](/api-reference/site-apis/rename-endpoint).</ResponseField>
+    <ResponseField name="slug" type="string">The skill's slug, for every `/v1/skills/{slug}` route.</ResponseField>
+    <ResponseField name="title" type="string">The skill's name.</ResponseField>
+    <ResponseField name="description" type="string | null">What the skill does.</ResponseField>
+    <ResponseField name="inputs" type="object[]">The inputs to send. For the full contract, call [Get a skill](/api-reference/skills/get).</ResponseField>
+    <ResponseField name="fields" type="object[]">The output fields every row has.</ResponseField>
+    <ResponseField name="health_status" type="string">How the skill is doing right now. See [Get a skill's health](/api-reference/skills/health).</ResponseField>
+    <ResponseField name="success_rate" type="number | null">Percent (0–100) of its last 20 counted runs that worked. Runs that failed on our side or were cancelled are not counted. `null` before any counted run.</ResponseField>
+    <ResponseField name="last_run_at" type="string | null">When it last ran.</ResponseField>
+    <ResponseField name="visibility" type="string">`private`, `workspace`, or `public`. See [Skills](/concepts/skills#what-a-skill-is-made-of).</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash curl
+curl https://api.valendata.com/v1/apis/linkedin.com \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "domain": "linkedin.com",
+  "defaults": {
+    "profile_id": "prof_7a2c9e41",
+    "login_id": null,
+    "browser_type": "remote",
+    "proxy_config": "us"
+  },
+  "endpoints": [
+    {
+      "name": "search_companies",
+      "skill_id": "sk_5d1e8b3a9c20",
+      "slug": "linkedin-company-search",
+      "title": "LinkedIn company search",
+      "description": "Search LinkedIn for companies by keyword and list them.",
+      "inputs": [
+        { "name": "keyword", "type": "string", "required": true }
+      ],
+      "fields": [
+        { "name": "company_name", "type": "string" },
+        { "name": "industry", "type": "string" },
+        { "name": "followers", "type": "string" }
+      ],
+      "health_status": "healthy",
+      "success_rate": 95.0,
+      "last_run_at": "2026-10-16T09:12:44Z",
+      "visibility": "private"
+    }
+  ]
+}
+```
+
+```json 404
+{
+  "detail": "You have no skill on linkedin.com.",
+  "code": "not_found",
+  "type": "invalid_request_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+</ResponseExample>

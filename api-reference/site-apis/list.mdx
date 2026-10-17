@@ -1,0 +1,61 @@
+---
+title: "List your site APIs"
+description: "Your skills grouped by website: one entry per site, with how many endpoints it has and how they are doing."
+api: "GET https://api.valendata.com/v1/apis"
+---
+
+One entry per website you have a skill on. What a Site API is: [Site APIs](/concepts/site-apis). Only your own skills and your workspaces' are counted.
+
+Needs `skills:read`.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ResponseField name="apis" type="object[]">
+  One per site.
+
+  <Expandable title="properties">
+    <ResponseField name="domain" type="string">The site, such as `linkedin.com`. Use it in [Get a site API](/api-reference/site-apis/get).</ResponseField>
+    <ResponseField name="endpoints" type="integer">How many of your skills are on this site.</ResponseField>
+    <ResponseField name="healthy" type="integer">How many of them are working.</ResponseField>
+    <ResponseField name="failing" type="integer">How many of them are failing.</ResponseField>
+    <ResponseField name="last_run_at" type="string | null">When one of them last ran, or `null` if none has.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+MCP tool: `list_site_apis`.
+
+<RequestExample>
+
+```bash curl
+curl https://api.valendata.com/v1/apis \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "apis": [
+    {
+      "domain": "linkedin.com",
+      "endpoints": 3,
+      "healthy": 2,
+      "failing": 1,
+      "last_run_at": "2026-10-16T09:12:44Z"
+    },
+    {
+      "domain": "google.com",
+      "endpoints": 1,
+      "healthy": 1,
+      "failing": 0,
+      "last_run_at": "2026-10-15T18:03:10Z"
+    }
+  ]
+}
+```
+
+</ResponseExample>

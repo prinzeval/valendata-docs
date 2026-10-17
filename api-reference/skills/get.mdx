@@ -16,6 +16,7 @@ The fields you will use most:
 | `recipe_version`, `pinned_recipe_version` | The live [version](/concepts/keeping-skills-working#versions), and the pinned one (or `null`). |
 | `fast_path` | A short description of the skill's [fast path](/concepts/keeping-skills-working#fast-path), or `null`. |
 | `api_endpoint`, `runs_endpoint`, `versions_endpoint` | The routes to run it and see its versions. |
+| `site_domain`, `endpoint_name` | The website it works on and its name there, for calling it through its [Site API](/concepts/site-apis). |
 
 A public skill needs no key. Anyone may read it, but runs only their own copy: [clone it](/api-reference/skills/clone) first. A private skill returns `404` to anyone who may not run it.
 

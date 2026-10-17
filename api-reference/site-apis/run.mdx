@@ -1,0 +1,38 @@
+---
+title: "Run an endpoint"
+description: "Run one of your skills by its site and endpoint name, and get its rows in the same call."
+api: "POST https://api.valendata.com/v1/apis/{domain}/{endpoint_name}/run"
+---
+
+This is [Run a skill and wait](/api-reference/runs/run-skill) with a different address. The body, the query, the run settings, the answer, and the errors are all the same; that page has them. Only the way you name the skill changes: by site and endpoint name instead of slug.
+
+Needs `skills:invoke`. Returns `404` when you have no endpoint by that name on that site.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ParamField path="domain" type="string" required>
+  The site, such as `linkedin.com`.
+</ParamField>
+
+<ParamField path="endpoint_name" type="string" required>
+  The endpoint's name, such as `search_companies`, from [Get a site API](/api-reference/site-apis/get).
+</ParamField>
+
+<ParamField body="inputs and run settings" type="object">
+  The skill's inputs at the top level, with run settings such as `max_results` next to them. See [Run settings](/guides/run-a-skill#run-settings).
+</ParamField>
+
+MCP tool: `call_site_api`.
+
+<RequestExample>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/apis/linkedin.com/search_companies/run \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"keyword": "fintech", "max_results": 20}'
+```
+
+</RequestExample>
