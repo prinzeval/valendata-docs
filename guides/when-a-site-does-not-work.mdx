@@ -1,0 +1,46 @@
+---
+title: "When a site does not work"
+description: "Check how skills are doing on a website, and ask us to make one work when they don't."
+---
+
+Some websites are easy for skills, and some fight back. Before you build a skill for a site, you can check how skills are doing there. When a site does not work for you, you can ask us to fix it, and we email you when it is.
+
+Why a single run failed, and what Valendata repairs on its own, is on [Keeping skills working](/concepts/keeping-skills-working#why-runs-fail). This page is about the site as a whole.
+
+## Proven sites
+
+A site is **proven** when, over the last 30 days:
+
+- at least 3 different people ran skills on it,
+- those skills ran at least 10 times, and
+- 90% or more of those runs worked.
+
+The list of proven sites is public at [valendata.com/sites](https://www.valendata.com/sites). Each one shows how many skills ran on it, its success rate, and its runs in the last 30 days. From code, call [List proven sites](/api-reference/sites/list-proven). No key is needed for either.
+
+The numbers come only from real runs. A site drops off the list when its runs stop working.
+
+## Check one site
+
+Search the site at [valendata.com/sites](https://www.valendata.com/sites), or call [Get a site](/api-reference/sites/get) with its domain or any address on it. You get one of three answers:
+
+| Status | What it means |
+| --- | --- |
+| `proven` | Skills keep working here. |
+| `failing` | Skills on this site struggle right now. We are on it. |
+| `unproven` | Not enough runs yet to say. Create a skill for it, and once it keeps working for people it joins the list. See [Create a skill](/guides/create-a-skill). |
+
+Counts are hidden unless at least 3 people use the site. With fewer, the numbers could point to one person's runs, so the answer has the status and leaves the counts `null`.
+
+## Ask us to make a site work
+
+When a run or a new skill fails on a site, choose **Make this site work** in the app. From code, call [Create a site request](/api-reference/sites/create-request).
+
+- **One vote per person per site.** Asking again for the same site does not add a second vote. If someone already asked, your vote joins theirs, and `votes` shows how many people want it.
+- **You don't have to describe the error.** Pass the skill, run, or creation that failed, and we attach its failure details ourselves. Only your own are read.
+- **You get an email when it is fixed.** Everyone who asked for that site is told.
+
+See your requests and whether each is fixed with [List your site requests](/api-reference/sites/list-requests). Changed your mind? [Remove your vote](/api-reference/sites/delete-vote).
+
+## From an AI assistant
+
+Two MCP tools do the same: `site_status` checks a site, and `request_site` asks us to make it work. See [MCP tools](/ai-assistants/mcp-tools#sites).

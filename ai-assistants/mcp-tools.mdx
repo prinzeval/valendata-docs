@@ -71,6 +71,15 @@ An assistant can read everything public about a marketplace skill: its inputs, s
 3. Copy it with `clone_workflow`. Cloning is free.
 4. Run the copy with `run_workflow` and its new slug.
 
+## Sites
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `site_status` | `url_or_domain` | None | [Get a site](/api-reference/sites/get) |
+| `request_site` | `url`, optional `wanted` (what you wanted to do there), `run_id` | A signed-in connection | [Create a site request](/api-reference/sites/create-request) |
+
+Before building a skill for a site, or after a run on it fails, the assistant can check the site with `site_status`. When a site does not work, `request_site` asks us to fix it, with the failure details from `run_id` attached. One vote per person per site, and the user gets an email when it is fixed. See [When a site does not work](/guides/when-a-site-does-not-work).
+
 ## Runs
 
 | Tool | Arguments | Scope | Same as |

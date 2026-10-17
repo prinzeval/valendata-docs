@@ -1,0 +1,87 @@
+---
+title: "Get a site"
+description: "How skills are doing on one website right now: proven, failing, or not proven yet. No key needed."
+api: "GET https://api.valendata.com/v1/sites/{domain}"
+---
+
+Check a site before you build a skill for it, or after a run on it fails. No key needed.
+
+<ParamField path="domain" type="string" required>
+  The site, such as `airbnb.com`. A full address works too, such as `https://www.airbnb.com/rooms/123`; only its domain is used.
+</ParamField>
+
+<ResponseField name="domain" type="string">
+  The site's domain.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  - `proven`: skills keep working here. See [Proven sites](/guides/when-a-site-does-not-work#proven-sites).
+  - `failing`: skills on this site struggle right now, and we are working on it.
+  - `unproven`: not enough runs yet to say. Create a skill for it, and once it keeps working for people it becomes proven.
+</ResponseField>
+
+<ResponseField name="skills" type="integer | null">
+  Skills that ran on it in the last 30 days.
+</ResponseField>
+
+<ResponseField name="users" type="integer | null">
+  People who ran those skills.
+</ResponseField>
+
+<ResponseField name="runs_30d" type="integer | null">
+  Runs in the last 30 days.
+</ResponseField>
+
+<ResponseField name="success_rate" type="number | null">
+  Share of those runs that worked.
+</ResponseField>
+
+<ResponseField name="last_success_at" type="string | null">
+  When a run on it last worked.
+</ResponseField>
+
+<ResponseField name="open_request" type="object | null">
+  The open [site request](/api-reference/sites/create-request) for this site, if anyone has asked: its `id`, `votes` (how many people asked), and `status`. `null` when nobody has.
+</ResponseField>
+
+`skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless at least 3 people use the site. With fewer, the numbers could point to one person's runs, so they are kept private.
+
+MCP tool: `site_status`, with `url_or_domain`.
+
+<RequestExample>
+
+```bash curl
+curl "https://api.valendata.com/v1/sites/example-shop.com"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 (failing)
+{
+  "domain": "example-shop.com",
+  "status": "failing",
+  "skills": 3,
+  "users": 5,
+  "runs_30d": 64,
+  "success_rate": 0.41,
+  "last_success_at": "2026-10-12T15:02:10Z",
+  "open_request": { "id": "sreq_4b7e9a1c", "votes": 4, "status": "open" }
+}
+```
+
+```json 200 (fewer than 3 people)
+{
+  "domain": "tiny-directory.org",
+  "status": "unproven",
+  "skills": null,
+  "users": null,
+  "runs_30d": null,
+  "success_rate": null,
+  "last_success_at": null,
+  "open_request": null
+}
+```
+
+</ResponseExample>

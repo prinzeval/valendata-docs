@@ -70,7 +70,8 @@
               "guides/schedule",
               "guides/use-a-saved-login",
               "guides/export-data",
-              "guides/use-the-marketplace"
+              "guides/use-the-marketplace",
+              "guides/when-a-site-does-not-work"
             ]
           },
           {
@@ -127,6 +128,17 @@
             "icon": "store",
             "pages": [
               "api-reference/marketplace/search"
+            ]
+          },
+          {
+            "group": "Sites",
+            "icon": "globe",
+            "pages": [
+              "api-reference/sites/list-proven",
+              "api-reference/sites/get",
+              "api-reference/sites/create-request",
+              "api-reference/sites/list-requests",
+              "api-reference/sites/delete-vote"
             ]
           },
           {

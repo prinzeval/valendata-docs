@@ -1,0 +1,52 @@
+---
+title: "List your site requests"
+description: "The sites you asked us to make work, and whether each one is fixed."
+api: "GET https://api.valendata.com/v1/site-requests/mine"
+---
+
+Needs your API key or a signed-in session. Only your own requests come back.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ResponseField name="requests" type="object[]">
+  <Expandable title="request">
+    <ResponseField name="id" type="string">The request's id.</ResponseField>
+    <ResponseField name="domain" type="string">The site.</ResponseField>
+    <ResponseField name="url" type="string">The address you sent.</ResponseField>
+    <ResponseField name="status" type="string">Where the request stands.</ResponseField>
+    <ResponseField name="votes" type="integer">How many people asked for this site.</ResponseField>
+    <ResponseField name="asked_at" type="string">When you asked.</ResponseField>
+    <ResponseField name="fixed_at" type="string | null">When the site was fixed. `null` while it is still open.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash curl
+curl https://api.valendata.com/v1/site-requests/mine \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "requests": [
+    {
+      "id": "sreq_4b7e9a1c",
+      "domain": "example-shop.com",
+      "url": "https://example-shop.com/catalog",
+      "status": "open",
+      "votes": 5,
+      "asked_at": "2026-10-16T11:40:03Z",
+      "fixed_at": null
+    }
+  ]
+}
+```
+
+</ResponseExample>

@@ -47,8 +47,13 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/jobs/*.mdx, concepts/background-jobs.mdx | /v1/jobs (POST start 1–6 items, 202, `refused`, 422 when none start), /v1/jobs/{job_id}, /cancel (jobs:read / jobs:write, + skills:invoke / workflows:invoke to start) | jobs/__init__.py, jobs/api/*, jobs/cancel.py, jobs/delivery/note.py, mcp/job_tools.py, agents/job_tools.py (MAX_ITEMS), services/subtask_service.py (MAX_FANOUT) |
 | api-reference/notes/*.mdx, concepts/notes.mdx | /v1/notes (q, topic, tag, pinned, limit/cursor), /v1/notes/{note_id} GET/PATCH (body / append / find+replace_with)/DELETE (notes:read / notes:write; source `api`) | notes/api/*, notes/service.py (MAX_TITLE, MAX_BODY, MAX_TAGS, MAX_TAG, MAX_TOPIC), notes/agent_tools.py (write_note, appended, edited), notes/models.py (SOURCES), mcp/note_tools.py |
 | api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
+| api-reference/sites/*.mdx, guides/when-a-site-does-not-work.mdx | GET /v1/sites/proven (q, limit 50, offset; public), GET /v1/sites/{domain} (public; counts null under 3 people), POST /v1/site-requests, GET /v1/site-requests/mine, DELETE /v1/site-requests/{id}/vote; MCP site_status, request_site. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be sites routes (being built) |
 
 Open follow-ups:
+- Sites pages (2026-10-17): confirm against the shipped backend — the scope (if any) for /v1/site-requests and
+  `request_site`, whether `success_rate` is 0–1 or 0–100 (examples use 0.97), the `status` values of a site request
+  (examples use `open`), the id prefix (examples use `sreq_`), and the error codes. Then re-export openapispec.json
+  and switch the five pages to `openapi:`. Add both tools to "Which tools the assistant sees" on ai-assistants/mcp-tools.mdx once their scope is known. Check that **Make this site work** is the app's button label.
 - `workflows:write` and `account:read` are API-key only today. When the OAuth consent opt-in ships, the
   "AI assistants (OAuth)" column in api-reference/authentication.mdx already says "assistants you allowed to …";
   check the consent-screen label matches.

@@ -1,0 +1,72 @@
+---
+title: "Create a site request"
+description: "Ask us to make a website work. One vote per person per site; you get an email when it is fixed."
+api: "POST https://api.valendata.com/v1/site-requests"
+---
+
+This is what **Make this site work** does in the app. How requests work is on [When a site does not work](/guides/when-a-site-does-not-work#ask-us-to-make-a-site-work).
+
+Needs your API key or a signed-in session.
+
+<ParamField header="Authorization" type="string" required>
+  `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
+</ParamField>
+
+<ParamField body="url" type="string" required>
+  The site, or the page on it that did not work.
+</ParamField>
+
+<ParamField body="wanted" type="string">
+  What you wanted to do there, in your own words. For example `get every listing in Lisbon with its price`.
+</ParamField>
+
+<ParamField body="skill_id" type="string">
+  Your skill that did not work on this site.
+</ParamField>
+
+<ParamField body="run_id" type="string">
+  Your run that failed on this site.
+</ParamField>
+
+<ParamField body="creation_id" type="string">
+  Your [skill creation](/api-reference/skills/get-creation) that failed on this site.
+</ParamField>
+
+Pass a `skill_id`, `run_id`, or `creation_id` when you have one. We attach the failure details from it ourselves, so you do not have to describe the error. Only your own skills, runs, and creations are read.
+
+<ResponseField name="id" type="string">The request's id.</ResponseField>
+<ResponseField name="domain" type="string">The site's domain, taken from `url`.</ResponseField>
+<ResponseField name="status" type="string">Where the request stands.</ResponseField>
+<ResponseField name="votes" type="integer">How many people have asked for this site, you included.</ResponseField>
+<ResponseField name="you_asked" type="boolean">Always `true` here.</ResponseField>
+<ResponseField name="created" type="boolean">`true` when yours is the first request for this site. `false` when someone already asked and your vote was added to theirs, or you had already asked.</ResponseField>
+
+Each person counts once per site. Asking again for the same site does not add a second vote.
+
+MCP tool: `request_site`, with `url` and optional `wanted`, `run_id`.
+
+<RequestExample>
+
+```bash curl
+curl -X POST https://api.valendata.com/v1/site-requests \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example-shop.com/catalog", "wanted": "every product with its price", "run_id": "run_8c1d2e3f4a5b"}'
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "id": "sreq_4b7e9a1c",
+  "domain": "example-shop.com",
+  "status": "open",
+  "votes": 5,
+  "you_asked": true,
+  "created": false
+}
+```
+
+</ResponseExample>
