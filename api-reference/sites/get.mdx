@@ -44,7 +44,7 @@ Check a site before you build a skill for it, or after a run on it fails. No key
   The open [site request](/api-reference/sites/create-request) for this site, if anyone has asked: its `id`, `votes` (how many people asked), and `status`. `null` when nobody has.
 </ResponseField>
 
-`skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless at least 3 people use the site. With fewer, the numbers could point to one person's runs, so they are kept private.
+`skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless the site is `proven` or `failing`. A site is shown only when a skill on it is public or made by the Valendata team, or when at least 3 people use it, so one person's private runs are never pointed to.
 
 MCP tool: `site_status`, with `url_or_domain`.
 
@@ -71,7 +71,7 @@ curl "https://api.valendata.com/v1/sites/example-shop.com"
 }
 ```
 
-```json 200 (fewer than 3 people)
+```json 200 (not shown)
 {
   "domain": "tiny-directory.org",
   "status": "unproven",
