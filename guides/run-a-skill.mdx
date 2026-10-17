@@ -107,6 +107,22 @@ These go next to the inputs and are not inputs themselves:
 
 Inputs are checked before anything runs. A missing input, a wrong type, or an unknown name returns `422` with every problem listed, and nothing is charged. See [Errors and limits](/api-reference/errors).
 
+## Values an input takes
+
+Some inputs only take values the site has, like a category or a budget filter. A skill learns these values from the site's own links and from earlier runs. Each input in [`GET /v1/skills/{slug}`](/api-reference/skills/get) lists them:
+
+| Field | What it is |
+| --- | --- |
+| `parameters[].known_values` | Values the site is known to accept for this input, including the one it was recorded with. Empty when the skill has not learned any yet. |
+| `parameters[].refused_values` | Values the site was asked to take once and would not. |
+
+Only the skill's owner and its workspace see them, because they include values other people ran. On someone else's public skill, both lists are empty.
+
+When you send a new value:
+
+- **A value the site keeps as its own code** is learned the first time. The site may store "Under $50,000" as a number in its address, for example. The run answers at once that the value is being learned, and returns no rows for the recorded value in its place. Run the skill again in a few minutes, and it uses the new value.
+- **A value the site will not take** is refused with the reason and the closest known values. Pick one of those and run again.
+
 ## From an AI assistant
 
 Each skill is a tool named `skill_<slug>`. See [Connect your AI assistant](/ai-assistants/connect).

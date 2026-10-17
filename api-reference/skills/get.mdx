@@ -9,6 +9,7 @@ The fields you will use most:
 | Field | What it is |
 | --- | --- |
 | `input_schema` | JSON Schema for the inputs: each input's `type`, `description`, `default`, and example. `required` lists the ones you must send. Unknown inputs are refused. |
+| `parameters` | Each input, with the values the site is known to accept (`known_values`) and the ones it would not take (`refused_values`). See [Values an input takes](/guides/run-a-skill#values-an-input-takes). |
 | `output_json_schema` | JSON Schema for the run result, including each row. |
 | `reliability` | Success rate, runs, and repairs over the last 20 runs, and the last failure kind. |
 | `price` | What a run usually costs, before you run it. See [Price](#price). |
