@@ -1,6 +1,6 @@
 ---
 title: "Connect your AI assistant"
-description: "Add Valendata to Claude, ChatGPT, Meta Muse, Cursor, or any MCP client. Sign in once, choose what it may do, and your skills and workflows show up as tools."
+description: "Add Valendata to Claude, ChatGPT, Cursor, Muse, or any MCP client. Sign in once, choose what it may do, and your skills and workflows show up as tools."
 ---
 
 Valendata runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server. Connect it to your AI assistant and the assistant can run your skills and workflows, create and improve skills, schedule them, and read or save facts in your knowledge base. It acts as you, only with the permissions you approve, and you can disconnect it at any time. Every run is billed to your account the same as pressing **Run** yourself.
@@ -14,7 +14,7 @@ Valendata runs a hosted [Model Context Protocol](https://modelcontextprotocol.io
 
 | Transport | URL | Use it for |
 | --- | --- | --- |
-| Streamable HTTP (recommended) | `https://api.valendata.com/mcp` | Claude, ChatGPT, Meta Muse, Cursor, and most current clients |
+| Streamable HTTP (recommended) | `https://api.valendata.com/mcp` | Claude, ChatGPT, Cursor, Muse, and most current clients |
 | Server-Sent Events (SSE) | `https://api.valendata.com/mcp/sse` | Older clients that only support SSE |
 
 Both serve the same tools. You can also copy them from **Settings → Connectors** in the app.
@@ -44,12 +44,6 @@ Menu names in these apps change from time to time. If a label does not match, lo
 
     Developer mode depends on your ChatGPT plan and workspace settings.
   </Tab>
-  <Tab title="Meta Muse">
-    1. Open the connector settings and choose to add a custom MCP connector.
-    2. Enter a name, such as `Valendata`, and the URL `https://api.valendata.com/mcp`.
-    3. Choose OAuth sign-in if asked. Sign in to Valendata and approve access.
-    4. Turn on the Valendata connector in your conversation.
-  </Tab>
   <Tab title="Cursor">
     Add Valendata to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project):
 
@@ -64,6 +58,12 @@ Menu names in these apps change from time to time. If a label does not match, lo
     ```
 
     Save the file. Cursor opens the Valendata sign-in page the first time it connects. You can also add the server from **Cursor Settings → Tools & MCP**.
+  </Tab>
+  <Tab title="Muse">
+    1. Open the connector settings and choose to add a custom MCP connector.
+    2. Enter a name, such as `Valendata`, and the URL `https://api.valendata.com/mcp`.
+    3. Choose OAuth sign-in if asked. Sign in to Valendata and approve access.
+    4. Turn on the Valendata connector in your conversation.
   </Tab>
   <Tab title="Other MCP clients">
     Any client that supports remote MCP servers with OAuth works. Point it at `https://api.valendata.com/mcp` (or `/mcp/sse` for SSE-only clients).

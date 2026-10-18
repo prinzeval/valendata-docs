@@ -3,61 +3,61 @@ title: "Workspaces"
 description: "A workspace holds skills, workflows, browser profiles, and Vault credentials for one team or client, with roles and a shared credit balance."
 ---
 
-A **workspace** is the top-level organizational container in Valendata. Every resource you create — skills, workflows, browser profiles, and Vault credentials — belongs to exactly one workspace. Team members are invited per workspace, and the credit balance is owned by the workspace owner and shared across everyone working inside it. Multiple workspaces let you maintain hard boundaries between unrelated projects, different clients, or separate environments.
+A **workspace** holds your skills, workflows, browser profiles, and Vault credentials. Each of these belongs to exactly one workspace. You invite people to a workspace, and everyone in it runs on the workspace owner's credit balance. Use separate workspaces to keep projects, clients, or environments apart.
 
 ## What lives inside a workspace
 
 <CardGroup cols={2}>
-  <Card title="Skills" icon="wand-magic-sparkles">
-    All skills you build and publish are scoped to the workspace. Skills in one workspace are not visible or callable from another.
+  <Card title="Skills" icon="bolt">
+    Skills belong to the workspace they were made in. Another workspace cannot see or run them.
   </Card>
 
   <Card title="Workflows" icon="diagram-project">
-    Workflows and their schedules are workspace-scoped. A workflow can only reference skills that exist in the same workspace.
+    Workflows and their schedules belong to the workspace. A workflow can only use skills from the same workspace.
   </Card>
 
   <Card title="Browser profiles" icon="browser">
-    Saved browser sessions are tied to the workspace where they were created and are not accessible from other workspaces.
+    Signed-in browser sessions belong to the workspace they were made in. Other workspaces cannot use them.
   </Card>
 
   <Card title="API keys" icon="key">
-    API keys are associated with the account that created them. A private skill can only be called by the key owner — use the key that matches the skill's owner.
+    API keys belong to the person who made them, not to a workspace. A private skill can only be run with its owner's key.
   </Card>
 
   <Card title="Vault" icon="lock">
-    Credentials stored in the Vault — webhook tokens, database passwords, third-party API keys — are scoped to the workspace and available only to steps running inside it.
+    Vault credentials, such as webhook tokens, database passwords, and API keys for other services, belong to the workspace. Only steps running in it can use them.
   </Card>
 
   <Card title="Credit balance" icon="coins">
-    The workspace owner's credit pool funds all runs. Any run triggered by any member or scheduled job draws from the owner's balance — not from the individual member's account.
+    Every run in the workspace, by any member or schedule, is paid from the owner's balance, not the member's.
   </Card>
 </CardGroup>
 
 ## Create a workspace
 
-In the sidebar, click your current workspace name to open the workspace switcher dropdown. At the bottom of the dropdown, click **New workspace**. A modal appears — enter a name and click **Create workspace**. The dashboard reloads scoped to the new workspace, starting empty.
+In the sidebar, click your current workspace name to open the switcher. At the bottom, click **New workspace**, enter a name, and click **Create workspace**. The dashboard reloads in the new, empty workspace.
 
 <Tip>
-  If you manage multiple clients, create one workspace per client. Each client gets isolated skills, workflows, credentials, and billing visibility with no risk of cross-contamination.
+  If you work for several clients, make one workspace per client. Each client's skills, workflows, and credentials then stay separate.
 </Tip>
 
 ## Switch workspaces
 
-Click your workspace name in the sidebar at any time. The dropdown lists every workspace you belong to along with your role in each. Click any name to switch — the dashboard reloads showing only that workspace's resources.
+Click your workspace name in the sidebar. The list shows every workspace you belong to and your role in each. Click one to switch. The dashboard reloads with only that workspace's skills, workflows, and settings.
 
 ## Manage team members
 
-Member management lives on the **Team** page, accessible from the sidebar. From there you can view all current members, send invites, change roles, and set per-member spend caps.
+Manage members on the **Team** page in the sidebar. There you can see members, send invites, change roles, and set spend caps.
 
 <Steps>
   <Step title="Open the Team page">
     Click Team in the sidebar.
   </Step>
   <Step title="Invite a member">
-    Enter the invitee's email address, select a role, and send the invite. The invitee receives an email with an acceptance link. If they don't have a Valendata account, they are prompted to create one before joining.
+    Enter their email address, pick a role, and send the invite. They get an email with a link to accept. If they have no Valendata account, they create one first.
   </Step>
   <Step title="Set a spend cap (optional)">
-    Once a member has joined, you can set a monthly credit cap on their account. Runs they trigger will stop being charged to the workspace once they hit their cap for the month. Leave it unset to allow unlimited draw from the workspace pool.
+    After a member joins, you can set a monthly credit cap for them. Once they reach it, their runs stop being charged to the workspace for the rest of the month. Leave it empty for no cap.
   </Step>
 </Steps>
 
@@ -72,7 +72,7 @@ Member management lives on the **Team** page, accessible from the sidebar. From 
 
 ## Move a skill to another workspace
 
-If you build a skill in one workspace and need to move it to another, open the **Skills** page, find the skill, and use the **Move to Workspace** option from the skill's action menu. Select the destination workspace — only workspaces where you hold an Admin or Owner role appear in the list. The skill is removed from the source workspace immediately.
+To move a skill to another workspace, open the **Skills** page, open the skill's action menu, and choose **Move to Workspace**. Pick the workspace to move it to. Only workspaces where you are an Admin or Owner are listed. The skill leaves the old workspace at once.
 
 <Warning>
   Moving a skill removes it from the source workspace. Any schedules or workflow steps that reference it there will stop working. Update those before moving.
@@ -80,4 +80,4 @@ If you build a skill in one workspace and need to move it to another, open the *
 
 ## Shared credit balance
 
-All runs inside a workspace draw from the workspace owner's credit pool — subscription credits and purchased top-ups included. When a member triggers a run or a scheduled job fires, the deduction comes from the owner's balance. The owner can set per-member monthly spend caps from the Team page to control how much any individual member can consume.
+Every run in a workspace draws from the workspace owner's credit balance, monthly plan credits and purchased credits alike. When a member starts a run or a schedule fires, the credits come from the owner's balance. The owner can set a monthly spend cap for each member on the **Team** page.

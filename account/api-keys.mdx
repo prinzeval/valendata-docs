@@ -9,13 +9,13 @@ An API key lets your code, or an AI assistant, call Valendata as you. Each key c
 
 <Steps>
   <Step title="Open API Keys settings">
-    Go to [app.valendata.com](https://app.valendata.com) and navigate to **Settings → API Keys**.
+    Go to [app.valendata.com](https://app.valendata.com) and open **Settings → API Keys**.
   </Step>
   <Step title="Create a new key">
     Click **Create key**. A dialog asks for a name, the scopes, and an expiry.
   </Step>
   <Step title="Name your key">
-    Enter a descriptive name that identifies where this key will be used — for example, `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name makes it easy to audit and revoke the right key later.
+    Name it after where it will be used, for example `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name helps you find and revoke the right key later.
   </Step>
   <Step title="Pick the scopes and expiry">
     Tick only what this integration needs (see [Scopes](/api-reference/authentication#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
@@ -23,14 +23,14 @@ An API key lets your code, or an AI assistant, call Valendata as you. Each key c
   <Step title="Limit it to some skills or workflows (optional)">
     Under **Limit to**, pick the skills and/or workflows this key may use. Leave a list empty to allow all. See [Limit a key to some skills or workflows](#limit-a-key-to-some-skills-or-workflows).
   </Step>
-  <Step title="Copy the key immediately">
-    After creation, Valendata shows the full key value **once**. Copy it now.
+  <Step title="Copy the key now">
+    Valendata shows the full key **once**. Copy it now.
 
     <Warning>
-      This is the only time the secret value is displayed. Valendata does not store it in recoverable form. If you lose it, you must revoke the key and create a new one.
+      This is the only time the key is shown. Valendata does not keep a copy it can show again. If you lose it, revoke the key and create a new one.
     </Warning>
   </Step>
-  <Step title="Store the key securely">
+  <Step title="Store the key safely">
     Paste the key into an environment variable or a secrets manager. Never put it in source files.
   </Step>
 </Steps>
@@ -75,47 +75,47 @@ Send it in the `Authorization: Bearer` header. See [Authentication and scopes](/
 
 ## Revoke an API key
 
-To permanently invalidate a key:
+To stop a key for good:
 
 1. Go to **Settings → API Keys**.
 2. Find the key by its name and the prefix shown in the **Key** column.
 3. Click the **trash icon** on that row.
 4. Confirm when prompted.
 
-Revocation is immediate. All subsequent requests using the revoked key return `401 Unauthorized`. So do requests with an expired key.
+It stops working at once. Every later request with that key returns `401 Unauthorized`. So does a request with an expired key.
 
-## Best practices
+## Good habits
 
 <CardGroup cols={2}>
   <Card title="One key per integration" icon="puzzle-piece">
-    Create a separate key for each service or environment (production, staging, CI). This lets you revoke a single integration without disrupting others.
+    Make a separate key for each service or environment (production, staging, CI). Then you can revoke one without breaking the others.
   </Card>
 
   <Card title="Least privilege" icon="lock">
     Give each key only the scopes it needs, and an expiry. A dashboard that only reads results needs `skills:read` and `runs:read`, nothing that spends credits.
   </Card>
 
-  <Card title="Rotate keys regularly" icon="arrows-rotate">
-    Issue a new key, update your integration, verify it works, then revoke the old key. Rotate after any team member offboarding.
+  <Card title="Rotate keys" icon="arrows-rotate">
+    Make a new key, switch your integration to it, check it works, then revoke the old one. Rotate keys when someone leaves the team.
   </Card>
 
-  <Card title="Never commit to source control" icon="code-branch">
-    Store keys in environment variables or a secrets manager. Use .gitignore and pre-commit hooks to prevent accidental commits.
+  <Card title="Keep keys out of source control" icon="code-branch">
+    Store keys in environment variables or a secrets manager. Use `.gitignore` and pre-commit hooks so a key is not committed by mistake.
   </Card>
 
-  <Card title="Audit from the dashboard" icon="list-check">
-    The API Keys settings page lists every key by name, prefix, creation date, and last used date. Review it periodically and revoke any key no longer in use.
+  <Card title="Review your keys" icon="list-check">
+    **Settings → API Keys** lists every key with its name, prefix, creation date, and last use. Check it from time to time and revoke keys you no longer use.
   </Card>
 </CardGroup>
 
 ## Frequently asked questions
 
-<Accordion title="What should I do if a key is accidentally exposed?">
-  Revoke it immediately from **Settings → API Keys** and create a replacement. Check your run history for any unexpected activity.
+<Accordion title="What do I do if a key leaks?">
+  Revoke it at once in **Settings → API Keys** and create a new one. Check your run history for runs you did not start.
 </Accordion>
 
 <Accordion title="How many API keys can I create?">
-  There is no hard limit on the number of keys. Creating one key per integration is a recommended practice, not a forced constraint.
+  There is no fixed limit. One key per integration is a good habit, not a rule.
 </Accordion>
 
 <Accordion title="Do API key requests consume credits?">

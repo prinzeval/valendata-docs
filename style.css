@@ -1,8 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=swap");
 
 :root {
-  --font-sans: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", "SF Mono", Consolas, monospace;
 }
 
 /* Typography across all document elements */
@@ -43,12 +43,12 @@ html:not(.dark) h3,
 html:not(.dark) h4,
 html:not(.dark) h5,
 html:not(.dark) h6 {
-  color: #0f172a !important;
+  color: #0e0f10 !important;
 }
 
 html:not(.dark) strong,
 html:not(.dark) b {
-  color: #0f172a !important;
+  color: #0e0f10 !important;
   font-weight: 700 !important;
 }
 
@@ -83,27 +83,10 @@ div[class*="pointer-events-none"][class*="bg-gradient-to-b"] {
   display: none !important;
 }
 
-/* Make the theme toggle switch prominent and clear */
-button[aria-label*="mode" i],
-button[aria-label*="theme" i],
-button[aria-label*="color" i],
-div[class*="theme-toggle"],
-div[class*="mode-toggle"] {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 6px 10px !important;
-  border-radius: 8px !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  background: rgba(0, 0, 0, 0.04) !important;
-  cursor: pointer !important;
-}
-
-html.dark button[aria-label*="mode" i],
-html.dark button[aria-label*="theme" i],
-html.dark button[aria-label*="color" i] {
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+/* Logo lockup: tile about 32px tall next to a ~20px wordmark */
+img.nav-logo {
+  height: 2rem !important;
+  max-width: none !important;
 }
 
 /* Hide Mintlify Ask AI / AI Assistant buttons & sparkles icons */

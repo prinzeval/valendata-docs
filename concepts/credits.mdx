@@ -3,41 +3,44 @@ title: "Credits"
 description: "What runs cost: every AI model, browser and proxy minute, search, code run, row, and verification, priced in credits."
 ---
 
-Valendata uses a credit-based, pay-for-what-you-use billing model. Every action a run takes is metered separately and priced in credits, listed exactly below — no bundled flat fees, no hidden categories.
+You pay for what a run uses, in credits. Every part of a run is metered on its own and priced at the rates below. There are no flat fees on top.
 
-## What credits cover
+New accounts get **100 free credits**, no card needed. After that, **\$1 buys 100 credits**.
 
-Every time you run a skill or workflow, Valendata deducts credits based on the exact resources that run consumed. Everything is billed at the published rate in 0.01-credit increments — never rounded up to a whole credit. Browser time is billed per second for as long as your run holds the browser, from session start until the run finishes (idle gaps between steps of a running workflow included).
+## How a run is charged
+
+When you run a skill or workflow, Valendata charges credits for what that run used. Charges are counted in steps of 0.01 credit and never rounded up to a whole credit. Browser time is billed per second while your run holds the browser, from when the session starts until the run finishes. Idle gaps between the steps of a running workflow count.
 
 <Note>
-Warm or idle browser time after your run ends is free. Valendata may keep a finished run's browser ready for a couple of minutes so your next run starts instantly — that time is never charged to you.
+Browser time after your run ends is free. Valendata may keep a finished run's browser open for a couple of minutes so your next run starts faster. You are not charged for that time.
 </Note>
 
-If a run fails because of our infrastructure (our proxy, our cloud browser, a worker restart, an error in our code, or an AI provider outage), every credit it used is refunded automatically and the run is marked "Failed on our side — refunded". See [Runs](/concepts/runs#why-a-run-failed). Runs that fail because the site is down, blocks the run, asks for a login, or changed its page, or because of bad inputs or a cancel, are charged as usual.
+If a run fails because of us (our proxy, our cloud browser, a worker restart, an error in our code, or an AI provider outage), every credit it used is refunded automatically, and the run is marked "Failed on our side — refunded". See [Runs](/concepts/runs#why-a-run-failed). Runs that fail because the site is down, blocks the run, asks for a login, or changed its page, or because of bad inputs or a cancel, are charged as usual.
 
 ### AI model usage
 
-Cost depends on which model a run uses, and scales with tokens used:
+The cost depends on the model a run uses and how many tokens it uses:
 
 | Model | Input (credits / 1k tokens) | Output (credits / 1k tokens) |
 | --- | --- | --- |
-| Gemini 3 Flash *(default — fast & smart)* | 0.125 | 0.75 |
-| Gemini 3.1 Pro *(most capable Gemini)* | 0.50 | 3.00 |
-| Claude Sonnet 4.6 *(balanced Claude)* | 0.75 | 3.75 |
-| Claude Opus 4.6 *(advanced reasoning)* | 1.25 | 6.25 |
-| Claude Opus 4.7 *(maximum intelligence)* | 1.25 | 6.25 |
+| Gemini 3.7 Flash *(default)* | 0.1875 | 0.9375 |
+| Gemini 3.1 Pro | 0.50 | 3.00 |
+| Claude Sonnet 4.6 | 0.75 | 3.75 |
+| Claude Opus 4.6 | 1.25 | 6.25 |
+| Claude Opus 4.7 | 1.25 | 6.25 |
+| GPT-OSS 20B *(free, for simple tasks)* | 0 | 0 |
 
-Bring-your-own-key (BYOK) users pay their own provider directly for tokens; the model picker still applies for capability, but token cost is between you and your provider.
+If you bring your own key (BYOK), you pay your AI provider directly for tokens. You still pick the model, but the token cost is between you and your provider.
 
-### Browser & proxy time
+### Browser and proxy time
 
 | Resource | Cost |
 | --- | --- |
 | Browser session time | 2.0 credits / minute |
-| + Sticky Identity proxy *(stays logged into one site as a stable IP)* | +2.2 credits / minute, on top of browser time |
-| + Rotating Residential proxy *(premium residential network for reliable access from the right region)* | +2.9 credits / minute, on top of browser time |
+| + Sticky Identity proxy *(one stable IP that stays signed in to one site)* | +2.2 credits / minute, on top of browser time |
+| + Rotating Residential proxy *(residential IPs, from the right region)* | +2.9 credits / minute, on top of browser time |
 
-Browser time is billed per second at this rate, in 0.01-credit increments: 45 seconds costs 1.5 credits, and 60.04 seconds costs 2.00 credits. Not every task needs a proxy — Valendata decides automatically based on what the task requires, and the surcharge only applies for the actual time a proxy tier is in use.
+Browser time is billed per second at this rate, in steps of 0.01 credit: 45 seconds costs 1.5 credits, and 60.04 seconds costs 2.00 credits. Not every task needs a proxy. Valendata decides based on what the task needs, and a proxy surcharge applies only for the time that proxy is in use.
 
 ### Other metered actions
 
@@ -46,65 +49,34 @@ Browser time is billed per second at this rate, in 0.01-credit increments: 45 se
 | Web search query | 2.0 credits / query |
 | Sandbox code execution | 1.0 credit / execution |
 | Extracted data row | 0.1 credit / row (10 rows = 1 credit) |
+| [Connected app](/concepts/connected-apps) call | 0.1 credit / read, 0.5 credit / write |
 | Verification handling — reCAPTCHA v2 | 0.20 credits / solve |
 | Verification handling — reCAPTCHA v3 | 0.25 credits / solve |
 | Verification handling — Cloudflare Turnstile | 0.30 credits / solve |
 
-Verification handling only happens (and only bills) when a task actually meets a challenge, and only where the site permits it — most tasks never touch this line at all. If a site refuses access, the run stops and reports `blocked` rather than trying to get around it.
+Verification handling happens, and is billed, only when a task meets a challenge, and only where the site permits it. Most tasks never meet one. If a site refuses access, the run stops and reports `blocked` instead of trying to get around it.
 
-Every new Valendata account receives **100 free credits** at sign-up, no credit card required. Use them to build and test your first skills before choosing a plan.
+## Buying credits
 
-## Pricing tiers
+**\$1 buys 100 credits.** Credits come in one-time packs. Larger packs cost less per credit:
 
-Credits are sold in bundles. The more you buy at once, the lower the per-credit cost.
+| Pack | Credits | Price | Price per credit |
+| --- | --- | --- | --- |
+| Starter | 1,000 | \$10 | \$0.0100 |
+| Growth | 5,000 | \$45 *(10% off)* | \$0.0090 |
+| Pro | 10,000 | \$80 *(20% off)* | \$0.0080 |
 
-<CardGroup cols={2}>
-  <Card title="Starter" icon="seedling">
-    **\$10**
-
-    - 1,000 credits
-    - **\$0.0100 per credit**
-    - Perfect for topping up or trying things out
-  </Card>
-
-  <Card title="Growth" icon="chart-line">
-    **\$45** _(save 10%)_
-
-    - 5,000 credits
-    - **\$0.0090 per credit**
-    - Great for regular use
-  </Card>
-
-  <Card title="Pro" icon="rocket">
-    **\$80** _(save 20%)_
-
-    - 10,000 credits
-    - **\$0.0080 per credit**
-    - Best for power users and heavy workloads
-  </Card>
-
-  <Card title="Enterprise" icon="building">
-    **Custom pricing**
-
-    - 50,000\+ credits
-    - Negotiated per-credit rate
-    - Custom SLAs, invoicing, and dedicated support — [contact us](https://app.valendata.com)
-  </Card>
-</CardGroup>
-
-<Info>
-  The Pro bundle gives you the lowest per-credit cost at \$0.0080 — a 20% saving over Starter. For anyone running skills regularly, it's the most cost-efficient bundle to buy.
-</Info>
+To buy more than 50,000 credits at once, email [info@valendata.com](mailto:info@valendata.com).
 
 ## Credits never expire
 
-**Purchased credits never expire.** If you buy 5,000 credits today and use 1,200 over the next month, your remaining 3,800 are still there, no deadlines, no cut-off dates. You can buy in bulk whenever it suits your budget.
+**Purchased credits never expire.** If you buy 5,000 credits and use 1,200 this month, the other 3,800 stay in your balance.
 
-Subscription plan credits work differently: they refresh each month on your billing date. Unused monthly credits do not carry over — every plan resets to its monthly grant each cycle. (Purchased top-up credits are separate from this and never expire, as above.)
+If you are on a monthly plan, its credits work differently: they reset to the plan's amount on each billing date, and unused monthly credits do not carry over. Purchased credits are separate and still never expire.
 
 ## Checking your credit balance
 
-Click the credit pill in the top header to open the **Credits & Billing** panel. From there you can view your transaction history, per-run breakdowns, and top up your balance. Credits are added immediately after payment.
+Click your credit balance in the top header to open the **Credits & Billing** panel. It shows your transaction history and what each run cost, and lets you buy credits. Credits are added right after payment.
 
 From code, read your balance with [`GET /v1/account`](/api-reference/account/get) and what you spent with [`GET /v1/usage`](/api-reference/account/usage). Every run result reports its own `credits_charged`. See [Runs](/concepts/runs#what-a-finished-run-holds).
 
@@ -114,14 +86,14 @@ Runs in a workspace draw from the workspace owner's balance, whoever starts them
 
 ## Frequently asked questions
 
-<Accordion title="Do credits carry over if I buy a new bundle?">
-  Yes. New credits are added to your existing balance. Credits from different purchases are pooled together and drawn down as a single balance — oldest credits are consumed first.
+<Accordion title="What happens to my credits when I buy another pack?">
+  The new credits are added to your balance. Everything you buy is one balance.
 </Accordion>
 
 <Accordion title="Is there a free tier?">
-  There is no recurring free tier, but every account starts with 100 free credits. These are enough to run several skills and evaluate the platform before purchasing a bundle.
+  There is no recurring free tier. Every new account starts with 100 free credits, no card needed. Use them to create and test your first skills.
 </Accordion>
 
-<Accordion title="How do Enterprise agreements work?">
-  Enterprise plans offer volume pricing for 50,000 or more credits, custom SLAs, dedicated support, and invoiced billing. [Contact the Valendata team](https://app.valendata.com) to discuss your requirements.
+<Accordion title="Can I buy a very large amount?">
+  Yes. For more than 50,000 credits, email [info@valendata.com](mailto:info@valendata.com).
 </Accordion>

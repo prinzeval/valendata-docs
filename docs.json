@@ -2,19 +2,14 @@
   "$schema": "https://mintlify.com/docs.json",
   "name": "Valendata",
   "theme": "maple",
-  "favicon": "/favicon.ico",
+  "favicon": "/favicon.png",
   "colors": {
-    "primary": "#12b981",
-    "light": "#12b981",
-    "dark": "#12b981"
+    "primary": "#059669",
+    "light": "#10B981",
+    "dark": "#047857"
   },
   "fonts": {
-    "heading": {
-      "family": "Plus Jakarta Sans"
-    },
-    "body": {
-      "family": "Plus Jakarta Sans"
-    }
+    "family": "Geist"
   },
   "navbar": {
     "primary": {
@@ -183,7 +178,7 @@
           },
           {
             "group": "Improvements",
-            "icon": "wand-magic-sparkles",
+            "icon": "wrench",
             "pages": [
               "api-reference/improvements/improve",
               "api-reference/improvements/get",
@@ -300,8 +295,8 @@
     "default": "dark"
   },
   "logo": {
-    "light": "/images/logo-light.png",
-    "dark": "/images/logo-dark.png",
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png",
     "href": "https://valendata.com/"
   },
   "api": {
