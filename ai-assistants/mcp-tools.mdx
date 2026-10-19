@@ -9,11 +9,11 @@ For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For
 
 ## Which tools the assistant sees
 
-The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 22 tools, plus one tool per skill and per workflow:
+The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 28 tools, plus one tool per skill and per workflow:
 
-`search_skills`, `search_workflows`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `list_skill_runs`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
+`search_skills`, `search_workflows`, `site_status`, `request_site`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`, `list_skill_runs`, `list_site_apis`, `call_site_api`, `list_logins`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills` and `search_workflows` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills`, `search_workflows`, and `site_status` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
@@ -23,13 +23,13 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
 | `clone_skill` | `slug` | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
 | `update_from_marketplace` | `slug`, optional `apply` (default `false`: only check) | `skills:write` | [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take) |
-| `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
+| `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `login_id` (a saved login from `list_logins`, to record behind a sign-in), `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
 | `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
 | `list_skill_creations` | optional `status`, `limit`, `cursor` | `skills:invoke` | [List skill creations](/api-reference/skills/list-creations) |
 | `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
 | `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
 
-Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
+Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
 
 `create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
 
@@ -76,7 +76,7 @@ An assistant can read everything public about a marketplace skill: its inputs, s
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `site_status` | `url_or_domain` | None | [Get a site](/api-reference/sites/get) |
-| `request_site` | `url`, optional `wanted` (what you wanted to do there), `run_id` | A signed-in connection | [Create a site request](/api-reference/sites/create-request) |
+| `request_site` | `url`, optional `wanted` (what you wanted to do there), `run_id` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a site request](/api-reference/sites/create-request) |
 
 Before building a skill for a site, or after a run on it fails, the assistant can check the site with `site_status`. When a site does not work, `request_site` asks us to fix it, with the failure details from `run_id` attached. One vote per person per site, and the user gets an email when it is fixed. See [When a site does not work](/guides/when-a-site-does-not-work).
 
@@ -161,8 +161,11 @@ Every run is also a resource at `valendata://runs/{run_id}`, with optional `?off
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`), `feedback`, optional `fields`, `example_input`, `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
+| `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`), `feedback`, optional `fields`, `example_input`, `browser_type` (`remote` or `extension`; default: where the skill runs), `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
 | `get_skill_improvement` | `improvement_id` | `skills:invoke` | [Get an improvement](/api-reference/improvements/get) |
+| `talk_to_skill` | `skill`, `message` (plain words, up to 2,000 characters) | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Talk to a skill](/api-reference/improvements/talk) |
+
+`talk_to_skill` is the easy way when the assistant does not know which mode fits: the skill reads its own runs and decides. It answers within about a minute; a repair it starts carries on and is posted to the skill's chat in the app.
 
 When a skill run comes back short, its answer has `diagnosis_summary` and `suggested_hint_examples` the assistant can pass as `feedback`. See [Improve a skill](/guides/improve-a-skill).
 
@@ -332,6 +335,14 @@ Every failed tool call answers the same shape, as structured content and as JSON
 
 A run that started and then failed is not a tool error: its answer has `status: "failed"` and an `error_code` of `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap`, with the same meaning as above. A run is checked for credits before it starts, so `insufficient_credits` or `spend_cap` here means the balance ran out after it started.
 
+## Logins
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `list_logins` | optional `limit`, `cursor` | `skills:invoke` (OAuth), or `logins:use` or `logins:write` | [List logins](/api-reference/logins/list) |
+
+It lists your saved website logins, masked: the site, a hint of the username, the label, and whether it has an authenticator seed. Never a password or a code. Pass an item's `id` as `create_skill`'s `login_id` to record a skill behind that site's sign-in.
+
 ## Not available as tools
 
-There is no tool to save a login or read one back, on purpose: a password in a tool call would stay in the assistant's chat history. Save logins in the app's **Vault** or with [Create a login](/api-reference/logins/create).
+There is no tool to save a login or read its password back, on purpose: a password in a tool call would stay in the assistant's chat history. Save logins in the app's **Vault** or with [Create a login](/api-reference/logins/create).

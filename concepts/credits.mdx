@@ -5,7 +5,7 @@ description: "What runs cost: every AI model, browser and proxy minute, search, 
 
 You pay for what a run uses, in credits. Every part of a run is metered on its own and priced at the rates below. There are no flat fees on top.
 
-New accounts get **100 free credits**, no card needed. After that, **\$1 buys 100 credits**.
+New accounts get **100 free credits**, no card needed. After that, credits come from a [monthly plan or a one-time top-up](#getting-credits), at **\$1 = 100 credits**.
 
 ## How a run is charged
 
@@ -48,6 +48,7 @@ Browser time is billed per second at this rate, in steps of 0.01 credit: 45 seco
 | --- | --- |
 | Web search query | 2.0 credits / query |
 | Sandbox code execution | 1.0 credit / execution |
+| Sandbox time while your code runs | 1.25 credits / minute (idle time is free) |
 | Extracted data row | 0.1 credit / row (10 rows = 1 credit) |
 | [Connected app](/concepts/connected-apps) call | 0.1 credit / read, 0.5 credit / write |
 | Verification handling — reCAPTCHA v2 | 0.20 credits / solve |
@@ -56,23 +57,27 @@ Browser time is billed per second at this rate, in steps of 0.01 credit: 45 seco
 
 Verification handling happens, and is billed, only when a task meets a challenge, and only where the site permits it. Most tasks never meet one. If a site refuses access, the run stops and reports `blocked` instead of trying to get around it.
 
-## Buying credits
+## Getting credits
 
-**\$1 buys 100 credits.** Credits come in one-time packs. Larger packs cost less per credit:
+Every new account starts with **100 free credits**, no card needed. After that, credits come from a monthly plan, from one-time top-ups, or both. **\$1 = 100 credits.**
 
-| Pack | Credits | Price | Price per credit |
+### Monthly plans
+
+Plans are monthly subscriptions. Each one adds its credits every month on your billing date. The bigger plans cost less per credit:
+
+| Plan | Credits a month | Price | Price per credit |
 | --- | --- | --- | --- |
-| Starter | 1,000 | \$10 | \$0.0100 |
-| Growth | 5,000 | \$45 *(10% off)* | \$0.0090 |
-| Pro | 10,000 | \$80 *(20% off)* | \$0.0080 |
+| Starter | 1,000 | \$10 / month | \$0.0100 |
+| Growth | 5,000 | \$45 / month *(10% off)* | \$0.0090 |
+| Pro | 10,000 | \$80 / month *(20% off)* | \$0.0080 |
 
-To buy more than 50,000 credits at once, email [info@valendata.com](mailto:info@valendata.com).
+Plan credits reset to the plan's amount on each billing date. Cancel any time: the plan stops renewing, and you keep it until the end of the month you paid for.
 
-## Credits never expire
+### One-time top-ups
 
-**Purchased credits never expire.** If you buy 5,000 credits and use 1,200 this month, the other 3,800 stay in your balance.
+Top up any amount, any time, at \$1 for 100 credits. A top-up is a single payment, not a subscription. **Top-up credits never expire**, and they stay separate from your plan's monthly credits, so a monthly reset never takes them away.
 
-If you are on a monthly plan, its credits work differently: they reset to the plan's amount on each billing date, and unused monthly credits do not carry over. Purchased credits are separate and still never expire.
+To buy more than 50,000 credits a month, email [info@valendata.com](mailto:info@valendata.com).
 
 ## Checking your credit balance
 
@@ -86,14 +91,18 @@ Runs in a workspace draw from the workspace owner's balance, whoever starts them
 
 ## Frequently asked questions
 
-<Accordion title="What happens to my credits when I buy another pack?">
-  The new credits are added to your balance. Everything you buy is one balance.
+<Accordion title="What happens to my credits when I top up?">
+  The top-up credits are added to your balance right away and never expire. Your plan's monthly credits keep resetting on your billing date as usual.
 </Accordion>
 
-<Accordion title="Is there a free tier?">
-  There is no recurring free tier. Every new account starts with 100 free credits, no card needed. Use them to create and test your first skills.
+<Accordion title="Do I need a plan to start?">
+  No. Every new account starts with 100 free credits, no card needed. Use them to create and test your first skills, then pick a monthly plan when you need more.
+</Accordion>
+
+<Accordion title="Can I cancel my plan?">
+  Yes, any time. The plan stops renewing, and you keep it until the end of the month you paid for. Top-up credits stay in your balance.
 </Accordion>
 
 <Accordion title="Can I buy a very large amount?">
-  Yes. For more than 50,000 credits, email [info@valendata.com](mailto:info@valendata.com).
+  Yes. For more than 50,000 credits a month, email [info@valendata.com](mailto:info@valendata.com).
 </Accordion>

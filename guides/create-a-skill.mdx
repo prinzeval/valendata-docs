@@ -55,7 +55,7 @@ creation = requests.post(
     },
 ).json()
 
-while creation["status"] not in ("ready", "needs_fix", "failed"):
+while creation["status"] not in ("ready", "needs_fix", "failed", "cancelled"):
     time.sleep(30)
     creation = requests.get(f"{API}{creation['status_url']}", headers=HEADERS).json()
     print(creation.get("progress"))
@@ -65,7 +65,7 @@ print(creation["status"], creation.get("slug"), creation.get("next_step"))
 
 </CodeGroup>
 
-The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{creation_id}`](/api-reference/skills/get-creation) about every 30 seconds. Stop when `status` is `ready`, `needs_fix`, or `failed`.
+The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{creation_id}`](/api-reference/skills/get-creation) about every 30 seconds. Stop when `status` is `ready`, `needs_fix`, `failed`, or `cancelled`.
 
 | `status` | Meaning |
 | --- | --- |
@@ -75,6 +75,7 @@ The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{c
 | `ready` | Passed the check. You can run it. |
 | `needs_fix` | Saved as a **draft** skill (`slug` is set), but the check run did not pass. Fix it with [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve) (MCP: `improve_skill`). Do not create it again. |
 | `failed` | Did not work and nothing was saved. `error` says why and `diagnosis` suggests what to try. |
+| `cancelled` | You [stopped it](/api-reference/skills/cancel-creation) while it was building. Nothing was saved. |
 
 Each check also tells you:
 
@@ -114,7 +115,9 @@ To see all your creations, newest first, use [List skill creations](/api-referen
 
 To stop one that is still going, use [Cancel a skill creation](/api-reference/skills/cancel-creation). It stops at its next step. Credits it already used are not refunded.
 
-**Limits:** 2 creations in progress at once, at least 10 credits to start, and 30 minutes per creation. A cloud browser starting fresh cannot sign in, so record tasks that need your sign-in instead.
+**Limits:** 2 creations in progress at once, at least 10 credits to start, and 30 minutes per creation.
+
+**Behind a sign-in:** if the start page asks you to sign in, pick a saved login under **Sign in with** (`login_id` in the API, from [List logins](/api-reference/logins/list)). The cloud browser signs in with it first, and the new skill keeps using that login. Without one, the creation stops and asks you to save a login for the site, then create it again.
 
 ## By recording it
 

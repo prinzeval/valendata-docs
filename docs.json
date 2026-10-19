@@ -182,7 +182,9 @@
             "pages": [
               "api-reference/improvements/improve",
               "api-reference/improvements/get",
-              "api-reference/improvements/list"
+              "api-reference/improvements/list",
+              "api-reference/improvements/talk",
+              "api-reference/improvements/chat"
             ]
           },
           {
@@ -292,7 +294,7 @@
     }
   },
   "appearance": {
-    "default": "dark"
+    "default": "light"
   },
   "logo": {
     "light": "/logo/light.png",

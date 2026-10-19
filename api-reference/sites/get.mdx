@@ -7,7 +7,7 @@ api: "GET https://api.valendata.com/v1/sites/{domain}"
 Check a site before you build a skill for it, or after a run on it fails. No key needed.
 
 <ParamField path="domain" type="string" required>
-  The site, such as `airbnb.com`. A full address works too, such as `https://www.airbnb.com/rooms/123`; only its domain is used.
+  The site, such as `airbnb.com`. A full address works too, such as `https://www.airbnb.com/rooms/123`; only its domain is used. `www.`, `m.`, and other subdomains are dropped, so `newyork.craigslist.org` is `craigslist.org`.
 </ParamField>
 
 <ResponseField name="domain" type="string">
@@ -41,7 +41,7 @@ Check a site before you build a skill for it, or after a run on it fails. No key
 </ResponseField>
 
 <ResponseField name="open_request" type="object | null">
-  The open [site request](/api-reference/sites/create-request) for this site, if anyone has asked: its `id`, `votes` (how many people asked), and `status`. `null` when nobody has.
+  The open [site request](/api-reference/sites/create-request) for this site: its `id`, `votes` (how many people asked), and `status`. It shows once at least 3 people have asked, so one person's ask is never pointed to. `null` until then.
 </ResponseField>
 
 `skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless the site is `proven` or `failing`. A site is shown only when a skill on it is public or made by the Valendata team, or when at least 3 people use it, so one person's private runs are never pointed to.
@@ -67,7 +67,7 @@ curl "https://api.valendata.com/v1/sites/example-shop.com"
   "runs_30d": 64,
   "success_rate": 0.41,
   "last_success_at": "2026-10-12T15:02:10Z",
-  "open_request": { "id": "sreq_4b7e9a1c", "votes": 4, "status": "open" }
+  "open_request": { "id": "sr_4b7e9a1c2d3f4a5b6c7d8e9f", "votes": 4, "status": "open" }
 }
 ```
 

@@ -4,7 +4,7 @@ description: "Stop a skill that is still being built."
 api: "POST https://api.valendata.com/v1/skill-creations/{creation_id}/cancel"
 ---
 
-Needs `skills:write`. The creation stops at its next step and ends as `cancelled` (its `error` reads "Stopped by you. Nothing was saved."). Credits it already used are not refunded. Only a creation still `queued` or `recording` can be stopped: one that is `validating` or finished (`ready`, `needs_fix`, `failed`) returns `409` and is left as it is. Cancelling again returns the same answer.
+Needs `skills:write`. The creation stops at its next step and ends as `cancelled` (its `error` reads "Stopped by you. Nothing was saved."). Credits it already used are not refunded. Only a creation still `queued` or `recording` can be stopped: one that is `validating` or finished (`ready`, `needs_fix`, `failed`) returns `409` and is left as it is. It answers with the creation, now `cancelled`, as [Get a skill creation](/api-reference/skills/get-creation) shows it, plus a `message`. Cancelling again returns the same answer. There is no MCP tool for it.
 
 Only your own creations. Find the ones still running with [List skill creations](/api-reference/skills/list-creations) and `status=active`.
 

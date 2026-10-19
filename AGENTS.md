@@ -1,4 +1,3 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
 > For Mintlify product knowledge (components, configuration, writing standards),
 > install the Mintlify skill: `npx skills add https://mintlify.com/docs`
 
@@ -14,13 +13,15 @@
 
 ## Terminology
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- The product is **Valendata** (capital V, one word). Never "ValenData" or "Valendata AI".
+- A **skill** is a saved task that returns rows. A **workflow** chains steps. A **run** is one execution.
+- Pricing facts: new accounts get 100 free credits, no card; $1 = 100 credits. Plans are monthly subscriptions (Starter $10/mo = 1,000 credits a month, Growth $45/mo = 5,000, Pro $80/mo = 10,000; cancel any time, access to the end of the paid month). Top-ups are one-time, any amount, and top-up credits never expire. Never write "one-time packs", "no subscription", or "credits never expire" about plan credits.
+- Check every fact against `valendata-be/app` before writing it. `_reconcile.md` lists the source for each API page.
 
 ## Style preferences
 
-{/* Add any project-specific style rules below */}
-
+- Plain words, short sentences, true claims only. No emoji, no hype words ("seamless", "cutting-edge", "supercharge", "in seconds"), no made-up numbers.
+- No uppercase eyebrow labels, badges, or sparkle icons.
 - Use active voice and second person ("you")
 - Keep sentences concise — one idea per sentence
 - Use sentence case for headings
@@ -29,5 +30,5 @@
 
 ## Content boundaries
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- Document what users and developers can do: the app, the `/v1` API, and the MCP tools.
+- Do not document the admin app or internal routes.

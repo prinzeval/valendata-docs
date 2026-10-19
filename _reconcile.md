@@ -47,29 +47,18 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/jobs/*.mdx, concepts/background-jobs.mdx | /v1/jobs (POST start 1–6 items, 202, `refused`, 422 when none start), /v1/jobs/{job_id}, /cancel (jobs:read / jobs:write, + skills:invoke / workflows:invoke to start) | jobs/__init__.py, jobs/api/*, jobs/cancel.py, jobs/delivery/note.py, mcp/job_tools.py, agents/job_tools.py (MAX_ITEMS), services/subtask_service.py (MAX_FANOUT) |
 | api-reference/notes/*.mdx, concepts/notes.mdx | /v1/notes (q, topic, tag, pinned, limit/cursor), /v1/notes/{note_id} GET/PATCH (body / append / find+replace_with)/DELETE (notes:read / notes:write; source `api`) | notes/api/*, notes/service.py (MAX_TITLE, MAX_BODY, MAX_TAGS, MAX_TAG, MAX_TOPIC), notes/agent_tools.py (write_note, appended, edited), notes/models.py (SOURCES), mcp/note_tools.py |
 | api-reference/apps/*.mdx, concepts/connected-apps.mdx | /v1/apps, /v1/apps/connected, /v1/apps/{app}, /connection, /tools, /tools/{tool}/run (apps:read / apps:write) | integrations/apps/api/*, integrations/apps/step.py (MAX_WRITES_PER_RUN), mcp/connected_app_tools.py |
-| api-reference/sites/*.mdx, guides/when-a-site-does-not-work.mdx | GET /v1/sites/proven (q, limit 50, offset; public), GET /v1/sites/{domain} (public; counts null under 3 people), POST /v1/site-requests, GET /v1/site-requests/mine, DELETE /v1/site-requests/{id}/vote; MCP site_status, request_site. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be sites routes (being built) |
+| api-reference/sites/*.mdx, guides/when-a-site-does-not-work.mdx | GET /v1/sites/proven (q, limit 50, offset; public), GET /v1/sites/{domain} (public; counts null under 3 people), POST /v1/site-requests, GET /v1/site-requests/mine, DELETE /v1/site-requests/{request_id}/vote; MCP site_status, request_site. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be sites routes (being built) |
 | api-reference/site-apis/*.mdx, concepts/site-apis.mdx | GET /v1/apis, GET /v1/apis/{domain} (404 with no skill there), POST /v1/apis/{domain}/{endpoint_name}/run (= POST /v1/skills/{slug}/run), PATCH /v1/apis/{domain}/endpoints/{skill_id} (`name` snake_case 3–41, unique per site; 422 / 409), PUT /v1/apis/{domain}/defaults (new skills only); GET /v1/skills/{slug} + `site_domain`, `endpoint_name`; MCP list_site_apis, call_site_api. Manual `api:` pages written from the frozen contract before the backend shipped; switch to `openapi:` once the exported spec has the routes | valendata-be site APIs routes (being built) |
 | api-reference/skills/cancel-creation.mdx | POST /v1/skill-creations/{creation_id}/cancel (stops at its next step, credits used not refunded, 409 when finished). Manual `api:` page until the spec has the route | skill_creation/router.py (being built) |
+| api-reference/improvements/talk.mdx, chat.mdx | POST, GET /v1/skills/{slug}/doctor (message 1–2000; 409 while answering; `messages`, `working`); MCP talk_to_skill | published_skills/doctor/v1_router.py, mcp/doctor_tools.py |
 
 Open follow-ups:
-- Sites pages (2026-10-17): confirm against the shipped backend — the scope (if any) for /v1/site-requests and
-  `request_site`, whether `success_rate` is 0–1 or 0–100 (examples use 0.97), the `status` values of a site request
-  (examples use `open`), the id prefix (examples use `sreq_`), and the error codes. Then re-export openapispec.json
-  and switch the five pages to `openapi:`. Add both tools to "Which tools the assistant sees" on ai-assistants/mcp-tools.mdx once their scope is known. Check that **Make this site work** is the app's button label.
-- Site APIs pages (2026-10-17): confirm against the shipped backend — the scopes (pages say `skills:read` for both
-  GETs and `list_site_apis`, `skills:invoke` for run and `call_site_api`, `skills:write` for rename and defaults; does
-  `login_id` in defaults also need `logins:write`?), the shape of each item in `inputs` / `fields` (examples use
-  `name`, `type`, `required`), the `health_status` values (examples use `healthy`), whether `success_rate` is 0–1
-  (examples use 0.95), what PATCH and PUT answer (rename shows no response; defaults is written as `domain` +
-  `defaults`), whether PUT clears a default you leave out or keeps it, whether `{domain}` takes a full address, and
-  that run answers `404` for an unknown endpoint name. Check whether `call_site_api` waits like `run_skill`. Then
-  re-export openapispec.json, switch the five pages to `openapi:`, and add both tools to "Which tools the assistant
-  sees" on ai-assistants/mcp-tools.mdx (and its tool count) once their scopes are known.
-- Cancel a skill creation (2026-10-17): confirm the scope, the response body (the page shows none), the status a
-  cancelled creation ends in (add it to the status table in guides/create-a-skill.mdx and to get-creation.mdx), and
-  whether an MCP tool comes with it. Then switch to `openapi:`.
-- `workflows:write` and `account:read` are API-key only today. When the OAuth consent opt-in ships, the
-  "AI assistants (OAuth)" column in api-reference/authentication.mdx already says "assistants you allowed to …";
-  check the consent-screen label matches.
-- Quickstart and guides/create-a-skill point at **My Skills → Create from a description** (being built by another
-  agent). Check the button label once it ships.
+- 2026-10-19: the sites, site APIs and cancel-creation pages were checked against the shipped backend (app/sites/*,
+  app/site_apis/*, skill_creation/router.py) and corrected: scopes, `sr_` ids, request statuses, `fields` as names,
+  `success_rate` 0–1 for sites and 0–100 for endpoints, PUT defaults answer, cancel answer. They stay manual `api:`
+  pages because they carry more than the spec; the spec now has their routes if you want to switch to `openapi:`.
+- The backend's own descriptions for GET /v1/sites/proven and GET /v1/sites/{domain} (public_api/operations.py) still
+  say "3+ people, 10+ runs, 90%+ worked"; app/sites/status.py (one working skill proves a site) is what runs, and the
+  docs follow it. Fix the backend text, then re-export.
+
+2026-10-19: `openapispec.json` re-exported with `scripts/export_public_openapi.py`; it now has the sites, site APIs, skill-creation cancel and doctor routes.

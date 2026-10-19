@@ -33,6 +33,14 @@
       "description": "Find a skill by the task, with its price per run and track record."
     },
     {
+      "name": "Sites",
+      "description": "Which websites work on Valendata, and asking us to make one work."
+    },
+    {
+      "name": "Site APIs",
+      "description": "Your skills grouped by website: each site an API, each skill a named endpoint."
+    },
+    {
       "name": "Runs",
       "description": "Run skills and workflows, read any run, and cancel one."
     },
@@ -142,6 +150,490 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/apis": {
+      "get": {
+        "tags": [
+          "Site APIs"
+        ],
+        "summary": "List your site APIs",
+        "description": "Your skills grouped by the website they read: one entry per site with `endpoints` (your skills on it), how many are `healthy` and `failing`, and `last_run_at`. Most endpoints first. Only your own skills and your workspaces' are counted. Needs `skills:read`.",
+        "operationId": "list_site_apis",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteApiList"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "list_site_apis"
+      }
+    },
+    "/v1/apis/{domain}": {
+      "get": {
+        "tags": [
+          "Site APIs"
+        ],
+        "summary": "Get a site API",
+        "description": "One site's endpoints: each of your skills on it with its endpoint `name`, `inputs`, `fields`, health and last run, plus your `defaults` for new skills there. `domain` is a domain (clutch.co) or a link on the site. `404` when you have no skill on it. Needs `skills:read`.",
+        "operationId": "get_site_api",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteApi"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "list_site_apis"
+      }
+    },
+    "/v1/apis/{domain}/defaults": {
+      "put": {
+        "tags": [
+          "Site APIs"
+        ],
+        "summary": "Set a site's defaults",
+        "description": "What a new skill of yours on this site starts with: `profile_id`, `login_id`, `browser_type` and `proxy_config`, each used only where the skill's creator set nothing. Only what you send changes; `null` clears it. Your skills already on the site keep their own settings. A profile or login must be yours; a login needs `logins:write`. Needs `skills:write`.",
+        "operationId": "update_site_api_defaults",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteApiDefaultsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteApiDefaults"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/apis/{domain}/endpoints/{skill_id}": {
+      "patch": {
+        "tags": [
+          "Site APIs"
+        ],
+        "summary": "Rename an endpoint",
+        "description": "Give an endpoint a new `name`: snake_case verb_object, 3–41 characters (search_companies). `422` for a name that is not one, `409` when another endpoint of the site in that workspace has it. The skill's owner or a workspace editor. Needs `skills:write`.",
+        "operationId": "rename_site_api_endpoint",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          },
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Skill Id"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameEndpoint"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteApiEndpoint"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/apis/{domain}/{endpoint_name}/run": {
+      "post": {
+        "tags": [
+          "Site APIs"
+        ],
+        "summary": "Run a site API endpoint",
+        "description": "Run one endpoint of a site API. Exactly `POST /v1/skills/{slug}/run` for the skill behind it: the same inputs at the top level of the body, the same run settings, answer and errors. Consumes credits. Needs `skills:invoke`.",
+        "operationId": "run_site_api",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          },
+          {
+            "name": "endpoint_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Endpoint Name"
+            }
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 500,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max rows to return; 0 means the entire list. Omit to use the skill's saved default.",
+              "title": "Max Results"
+            },
+            "description": "Max rows to return; 0 means the entire list. Omit to use the skill's saved default."
+          },
+          {
+            "name": "max_pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Page limit for paginated skills; 0 means all pages."
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Recipe version to replay for this call."
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecuteSkillResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
+                "additionalProperties": true
+              },
+              "example": {
+                "city": "Houston",
+                "max_pages": 1
+              }
+            }
+          }
+        },
+        "x-mcp-tool": "call_site_api"
       }
     },
     "/v1/apps": {
@@ -2597,7 +3089,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NoteList"
+                  "$ref": "#/components/schemas/app__notes__api__schemas__NoteList"
                 },
                 "example": {
                   "notes": [
@@ -3682,6 +4174,387 @@
         }
       }
     },
+    "/v1/site-requests": {
+      "post": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Ask for a site to work",
+        "description": "Ask us to make a website work. Give a link on it (`url`), and the run, skill or skill creation of yours that failed there (`run_id`, `skill_id`, `creation_id`): why it failed goes along by itself, read from your own run — anyone else's id is ignored. `wanted` (optional) says what you want from the site; by default your skill's name or your creation's task. One open request per site: your ask joins it (`created: false`) or opens it (`created: true`). Asking again only updates your ask; it never counts twice. You are emailed, and told in your Valendata inbox, when the site works. Needs `skills:write`.",
+        "operationId": "create_site_request",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskSiteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteAsk"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "request_site"
+      }
+    },
+    "/v1/site-requests/mine": {
+      "get": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "List your site requests",
+        "description": "The sites you asked us to make work, your latest ask first, each with its `status` (`open`, `working_on`, `fixed`, `wont_fix`), how many people asked, when you asked and when it was fixed. Needs `skills:read`.",
+        "operationId": "list_my_site_requests",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MySiteRequests"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/site-requests/{request_id}/vote": {
+      "delete": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Take back a site request",
+        "description": "Take your ask for a site back. Doing it again changes nothing. Needs `skills:write`.",
+        "operationId": "delete_site_request_vote",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoteWithdrawn"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/sites/proven": {
+      "get": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "List proven sites",
+        "description": "The websites proven to work on Valendata: in the last 30 days at least 3 people ran skills on the site, at least 10 runs, and 90% or more of them worked (runs the user cancelled are not counted). Each has how many skills, people and runs, the success rate (0–1) and when a run last worked. Most people first; `q` keeps the domains containing it. Page with `limit` (1–100, default 50) and `offset`; `total` counts every match. Recounted every hour. No key needed.",
+        "operationId": "list_proven_sites",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Part of a domain, e.g. airbnb.",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "Part of a domain, e.g. airbnb."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Sites per page, 1–100.",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Sites per page, 1–100."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Sites to skip.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Sites to skip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvenSites"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          },
+          {}
+        ]
+      }
+    },
+    "/v1/sites/{domain}": {
+      "get": {
+        "tags": [
+          "Sites"
+        ],
+        "summary": "Get a site",
+        "description": "Whether one website works on Valendata: `proven` (3+ people, 10+ runs, 90%+ worked in 30 days), `failing` (3+ people, 5+ runs, under 50% worked) or `unproven`, with its numbers, and `open_request` when someone asked us to make it work. `domain` is a domain (airbnb.com) or a full link; `www.`, `m.` and subdomains are dropped (newyork.craigslist.org is craigslist.org). A site fewer than 3 people ran shows `unproven` and null numbers, so no one's private use is shown. No key needed.",
+        "operationId": "get_site",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "site_status",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          },
+          {}
+        ]
+      }
+    },
     "/v1/skill-creations": {
       "get": {
         "tags": [
@@ -3865,7 +4738,92 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) or `failed` (nothing was saved; `error` says why). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
+        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) `failed` (nothing was saved; `error` says why) or `cancelled` (you stopped it; nothing was saved). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
+      }
+    },
+    "/v1/skill-creations/{creation_id}/cancel": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Cancel a skill creation",
+        "description": "Stop a creation while it is `queued` or `recording`: the recording ends after the step it is on, its browser is closed and nothing is saved. Answers with the creation, now `cancelled`, and a `message`. Credits it already used are not refunded. Cancelling again answers the same. `409` once it has ended or its recording is already saved as a skill (`validating`). Only the account that started it. Needs `skills:write`.",
+        "operationId": "cancel_skill_creation",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "creation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Creation Id"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillCreationCancelled"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
       }
     },
     "/v1/skill-improvements/{improvement_id}": {
@@ -4632,6 +5590,173 @@
         "x-mcp-tool": "clone_skill"
       }
     },
+    "/v1/skills/{slug}/doctor": {
+      "get": {
+        "tags": [
+          "Improvements"
+        ],
+        "summary": "Read a skill's chat",
+        "description": "The Skill's chat with its doctor, oldest first (the last 100 messages): your messages (`role: user`), its answers (`doctor`) and what happened on its own (`event`: a run failed, a repair started or ended), each with an optional `action` linking the run or improvement it is about. `working` is true while a look or a repair is in progress. Owner or workspace editor only. Needs `skills:read`.",
+        "operationId": "get_skill_chat",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctorThread"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "talk_to_skill"
+      },
+      "post": {
+        "tags": [
+          "Improvements"
+        ],
+        "summary": "Talk to a skill",
+        "description": "Tell the Skill what is wrong or what you want, in plain words (`this is broken`, `why did the last run fail?`, `also get the price`). Its doctor reads its runs, steps and versions, decides, and fixes it itself when it can: re-learning steps or a field, changing its browser or proxy, restoring a version that worked, or asking you to sign in. Answers within about a minute with your message and its reply; a repair it starts carries on, is checked with a short run, and its result is posted to the chat. Repairs are free; new fields you ask for are charged as an improvement. `409` while it is still answering your previous message. Owner or workspace editor only. Needs `skills:write`.",
+        "operationId": "talk_to_skill",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorTalkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoctorTalkResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/v1/skills/{slug}/health": {
       "get": {
         "tags": [
@@ -4710,7 +5835,7 @@
           "Improvements"
         ],
         "summary": "Improve a skill",
-        "description": "Change a Skill in one of three modes. `fix` (default): relearn it from a plain-English hint about where the data is. `add_fields`: capture new fields you describe in plain English; the request is first compared with the Skill's fields, so a re-worded duplicate is merged into the existing field and an unclear one comes back as a question. `relearn_details`: rebuild how the Skill opens each result (its per-row detail steps), for when the site changed or detail fields come back empty. Every mode runs on a cloud browser, saves a new recipe version and checks it with a short run (up to 5 rows). The new version stays live only if it is better; otherwise it is kept as a candidate and the previous recipe stays live. Owner or workspace editor only; drafts allowed. One improvement at a time per account and per Skill, up to 6 an hour, at least 10 credits to start. Charged to the caller.",
+        "description": "Change a Skill in one of four modes. `fix` (default): relearn it from a plain-English hint about where the data is. `add_fields`: capture new fields you describe in plain English; the request is first compared with the Skill's fields, so a re-worded duplicate is merged into the existing field and an unclear one comes back as a question. `relearn_details`: rebuild how the Skill opens each result (its per-row detail steps), for when the site changed or detail fields come back empty. `relearn_steps`: re-record how the Skill reaches its results from its task, for a step that no longer works or a run that returns no rows. Every mode runs on a cloud browser, saves a new recipe version and checks it with a short run (up to 5 rows). The new version stays live only if it is better; otherwise it is kept as a candidate and the previous recipe stays live. Owner or workspace editor only; drafts allowed. One improvement at a time per account and per Skill, up to 6 an hour, at least 10 credits to start. Charged to the caller.",
         "operationId": "improve_skill",
         "security": [
           {
@@ -8349,6 +9474,74 @@
         ],
         "title": "AppToolResult"
       },
+      "AskSiteRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Url",
+            "description": "A link on the site, or just its domain."
+          },
+          "wanted": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wanted",
+            "description": "What you want from the site, in a few words. Default: your skill's name or your creation's task."
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id",
+            "description": "Your skill that failed on it."
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "Your run that failed on it."
+          },
+          "creation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creation Id",
+            "description": "Your skill creation that failed on it."
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "AskSiteRequest"
+      },
       "AutoRecharge": {
         "properties": {
           "enabled": {
@@ -9065,6 +10258,155 @@
         ],
         "title": "DisconnectedApp"
       },
+      "DoctorAction": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "improvement | run_failed | test_run | settings | login | restore"
+          },
+          "improvement_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Improvement Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "DoctorAction",
+        "description": "What a message is about, so the page can link it."
+      },
+      "DoctorMessage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "doctor",
+              "event"
+            ],
+            "title": "Role",
+            "description": "user (the owner) | doctor (the skill answering) | event (something that happened)"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DoctorAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "text"
+        ],
+        "title": "DoctorMessage"
+      },
+      "DoctorTalkRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "description": "What you want, in plain words: 'this is broken', 'add the price', 'why did the last run fail?'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "DoctorTalkRequest"
+      },
+      "DoctorTalkResponse": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "title": "DoctorTalkResponse",
+        "description": "Your message and the doctor's answer(s). Work that takes longer (a repair) carries on\nafter this answers; its result is posted to the chat."
+      },
+      "DoctorThread": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "working": {
+            "type": "boolean",
+            "title": "Working",
+            "description": "A look or a repair is in progress; its result is posted here",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "DoctorThread",
+        "description": "The skill's chat, oldest first, and whether the doctor is working on something now."
+      },
       "ExecuteSkillRequest": {
         "properties": {
           "skill_id": {
@@ -9413,6 +10755,50 @@
           "tier"
         ],
         "title": "FastPath"
+      },
+      "FastPathProgress": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "tier": {
+            "type": "string",
+            "title": "Tier"
+          },
+          "matches": {
+            "type": "integer",
+            "title": "Matches",
+            "default": 0
+          },
+          "needed": {
+            "type": "integer",
+            "title": "Needed",
+            "default": 0
+          },
+          "needs_other_inputs": {
+            "type": "boolean",
+            "title": "Needs Other Inputs",
+            "default": false
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "tier"
+        ],
+        "title": "FastPathProgress"
       },
       "FieldChange": {
         "properties": {
@@ -9958,17 +11344,18 @@
             "enum": [
               "fix",
               "add_fields",
-              "relearn_details"
+              "relearn_details",
+              "relearn_steps"
             ],
             "title": "Mode",
-            "description": "fix: fill fields the skill misses, from a hint about where the data is (the default). add_fields: capture NEW fields described in plain English. relearn_details: rebuild how the skill clicks into each result (its per-row detail steps) — for a site that changed or detail fields that come back empty.",
+            "description": "fix: fill fields the skill misses, from a hint about where the data is (the default). add_fields: capture NEW fields described in plain English. relearn_details: rebuild how the skill clicks into each result (its per-row detail steps) — for a site that changed or detail fields that come back empty. relearn_steps: re-record how the skill gets to its results from its task (a step no longer works, a run returns no rows) — the AI re-recorder redoes the navigation, the old plan as a guide.",
             "default": "fix"
           },
           "feedback": {
             "type": "string",
             "maxLength": 2000,
             "title": "Feedback",
-            "description": "fix: what the skill gets wrong and where the data really is, e.g. 'The phone is on the details page — click the place name, the panel opens, the number is next to the phone icon.' add_fields: the new fields, e.g. 'also capture the star rating and the review count'. relearn_details: an optional note, e.g. 'the details now open in a side panel'. Required (3+ characters) for fix, and for add_fields unless fields names them.",
+            "description": "fix: what the skill gets wrong and where the data really is, e.g. 'The phone is on the details page — click the place name, the panel opens, the number is next to the phone icon.' add_fields: the new fields, e.g. 'also capture the star rating and the review count'. relearn_details: an optional note, e.g. 'the details now open in a side panel'. relearn_steps: an optional note on how to reach the results, e.g. 'the search box moved into a menu'. Required (3+ characters) for fix, and for add_fields unless fields names them.",
             "default": ""
           },
           "fields": {
@@ -9984,7 +11371,7 @@
               }
             ],
             "title": "Fields",
-            "description": "fix: the output fields the hint is about (e.g. [\"phone\"]); omit to use the fields the last run came back without, or the ones the hint names. add_fields: the new fields' names, when you know them. relearn_details: only re-learn these detail fields."
+            "description": "fix: the output fields the hint is about (e.g. [\"phone\"]); omit to use the fields the last run came back without, or the ones the hint names. add_fields: the new fields' names, when you know them. relearn_details: only re-learn these detail fields. relearn_steps: the fields the re-recorded steps must still reach (default: all)."
           },
           "example_input": {
             "anyOf": [
@@ -10812,6 +12199,86 @@
         ],
         "title": "MergedField"
       },
+      "MySiteRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "The link you asked with."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "working_on",
+              "fixed",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "votes": {
+            "type": "integer",
+            "title": "Votes"
+          },
+          "asked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asked At"
+          },
+          "fixed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fixed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "domain",
+          "url",
+          "status",
+          "votes"
+        ],
+        "title": "MySiteRequest"
+      },
+      "MySiteRequests": {
+        "properties": {
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/MySiteRequest"
+            },
+            "type": "array",
+            "title": "Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requests"
+        ],
+        "title": "MySiteRequests"
+      },
       "Note": {
         "properties": {
           "id": {
@@ -10931,40 +12398,35 @@
         ],
         "title": "NoteDeleted"
       },
-      "NoteList": {
+      "OpenSiteRequest": {
         "properties": {
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "votes": {
+            "type": "integer",
+            "title": "Votes",
+            "description": "People asking for it."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "working_on",
+              "fixed",
+              "wont_fix"
             ],
-            "title": "Next Cursor",
-            "description": "Pass as ?cursor= for the next page; null on the last page."
-          },
-          "notes": {
-            "items": {
-              "$ref": "#/components/schemas/Note"
-            },
-            "type": "array",
-            "title": "Notes"
-          },
-          "has_more": {
-            "type": "boolean",
-            "title": "Has More",
-            "description": "True when there is a next page (next_cursor is not null).",
-            "readOnly": true
+            "title": "Status"
           }
         },
         "type": "object",
         "required": [
-          "notes",
-          "has_more"
+          "id",
+          "votes",
+          "status"
         ],
-        "title": "NoteList"
+        "title": "OpenSiteRequest"
       },
       "OutputUpdate": {
         "properties": {
@@ -11151,6 +12613,84 @@
         ],
         "title": "Plan"
       },
+      "ProvenSite": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "title": "Domain",
+            "description": "The site, e.g. airbnb.com."
+          },
+          "skills": {
+            "type": "integer",
+            "title": "Skills",
+            "description": "Skills that ran on it in the last 30 days."
+          },
+          "users": {
+            "type": "integer",
+            "title": "Users",
+            "description": "People who ran those skills in the last 30 days."
+          },
+          "runs_30d": {
+            "type": "integer",
+            "title": "Runs 30D",
+            "description": "Runs in the last 30 days."
+          },
+          "success_rate": {
+            "type": "number",
+            "title": "Success Rate",
+            "description": "Share of runs that worked, 0–1 (runs the user cancelled not counted)."
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "status": {
+            "type": "string",
+            "const": "proven",
+            "title": "Status",
+            "default": "proven"
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain",
+          "skills",
+          "users",
+          "runs_30d",
+          "success_rate"
+        ],
+        "title": "ProvenSite"
+      },
+      "ProvenSites": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Proven sites matching q, all pages."
+          },
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/ProvenSite"
+            },
+            "type": "array",
+            "title": "Sites"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "sites"
+        ],
+        "title": "ProvenSites"
+      },
       "QualityFlag": {
         "properties": {
           "kind": {
@@ -11260,6 +12800,30 @@
             "type": "integer",
             "title": "Steps",
             "default": 0
+          },
+          "failed_live": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Live"
+          },
+          "held": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Held"
           }
         },
         "type": "object",
@@ -11269,6 +12833,22 @@
           "reason"
         ],
         "title": "RecipeVersionOut"
+      },
+      "RenameEndpoint": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name",
+            "description": "snake_case verb_object, 3–41 characters, e.g. search_companies."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RenameEndpoint"
       },
       "RestoreResponse": {
         "properties": {
@@ -11602,6 +13182,18 @@
               }
             ],
             "title": "Cached From Run Id"
+          },
+          "why_failed": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why Failed"
           }
         },
         "type": "object",
@@ -11986,6 +13578,443 @@
         ],
         "title": "SearchInput"
       },
+      "Site": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "title": "Domain",
+            "description": "The site, normalized: lowercase, without www. or m."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proven",
+              "failing",
+              "unproven"
+            ],
+            "title": "Status",
+            "description": "`proven`: 3+ people, 10+ runs, 90%+ worked in 30 days. `failing`: 3+ people, 5+ runs, under 50% worked. `unproven`: anything else."
+          },
+          "skills": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skills",
+            "description": "Skills that ran on it in 30 days. Null when fewer than 3 people ran skills on the site (kept private)."
+          },
+          "users": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Users",
+            "description": "People who ran them in 30 days. Null when fewer than 3 people ran skills on the site (kept private)."
+          },
+          "runs_30d": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runs 30D",
+            "description": "Runs in 30 days. Null when fewer than 3 people ran skills on the site (kept private)."
+          },
+          "success_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate",
+            "description": "Share of runs that worked, 0–1. Null when fewer than 3 people ran skills on the site (kept private)."
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "open_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenSiteRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The open ask to make it work, if any."
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain",
+          "status"
+        ],
+        "title": "Site"
+      },
+      "SiteApi": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/SiteApiDefaults"
+          },
+          "endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/SiteApiEndpoint"
+            },
+            "type": "array",
+            "title": "Endpoints"
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain",
+          "defaults",
+          "endpoints"
+        ],
+        "title": "SiteApi"
+      },
+      "SiteApiDefaults": {
+        "properties": {
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "login_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Id"
+          },
+          "browser_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Type"
+          },
+          "proxy_config": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Config"
+          }
+        },
+        "type": "object",
+        "title": "SiteApiDefaults",
+        "description": "What a NEW skill of yours on the site starts with, for each setting its creator leaves unset."
+      },
+      "SiteApiDefaultsUpdate": {
+        "properties": {
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id",
+            "description": "One of your browser profiles."
+          },
+          "login_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Id",
+            "description": "One of your saved logins (needs logins:write)."
+          },
+          "browser_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Type",
+            "description": "'remote' | 'extension' | 'none'."
+          },
+          "proxy_config": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proxy Config",
+            "description": "'identity', 'residential', 'residential:<cc>', 'random', 'none' or a 2-letter country code."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SiteApiDefaultsUpdate",
+        "description": "Only what you send changes; null clears it."
+      },
+      "SiteApiEndpoint": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "The endpoint name: run it at POST /v1/apis/{domain}/{name}/run."
+          },
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The skill's name."
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/SkillInputSummary"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields",
+            "description": "The columns of one result row."
+          },
+          "health_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Status"
+          },
+          "success_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate",
+            "description": "Percent of the last 20 counted runs that worked (0–100)."
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "visibility": {
+            "type": "string",
+            "title": "Visibility",
+            "description": "private | workspace | public"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "skill_id",
+          "slug",
+          "title",
+          "inputs",
+          "fields",
+          "visibility"
+        ],
+        "title": "SiteApiEndpoint"
+      },
+      "SiteApiList": {
+        "properties": {
+          "apis": {
+            "items": {
+              "$ref": "#/components/schemas/SiteApiSummary"
+            },
+            "type": "array",
+            "title": "Apis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "apis"
+        ],
+        "title": "SiteApiList"
+      },
+      "SiteApiSummary": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "endpoints": {
+            "type": "integer",
+            "title": "Endpoints",
+            "description": "Your skills on the site."
+          },
+          "healthy": {
+            "type": "integer",
+            "title": "Healthy",
+            "description": "Endpoints whose recent runs mostly worked."
+          },
+          "failing": {
+            "type": "integer",
+            "title": "Failing",
+            "description": "Endpoints whose recent runs mostly failed."
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "domain",
+          "endpoints",
+          "healthy",
+          "failing"
+        ],
+        "title": "SiteApiSummary"
+      },
+      "SiteAsk": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "The site request's id."
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "working_on",
+              "fixed",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "votes": {
+            "type": "integer",
+            "title": "Votes",
+            "description": "People asking for it, you included."
+          },
+          "you_asked": {
+            "type": "boolean",
+            "title": "You Asked",
+            "default": true
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created",
+            "description": "True when your ask opened the request; false when you joined one."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "domain",
+          "status",
+          "votes",
+          "created"
+        ],
+        "title": "SiteAsk"
+      },
       "SkillApiInfo": {
         "properties": {
           "id": {
@@ -12106,7 +14135,7 @@
           },
           "parameters": {
             "items": {
-              "$ref": "#/components/schemas/SkillParameter"
+              "$ref": "#/components/schemas/SkillParameterView"
             },
             "type": "array",
             "title": "Parameters"
@@ -12375,6 +14404,28 @@
             ],
             "title": "Login Id"
           },
+          "site_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Domain"
+          },
+          "endpoint_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Name"
+          },
           "skill_type": {
             "anyOf": [
               {
@@ -12424,6 +14475,12 @@
             "type": "boolean",
             "title": "Scrape Mode Applies",
             "default": false
+          },
+          "engine_auto_upgrade": {
+            "type": "boolean",
+            "title": "Engine Auto Upgrade",
+            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "default": true
           },
           "creator_id": {
             "type": "string",
@@ -12799,7 +14856,7 @@
           },
           "parameters": {
             "items": {
-              "$ref": "#/components/schemas/SkillParameter"
+              "$ref": "#/components/schemas/SkillParameterView"
             },
             "type": "array",
             "title": "Parameters"
@@ -13068,6 +15125,28 @@
             ],
             "title": "Login Id"
           },
+          "site_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Domain"
+          },
+          "endpoint_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Name"
+          },
           "skill_type": {
             "anyOf": [
               {
@@ -13117,6 +15196,12 @@
             "type": "boolean",
             "title": "Scrape Mode Applies",
             "default": false
+          },
+          "engine_auto_upgrade": {
+            "type": "boolean",
+            "title": "Engine Auto Upgrade",
+            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "default": true
           },
           "creator_id": {
             "type": "string",
@@ -13378,6 +15463,254 @@
         "title": "SkillCloned",
         "description": "POST /v1/skills/{slug}/clone: your new copy, as GET /v1/skills/{slug} shows it."
       },
+      "SkillCreationCancelled": {
+        "properties": {
+          "creation_id": {
+            "type": "string",
+            "title": "Creation Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
+          },
+          "status_url": {
+            "type": "string",
+            "title": "Status Url"
+          },
+          "task": {
+            "type": "string",
+            "title": "Task",
+            "description": "What the skill was asked to do."
+          },
+          "start_url": {
+            "type": "string",
+            "title": "Start Url",
+            "description": "The page the recording started on."
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "The skill name used (derived from the task when none was given)."
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress",
+            "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "skill_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Url"
+          },
+          "run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Url"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "diagnosis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Diagnosis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs"
+          },
+          "output_fields": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Fields"
+          },
+          "credits_charged": {
+            "type": "number",
+            "title": "Credits Charged",
+            "description": "Credits spent on this creation so far, exact to 0.01.",
+            "default": 0
+          },
+          "sample_rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Rows",
+            "description": "Up to 3 rows the recording got, once status is needs_fix or ready. Always null in GET /v1/skill-creations list items — read one creation for them."
+          },
+          "sample_row_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Row Count",
+            "description": "How many rows the recording got (needs_fix or ready; null in list items)."
+          },
+          "next_step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Step",
+            "description": "What to do now, in one sentence; null while in progress."
+          },
+          "needs_user": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs User",
+            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Do what it says (save a login for the site, or allow auto sign-up), then create it again with login_id."
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "idempotent_replay": {
+            "type": "boolean",
+            "title": "Idempotent Replay",
+            "default": false
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "What the stop did, in one sentence (credits already used stay used)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "creation_id",
+          "status",
+          "status_url",
+          "task",
+          "start_url",
+          "message"
+        ],
+        "title": "SkillCreationCancelled",
+        "description": "POST /v1/skill-creations/{id}/cancel: the creation, now cancelled, and what that means."
+      },
       "SkillCreationPage": {
         "properties": {
           "next_cursor": {
@@ -13423,7 +15756,7 @@
           "status": {
             "type": "string",
             "title": "Status",
-            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why)."
+            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
           },
           "status_url": {
             "type": "string",
@@ -13807,7 +16140,7 @@
           },
           "parameters": {
             "items": {
-              "$ref": "#/components/schemas/SkillParameter"
+              "$ref": "#/components/schemas/SkillParameterView"
             },
             "type": "array",
             "title": "Parameters"
@@ -14076,6 +16409,28 @@
             ],
             "title": "Login Id"
           },
+          "site_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Domain"
+          },
+          "endpoint_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Name"
+          },
           "skill_type": {
             "anyOf": [
               {
@@ -14125,6 +16480,12 @@
             "type": "boolean",
             "title": "Scrape Mode Applies",
             "default": false
+          },
+          "engine_auto_upgrade": {
+            "type": "boolean",
+            "title": "Engine Auto Upgrade",
+            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "default": true
           },
           "creator_id": {
             "type": "string",
@@ -14466,6 +16827,16 @@
               }
             ]
           },
+          "fast_path_progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FastPathProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "tiers": {
             "additionalProperties": {
               "$ref": "#/components/schemas/TierHealth"
@@ -14533,6 +16904,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/FastPath"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fast_path_progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FastPathProgress"
               },
               {
                 "type": "null"
@@ -14682,7 +17063,8 @@
             "enum": [
               "fix",
               "add_fields",
-              "relearn_details"
+              "relearn_details",
+              "relearn_steps"
             ],
             "title": "Mode",
             "default": "fix"
@@ -14690,7 +17072,7 @@
           "source": {
             "type": "string",
             "title": "Source",
-            "description": "Who asked: api | mcp | assistant (Igris) | web | brain (workflow Brain) | imported (from the old Refine history)",
+            "description": "Who asked: api | mcp | assistant (Igris) | web | brain (workflow Brain) | doctor (the skill repairing itself) | imported (from the old Refine history)",
             "default": "api"
           },
           "result": {
@@ -14878,6 +17260,12 @@
             "type": "integer",
             "title": "Credits Charged",
             "default": 0
+          },
+          "free_repair": {
+            "type": "boolean",
+            "title": "Free Repair",
+            "description": "A repair the skill's doctor made — free: nothing is charged",
+            "default": false
           },
           "created_at": {
             "anyOf": [
@@ -15102,7 +17490,7 @@
         ],
         "title": "SkillListPage"
       },
-      "SkillParameter": {
+      "SkillParameterView": {
         "properties": {
           "name": {
             "type": "string",
@@ -15155,14 +17543,30 @@
             "title": "Is Auto Detected",
             "description": "Whether this parameter was auto-detected from history",
             "default": false
+          },
+          "known_values": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Known Values",
+            "description": "Values the site is known to accept for this input (its own links, earlier runs, learned codes)"
+          },
+          "refused_values": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refused Values",
+            "description": "Values the site was asked to take once and would not"
           }
         },
         "type": "object",
         "required": [
           "name"
         ],
-        "title": "SkillParameter",
-        "description": "A parameter that users can pass when executing the skill."
+        "title": "SkillParameterView",
+        "description": "A parameter as a skill's detail answers with it: plus what the skill learned about\nthe values the site takes (app/published_skills/known_inputs.py). Never stored — the\nlearned values live in the skill's config data and change with every run, so a saved\ncopy would go stale; an edit that sends them back drops them (SkillParameter)."
       },
       "SkillPatch": {
         "properties": {
@@ -15285,6 +17689,18 @@
               }
             ],
             "title": "Data Retention Days"
+          },
+          "engine_auto_upgrade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Auto Upgrade",
+            "description": "Allow automatic engine upgrades (default true)"
           },
           "login_id": {
             "anyOf": [
@@ -16853,6 +19269,17 @@
         ],
         "title": "VersionListResponse"
       },
+      "VoteWithdrawn": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "VoteWithdrawn"
+      },
       "WebhookSecretResponse": {
         "properties": {
           "secret": {
@@ -17745,6 +20172,41 @@
           "personal"
         ],
         "title": "WorkspaceRef"
+      },
+      "app__notes__api__schemas__NoteList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "notes",
+          "has_more"
+        ],
+        "title": "NoteList"
       },
       "Error": {
         "type": "object",

@@ -1,18 +1,18 @@
 ---
 title: "Remove your vote"
 description: "Take back your ask for a site request."
-api: "DELETE https://api.valendata.com/v1/site-requests/{id}/vote"
+api: "DELETE https://api.valendata.com/v1/site-requests/{request_id}/vote"
 ---
 
 Your vote comes off the request, so `votes` goes down by one. The request stays for everyone else who asked.
 
-Needs your API key or a signed-in session.
+Needs `skills:write`. Doing it again changes nothing.
 
 <ParamField header="Authorization" type="string" required>
   `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
 </ParamField>
 
-<ParamField path="id" type="string" required>
+<ParamField path="request_id" type="string" required>
   The request's id, from [List your site requests](/api-reference/sites/list-requests).
 </ParamField>
 
@@ -21,7 +21,7 @@ Needs your API key or a signed-in session.
 <RequestExample>
 
 ```bash curl
-curl -X DELETE https://api.valendata.com/v1/site-requests/sreq_4b7e9a1c/vote \
+curl -X DELETE https://api.valendata.com/v1/site-requests/sr_4b7e9a1c2d3f4a5b6c7d8e9f/vote \
   -H "Authorization: Bearer $VALENDATA_API_KEY"
 ```
 

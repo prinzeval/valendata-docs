@@ -6,14 +6,14 @@ api: "GET https://api.valendata.com/v1/sites/proven"
 
 A site is **proven** when at least one skill on it keeps working: in the last 30 days it worked at least 3 times, and at least half of its runs worked. See [Proven sites](/guides/when-a-site-does-not-work#proven-sites).
 
-No key needed.
+The list is recounted every hour. No key needed.
 
 <ParamField query="q" type="string">
   Only sites whose domain contains this text, for example `airbnb`.
 </ParamField>
 
 <ParamField query="limit" type="integer" default="50">
-  Most sites to return.
+  Most sites to return, 1–100.
 </ParamField>
 
 <ParamField query="offset" type="integer" default="0">
@@ -32,7 +32,7 @@ No key needed.
     <ResponseField name="skills" type="integer">Skills that ran on it in the last 30 days.</ResponseField>
     <ResponseField name="users" type="integer">People who ran those skills.</ResponseField>
     <ResponseField name="runs_30d" type="integer">Runs in the last 30 days.</ResponseField>
-    <ResponseField name="success_rate" type="number">Share of those runs that worked.</ResponseField>
+    <ResponseField name="success_rate" type="number">Share of those runs that worked, from 0 to 1. Runs you cancelled are not counted.</ResponseField>
     <ResponseField name="last_success_at" type="string | null">When a run on it last worked.</ResponseField>
     <ResponseField name="status" type="string">Always `proven` here.</ResponseField>
   </Expandable>

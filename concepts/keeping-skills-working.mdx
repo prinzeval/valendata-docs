@@ -71,6 +71,12 @@ A run can return rows that are not really data. Valendata checks the rows of eve
 
 These show in the run's `diagnosis` as `quality_flags` (`repeated_rows`, `pagination_overlap`, `placeholder_values`). A test does not accept a skill whose rows are all the same record. The other checks are warnings shown next to the rows.
 
+## Talk to a skill
+
+Each skill has its own chat at the top of its page. Say what is wrong or what you want in plain words, such as "the last run missed the phone numbers" or "also get the price". The skill reads its runs, steps, and versions, then fixes itself when it can: it re-learns a step or a field, changes its browser or proxy, restores a version that worked, or asks you to sign in. Each repair is checked with a short run, and the result is posted to the chat. Repairs are free. New fields you ask for are charged as an [improvement](/guides/improve-a-skill).
+
+From code, use [Talk to a skill](/api-reference/improvements/talk). An AI assistant uses the `talk_to_skill` tool.
+
 ## Cookie and consent banners
 
 When a skill runs in a cloud browser, Valendata clears cookie and consent banners after each page load. It recognizes common consent tools (OneTrust, Cookiebot, Didomi, Quantcast, TrustArc and others), Google's "Before you continue" page, and other cookie pop-ups in several languages. It clicks the site's own button. By default this is "Reject all" or "Only necessary", and "Accept" if there is no reject button. This uses no AI model.

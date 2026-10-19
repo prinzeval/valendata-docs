@@ -6,7 +6,7 @@ api: "PUT https://api.valendata.com/v1/apis/{domain}/defaults"
 
 A new skill you make on this site starts with these settings. Skills you already have keep their own; to change one, use [Update a skill](/api-reference/skills/update). See [Defaults for new skills](/concepts/site-apis#defaults-for-new-skills).
 
-Needs `skills:write`.
+Only what you send changes, and `null` clears a setting. Each setting is used only where the skill's creator set nothing. A profile or login must be yours. Needs `skills:write`, and `logins:write` to set `login_id`.
 
 <ParamField header="Authorization" type="string" required>
   `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
@@ -25,14 +25,14 @@ Needs `skills:write`.
 </ParamField>
 
 <ParamField body="browser_type" type="string">
-  The browser mode. Values are in [Run settings](/guides/run-a-skill#run-settings).
+  The browser mode: `remote`, `extension`, or `none`.
 </ParamField>
 
 <ParamField body="proxy_config" type="string">
-  The proxy region. Values are in [Run settings](/guides/run-a-skill#run-settings).
+  The proxy: `identity`, `residential`, `residential:<country code>`, `random`, `none`, or a 2-letter country code such as `us`.
 </ParamField>
 
-The answer has the site's `domain` and its `defaults`, as [Get a site API](/api-reference/site-apis/get) shows them.
+The answer is the site's defaults after the change, the same four fields as `defaults` in [Get a site API](/api-reference/site-apis/get).
 
 <RequestExample>
 
@@ -49,13 +49,10 @@ curl -X PUT https://api.valendata.com/v1/apis/linkedin.com/defaults \
 
 ```json 200
 {
-  "domain": "linkedin.com",
-  "defaults": {
-    "profile_id": "prof_7a2c9e41",
-    "login_id": null,
-    "browser_type": "remote",
-    "proxy_config": "us"
-  }
+  "profile_id": "prof_7a2c9e41",
+  "login_id": null,
+  "browser_type": "remote",
+  "proxy_config": "us"
 }
 ```
 

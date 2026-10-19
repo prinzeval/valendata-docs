@@ -1,0 +1,21 @@
+---
+title: "Read a skill's chat"
+description: "The skill's chat, oldest first: your messages, its answers, and what happened on its own."
+openapi: "GET /v1/skills/{slug}/doctor"
+---
+
+Returns the last 100 messages, oldest first. Each message has a `role`:
+
+| Role | Meaning |
+| --- | --- |
+| `user` | A message you sent. |
+| `doctor` | The skill's answer. |
+| `event` | Something that happened on its own: a run failed, or a repair started or ended. |
+
+A message can carry an `action` that links what it is about: its `kind` (`improvement`, `run_failed`, `test_run`, `settings`, `login`, or `restore`), with the `run_id` or `improvement_id` and its `status`.
+
+`working` is `true` while the skill is looking into something or repairing itself. Its result is posted here when it is done.
+
+Only the skill's owner or an editor in its workspace can read it. Needs `skills:read`.
+
+To send a message, see [Talk to a skill](/api-reference/improvements/talk).

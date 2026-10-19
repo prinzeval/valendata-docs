@@ -13,9 +13,9 @@ You can change a skill the way you would coach a person. There are three kinds o
 
 Start one from:
 
-- **The app**: the **Improve** box on the skill page. You can also ask Igris.
+- **The app**: the chat box at the top of the skill page. Say what is wrong or what it should learn, and the skill picks the mode itself. You can also ask Igris.
 - **Your AI assistant**: the `improve_skill` tool.
-- **The API**: [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve).
+- **The API**: [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve), or [`POST /v1/skills/{slug}/doctor`](/api-reference/improvements/talk) to say it in plain words and let the skill decide.
 
 Only the skill's owner or an editor in its workspace can improve it.
 

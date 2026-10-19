@@ -8,3 +8,11 @@ drafts/
 
 # Internal reconcile checklist (not a page)
 _reconcile.md
+
+# Repo notes for people and coding agents, not pages
+AGENTS.md
+CLAUDE.md
+.atlas-analysis.json
+
+# Saved copies of the old website, kept as writing input only
+sources/

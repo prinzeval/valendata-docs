@@ -4,7 +4,7 @@ description: "The sites you asked us to make work, and whether each one is fixed
 api: "GET https://api.valendata.com/v1/site-requests/mine"
 ---
 
-Needs your API key or a signed-in session. Only your own requests come back.
+Needs `skills:read`. Only your own requests come back, your latest ask first.
 
 <ParamField header="Authorization" type="string" required>
   `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
@@ -15,7 +15,7 @@ Needs your API key or a signed-in session. Only your own requests come back.
     <ResponseField name="id" type="string">The request's id.</ResponseField>
     <ResponseField name="domain" type="string">The site.</ResponseField>
     <ResponseField name="url" type="string">The address you sent.</ResponseField>
-    <ResponseField name="status" type="string">Where the request stands.</ResponseField>
+    <ResponseField name="status" type="string">Where the request stands: `open` (waiting), `working_on` (we are on it), `fixed`, or `wont_fix`.</ResponseField>
     <ResponseField name="votes" type="integer">How many people asked for this site.</ResponseField>
     <ResponseField name="asked_at" type="string">When you asked.</ResponseField>
     <ResponseField name="fixed_at" type="string | null">When the site was fixed. `null` while it is still open.</ResponseField>
@@ -37,7 +37,7 @@ curl https://api.valendata.com/v1/site-requests/mine \
 {
   "requests": [
     {
-      "id": "sreq_4b7e9a1c",
+      "id": "sr_4b7e9a1c2d3f4a5b6c7d8e9f",
       "domain": "example-shop.com",
       "url": "https://example-shop.com/catalog",
       "status": "open",

@@ -6,7 +6,7 @@ api: "POST https://api.valendata.com/v1/site-requests"
 
 This is what **Make this site work** does in the app. How requests work is on [When a site does not work](/guides/when-a-site-does-not-work#ask-us-to-make-a-site-work).
 
-Needs your API key or a signed-in session.
+Needs `skills:write`.
 
 <ParamField header="Authorization" type="string" required>
   `Bearer vd_sk_...`. See [Authentication](/api-reference/authentication).
@@ -36,12 +36,12 @@ Pass a `skill_id`, `run_id`, or `creation_id` when you have one. We attach the f
 
 <ResponseField name="id" type="string">The request's id.</ResponseField>
 <ResponseField name="domain" type="string">The site's domain, taken from `url`.</ResponseField>
-<ResponseField name="status" type="string">Where the request stands.</ResponseField>
+<ResponseField name="status" type="string">Where the request stands: `open` (waiting), `working_on` (we are on it), `fixed`, or `wont_fix`.</ResponseField>
 <ResponseField name="votes" type="integer">How many people have asked for this site, you included.</ResponseField>
 <ResponseField name="you_asked" type="boolean">Always `true` here.</ResponseField>
 <ResponseField name="created" type="boolean">`true` when yours is the first request for this site. `false` when someone already asked and your vote was added to theirs, or you had already asked.</ResponseField>
 
-Each person counts once per site. Asking again for the same site does not add a second vote.
+Each person counts once per site. Asking again for the same site only updates your ask; it never adds a second vote. You get an email, and a message in your Valendata inbox, when the site works.
 
 MCP tool: `request_site`, with `url` and optional `wanted`, `run_id`.
 
@@ -60,7 +60,7 @@ curl -X POST https://api.valendata.com/v1/site-requests \
 
 ```json 200
 {
-  "id": "sreq_4b7e9a1c",
+  "id": "sr_4b7e9a1c2d3f4a5b6c7d8e9f",
   "domain": "example-shop.com",
   "status": "open",
   "votes": 5,

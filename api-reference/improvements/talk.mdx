@@ -1,0 +1,22 @@
+---
+title: "Talk to a skill"
+description: "Say what is wrong or what you want in plain words. The skill reads its own runs and versions, and fixes itself when it can."
+openapi: "POST /v1/skills/{slug}/doctor"
+---
+
+Send one `message` of up to 2,000 characters, such as `this is broken`, `why did the last run fail?`, or `also get the price`. The skill reads its runs, steps, and versions, decides what is wrong, and fixes it when it can. It can:
+
+- Re-learn a step or a field.
+- Change its browser or proxy.
+- Restore a version that worked.
+- Ask you to sign in to the site.
+
+The call answers within about a minute with `messages`: your message and the skill's reply. A repair it starts carries on after the call, is checked with a short run, and its result is posted to the skill's chat. Read the chat with [Read a skill's chat](/api-reference/improvements/chat).
+
+Repairs are free. New fields you ask for are charged as an [improvement](/api-reference/improvements/improve).
+
+Returns `409` while the skill is still answering your previous message. Only the skill's owner or an editor in its workspace can talk to it. Needs `skills:write`.
+
+Use this when you do not know which [improvement mode](/guides/improve-a-skill) fits. In the app, it is the chat box at the top of the skill page.
+
+MCP tool: `talk_to_skill`, with `skill` and `message`.
