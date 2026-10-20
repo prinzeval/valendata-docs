@@ -19,7 +19,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `list_skills` | optional `q`, `status`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
+| `list_skills` | optional `q`, `status`, `category`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
 | `clone_skill` | `slug` | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
 | `update_from_marketplace` | `slug`, optional `apply` (default `false`: only check) | `skills:write` | [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take) |
@@ -53,7 +53,7 @@ Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `search_skills` | `query` (the task, in plain words), optional `site`, `limit` | None. With `skills:read` it also searches your own skills and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search) |
+| `search_skills` | `query` (the task, in plain words), optional `site`, `category`, `limit` | None. With `skills:read` it also searches your own skills and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search) |
 | `search_workflows` | `query` (the task, in plain words), optional `limit` | None. With `workflows:read` it also searches your own workflows and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search#workflows) with `kind=workflow` |
 
 Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", what percent of its last 20 runs worked, and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(slug=...)`, and how to clone the others, `clone_skill(slug=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
