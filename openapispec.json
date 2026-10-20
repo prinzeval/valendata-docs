@@ -623,11 +623,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
                 "additionalProperties": true
               },
               "example": {
                 "city": "Houston",
+                "max_results": 5,
                 "max_pages": 1
               }
             }
@@ -3089,7 +3090,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__notes__api__schemas__NoteList"
+                  "$ref": "#/components/schemas/NoteList"
                 },
                 "example": {
                   "notes": [
@@ -4393,7 +4394,7 @@
           "Sites"
         ],
         "summary": "List proven sites",
-        "description": "The websites proven to work on Valendata: in the last 30 days at least 3 people ran skills on the site, at least 10 runs, and 90% or more of them worked (runs the user cancelled are not counted). Each has how many skills, people and runs, the success rate (0–1) and when a run last worked. Most people first; `q` keeps the domains containing it. Page with `limit` (1–100, default 50) and `offset`; `total` counts every match. Recounted every hour. No key needed.",
+        "description": "The websites proven to work on Valendata: a site is proven when at least one skill on it keeps working — in the last 30 days it had 3 or more successful runs and at least half of its counted runs worked (failures that were ours or the person's are not counted). A site shows only when one of its skills is public or made by the team, or at least 3 people use it. Each has how many skills, people and runs, the success rate (0–1) and when a run last worked. Most people first; `q` keeps the domains containing it. Page with `limit` (1–100, default 50) and `offset`; `total` counts every match. Recounted every hour. No key needed.",
         "operationId": "list_proven_sites",
         "parameters": [
           {
@@ -4492,7 +4493,7 @@
           "Sites"
         ],
         "summary": "Get a site",
-        "description": "Whether one website works on Valendata: `proven` (3+ people, 10+ runs, 90%+ worked in 30 days), `failing` (3+ people, 5+ runs, under 50% worked) or `unproven`, with its numbers, and `open_request` when someone asked us to make it work. `domain` is a domain (airbnb.com) or a full link; `www.`, `m.` and subdomains are dropped (newyork.craigslist.org is craigslist.org). A site fewer than 3 people ran shows `unproven` and null numbers, so no one's private use is shown. No key needed.",
+        "description": "Whether one website works on Valendata: `proven` (at least one skill on it has 3+ successful runs and half or more of its counted runs worked in 30 days), `failing` (5+ runs, no working skill, under half worked) or `unproven`, with its numbers, and `open_request` when someone asked us to make it work. `domain` is a domain (airbnb.com) or a full link; `www.`, `m.` and subdomains are dropped (newyork.craigslist.org is craigslist.org). A site only one or two people use privately shows `unproven` and null numbers, so no one's private use is shown. No key needed.",
         "operationId": "get_site",
         "parameters": [
           {
@@ -6424,11 +6425,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, version, browser_type, proxy_config, profile_id, scrape_mode.",
                 "additionalProperties": true
               },
               "example": {
                 "city": "Houston",
+                "max_results": 5,
                 "max_pages": 1
               }
             }
@@ -12398,6 +12400,41 @@
         ],
         "title": "NoteDeleted"
       },
+      "NoteList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "notes",
+          "has_more"
+        ],
+        "title": "NoteList"
+      },
       "OpenSiteRequest": {
         "properties": {
           "id": {
@@ -13593,7 +13630,7 @@
               "unproven"
             ],
             "title": "Status",
-            "description": "`proven`: 3+ people, 10+ runs, 90%+ worked in 30 days. `failing`: 3+ people, 5+ runs, under 50% worked. `unproven`: anything else."
+            "description": "`proven`: at least one skill on it keeps working (3+ successful runs, half or more of its counted runs worked, in 30 days). `failing`: 5+ runs, no working skill, under half worked. `unproven`: anything else."
           },
           "skills": {
             "anyOf": [
@@ -20172,41 +20209,6 @@
           "personal"
         ],
         "title": "WorkspaceRef"
-      },
-      "app__notes__api__schemas__NoteList": {
-        "properties": {
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor",
-            "description": "Pass as ?cursor= for the next page; null on the last page."
-          },
-          "notes": {
-            "items": {
-              "$ref": "#/components/schemas/Note"
-            },
-            "type": "array",
-            "title": "Notes"
-          },
-          "has_more": {
-            "type": "boolean",
-            "title": "Has More",
-            "description": "True when there is a next page (next_cursor is not null).",
-            "readOnly": true
-          }
-        },
-        "type": "object",
-        "required": [
-          "notes",
-          "has_more"
-        ],
-        "title": "NoteList"
       },
       "Error": {
         "type": "object",
