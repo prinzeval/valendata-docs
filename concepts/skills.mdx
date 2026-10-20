@@ -16,6 +16,42 @@ A **skill** is one task on a website, saved so it can be run again. For example:
 | **Version** | The saved steps. Every change makes a new numbered version, so you can compare and roll back. | version `3` |
 | **Visibility** | `private` (only you), `workspace` (shared with a team workspace), or `public` (listed in the [marketplace](/guides/use-the-marketplace)). | `private` |
 
+## Categories
+
+Every skill is in one category, so you can browse the [marketplace](/guides/use-the-marketplace) and your own skills by kind. The list is fixed:
+
+| Slug | Category |
+| --- | --- |
+| `real_estate` | Real Estate |
+| `travel` | Travel |
+| `ecommerce` | E-commerce |
+| `social_media` | Social Media |
+| `finance` | Finance |
+| `jobs` | Jobs |
+| `news_media` | News & Media |
+| `government_public` | Government & Public Data |
+| `healthcare` | Healthcare |
+| `education` | Education |
+| `entertainment` | Entertainment |
+| `sports` | Sports |
+| `food_dining` | Food & Dining |
+| `maps_geo` | Maps & Places |
+| `weather` | Weather |
+| `crypto` | Crypto & Web3 |
+| `automotive` | Automotive |
+| `reviews` | Reviews & Ratings |
+| `b2b_directories` | B2B & Company Directories |
+| `developer_tools` | Developer Tools |
+| `streaming_video` | Streaming & Video |
+| `music` | Music |
+| `marketplaces` | Marketplaces & Classifieds |
+| `events` | Events & Tickets |
+| `other` | Other |
+
+When you create or clone a skill, Valendata picks its category from the site it works on and what it returns. You can change it: in the app, pick another one on the skill's page; over the API, send `category` to [Update a skill](/api-reference/skills/update). A category you pick is kept. An unknown slug is refused with `422`.
+
+To filter by category, pass the slug as `category` to [List skills](/api-reference/skills/list) or [Find a skill for a task](/api-reference/marketplace/search). [List skill categories](/api-reference/skills/list-categories) and [List marketplace categories](/api-reference/marketplace/list-categories) count the skills in each one.
+
 ## Where a skill runs
 
 A skill runs in a browser, on your behalf:
