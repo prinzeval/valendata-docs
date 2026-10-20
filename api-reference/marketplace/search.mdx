@@ -6,7 +6,7 @@ openapi: "GET /v1/marketplace/search"
 
 Put the task in `q`, in plain words, for example `find LinkedIn jobs in Toronto`. Matching reads the meaning of `q`, not only its words. A query that names a site, such as `linkedin`, lifts that site's skills; a skill on another site is then only a near match.
 
-Narrow the search with `site` (only skills for this website, for example `linkedin.com`) and `category`. `limit` is 1–50, default 10.
+Narrow the search with `site` (only skills for this website, for example `linkedin.com`) and `category` (a [category](/concepts/skills#categories) slug, such as `real_estate`; an unknown one is `422`). `limit` is 1–50, default 10.
 
 `kind` picks what to search: `skill` (the default) or `workflow`. See [Workflows](#workflows).
 
@@ -15,7 +15,8 @@ Results are ranked by how well they match, weighed by health (success rate over 
 | Field | What it is |
 | --- | --- |
 | `kind` | `skill` or `workflow`, as you searched. |
-| `slug`, `name`, `description`, `site`, `category` | The skill, and the website it works on. |
+| `slug`, `name`, `description`, `site` | The skill, and the website it works on. |
+| `category`, `category_label` | Its [category](/concepts/skills#categories): the slug and the name, such as `real_estate` and `Real Estate`. |
 | `official` | `true` for an official Valendata skill. |
 | `yours` | `true` for your own skill, or one shared into your workspace. |
 | `inputs` | Each input's `name`, `type`, and `required`. For the full contract, call [Get a skill](/api-reference/skills/get). |

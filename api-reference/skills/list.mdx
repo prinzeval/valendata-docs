@@ -4,8 +4,8 @@ description: "Your skills and those shared into your workspaces, newest first, w
 openapi: "GET /v1/skills"
 ---
 
-Search with `q` (name, slug, or description) and filter with `status` (`active` or `draft`). Page with `limit` (1–100, default 50) and `cursor`; see [Pagination](/api-reference/pagination-and-idempotency#pagination).
+Search with `q` (name, slug, or description), filter with `status` (`active` or `draft`) and with `category` (a [category](/concepts/skills#categories) slug, such as `real_estate`; an unknown one is `422`). Page with `limit` (1–100, default 50) and `cursor`; see [Pagination](/api-reference/pagination-and-idempotency#pagination).
 
-Each item has the skill's `slug`, its `inputs`, `health` over the last 20 runs, `last_run_at`, and `api_endpoint` / `runs_endpoint` to run it. For the full contract, call [Get a skill](/api-reference/skills/get).
+Each item has the skill's `slug`, its `category` and `category_label`, its `inputs`, `health` over the last 20 runs, `last_run_at`, and `api_endpoint` / `runs_endpoint` to run it. For the full contract, call [Get a skill](/api-reference/skills/get).
 
 Needs `skills:read`. MCP tool: `list_skills`.

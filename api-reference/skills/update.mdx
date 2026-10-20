@@ -1,6 +1,6 @@
 ---
 title: "Update a skill"
-description: "Change a skill's name, description, inputs, output fields, run settings, saved login, or sharing."
+description: "Change a skill's name, description, category, inputs, output fields, run settings, saved login, or sharing."
 openapi: "PATCH /v1/skills/{slug}"
 ---
 
@@ -9,6 +9,7 @@ Send only what you want to change. You get back the skill as [Get a skill](/api-
 | Key | What it changes |
 | --- | --- |
 | `name`, `description` | The skill's name and description. |
+| `category` | Its [category](/concepts/skills#categories), by slug. An unknown one returns `422`. A category set here is kept when categories are sorted again. |
 | `inputs` | `add` new inputs, `update` existing ones (`rename`, `type`, `default`, `required`, `description`), or `remove` some. |
 | `outputs` | `update` output fields (`rename`, `description`, `type`) or `remove` them. |
 | `default_max_results` | Rows a run returns when the caller does not say. `0` means all. |
