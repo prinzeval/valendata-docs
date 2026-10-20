@@ -1,0 +1,11 @@
+---
+title: "List skill categories"
+description: "Every skill category, with how many of your skills are in each."
+openapi: "GET /v1/skills/categories"
+---
+
+Answers with every [category](/concepts/skills#categories), in the fixed order with `other` last. Each has its `slug`, `label`, `description`, and `count`: how many of your skills, as [List skills](/api-reference/skills/list) lists them, are in it. Categories with no skills are included with `count: 0`. Filter with `status` (`active` or `draft`).
+
+Pass a `slug` as `category` to [List skills](/api-reference/skills/list) to list one category.
+
+Needs `skills:read`.

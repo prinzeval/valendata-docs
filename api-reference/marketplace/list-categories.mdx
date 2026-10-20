@@ -1,0 +1,11 @@
+---
+title: "List marketplace categories"
+description: "Every skill category, with how many public marketplace skills are in each."
+openapi: "GET /v1/marketplace/categories"
+---
+
+Answers with every [category](/concepts/skills#categories), in the fixed order with `other` last. Each has its `slug`, `label`, `description`, and `count`: how many live public marketplace skills are in it. Private and workspace skills are never counted. Categories with no skills are included with `count: 0`.
+
+Pass a `slug` as `category` to [Find a skill for a task](/api-reference/marketplace/search) to search one category.
+
+No key needed.

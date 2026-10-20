@@ -109,6 +109,7 @@
             "icon": "bolt",
             "pages": [
               "api-reference/skills/list",
+              "api-reference/skills/list-categories",
               "api-reference/skills/create",
               "api-reference/skills/get-creation",
               "api-reference/skills/list-creations",
@@ -124,7 +125,8 @@
             "group": "Marketplace",
             "icon": "store",
             "pages": [
-              "api-reference/marketplace/search"
+              "api-reference/marketplace/search",
+              "api-reference/marketplace/list-categories"
             ]
           },
           {
