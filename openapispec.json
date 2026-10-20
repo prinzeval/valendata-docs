@@ -2822,13 +2822,75 @@
         }
       }
     },
+    "/v1/marketplace/categories": {
+      "get": {
+        "tags": [
+          "Marketplace"
+        ],
+        "summary": "List marketplace categories",
+        "description": "Every skill category (fixed list, in order, `other` last) with how many live public marketplace skills are in it: `slug`, `label`, `description`, `count`. Private and workspace skills are never counted. Pass a `slug` as `category` to `GET /v1/marketplace/search`. No key needed.",
+        "operationId": "list_marketplace_categories",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryCount"
+                  },
+                  "type": "array",
+                  "title": "Response Marketplace Categories V1 Marketplace Categories Get"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "search_skills",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          },
+          {}
+        ]
+      }
+    },
     "/v1/marketplace/search": {
       "get": {
         "tags": [
           "Marketplace"
         ],
         "summary": "Find a skill for a task",
-        "description": "Skills that do the task in `q`, best first, from the public marketplace and (with `skills:read`) your own and your workspaces' (`yours: true`). Each result has its inputs, `price` (the typical cost of its recent runs in credits and dollars, or its base price before any run), `health` (success rate over its last 20 runs) and the route to run it. Matching reads the meaning of `q`, not only its words. When nothing does the task, the closest skills come back with `match: \"near\"` and a `hint`. No key needed for the public marketplace.",
+        "description": "Skills that do the task in `q`, best first, from the public marketplace and (with `skills:read`) your own and your workspaces' (`yours: true`). `category` (a slug from `GET /v1/marketplace/categories`) keeps one category; an unknown one is 422. Each result has its inputs, `price` (the typical cost of its recent runs in credits and dollars, or its base price before any run), `health` (success rate over its last 20 runs) and the route to run it. Matching reads the meaning of `q`, not only its words. When nothing does the task, the closest skills come back with `match: \"near\"` and a `hint`. No key needed for the public marketplace.",
         "operationId": "search_skills",
         "security": [
           {
@@ -2887,8 +2949,10 @@
                   "type": "null"
                 }
               ],
+              "description": "Only skills in this category (a slug from GET /v1/marketplace/categories)",
               "title": "Category"
-            }
+            },
+            "description": "Only skills in this category (a slug from GET /v1/marketplace/categories)"
           },
           {
             "name": "limit",
@@ -2920,6 +2984,22 @@
               "title": "Kind"
             },
             "description": "Search skills or workflows"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "public"
+              ],
+              "type": "string",
+              "description": "`public`: marketplace listings only. `all` (default): your own skills too, marked `yours`.",
+              "default": "all",
+              "title": "Scope"
+            },
+            "description": "`public`: marketplace listings only. `all` (default): your own skills too, marked `yours`."
           }
         ],
         "responses": {
@@ -4904,7 +4984,7 @@
           "Skills"
         ],
         "summary": "List skills",
-        "description": "Your skills and those shared into your workspaces, newest first: each with its inputs, health over the last 20 runs, last run, and the routes to run it. Search with `q`, filter by `status`, and page with `limit` (1–100, default 50) and `cursor`. Needs `skills:read`.",
+        "description": "Your skills and those shared into your workspaces, newest first: each with its inputs, `category`, health over the last 20 runs, last run, and the routes to run it. Search with `q`, filter by `status` and by `category` (a slug from `GET /v1/skills/categories`; an unknown one is 422), and page with `limit` (1–100, default 50) and `cursor`. Needs `skills:read`.",
         "operationId": "list_skills",
         "security": [
           {
@@ -4984,6 +5064,25 @@
               "title": "Cursor"
             },
             "description": "next_cursor of the previous page"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only skills in this category (a slug from GET /v1/skills/categories)",
+              "title": "Category"
+            },
+            "description": "Only skills in this category (a slug from GET /v1/skills/categories)"
           }
         ],
         "responses": {
@@ -5114,6 +5213,89 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/skills/categories": {
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "List skill categories",
+        "description": "Every skill category (fixed list, in order, `other` last) with how many of your skills, as `GET /v1/skills` lists them, are in it: `slug`, `label`, `description`, `count`. Zero counts are included. Filter with `status`. Pass a `slug` as `category` to `GET /v1/skills`. Needs `skills:read`.",
+        "operationId": "list_skill_categories",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(active|draft)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryCount"
+                  },
+                  "title": "Response List Skill Categories V1 Skills Categories Get"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "list_skills"
       }
     },
     "/v1/skills/run": {
@@ -5327,7 +5509,7 @@
           "Skills"
         ],
         "summary": "Update a skill",
-        "description": "Change a skill's name, description, inputs, output fields, run settings, saved login, or sharing. Only what you send changes. Answers with the skill as `GET /v1/skills/{slug}` returns it, plus `changes`, `warnings`, and `login`. Owner or workspace editor; `login_id` and `visibility` are owner only. Needs `skills:write` (and `logins:write` for `login_id`).",
+        "description": "Change a skill's name, description, category (a slug from `GET /v1/skills/categories`; an unknown one is 422), inputs, output fields, run settings, saved login, or sharing. Only what you send changes. Answers with the skill as `GET /v1/skills/{slug}` returns it, plus `changes`, `warnings`, and `login`. Owner or workspace editor; `login_id` and `visibility` are owner only. Needs `skills:write` (and `logins:write` for `login_id`).",
         "operationId": "update_skill",
         "security": [
           {
@@ -9632,6 +9814,37 @@
         ],
         "title": "CancelRunResponse"
       },
+      "CategoryCount": {
+        "properties": {
+          "slug": {
+            "type": "string",
+            "title": "Slug",
+            "description": "What a list's category filter takes, e.g. real_estate"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "The category in words, e.g. Real Estate"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "description": "Skills in it that the caller can see in this list"
+          }
+        },
+        "type": "object",
+        "required": [
+          "slug",
+          "label",
+          "description",
+          "count"
+        ],
+        "title": "CategoryCount"
+      },
       "ConnectedApp": {
         "properties": {
           "slug": {
@@ -9901,7 +10114,7 @@
               }
             ],
             "title": "Inputs",
-            "description": "The skill's inputs and the example value the recording uses for each, e.g. {\"city\": \"Austin\"}. Each value must appear in what the browser types or opens, so a later run can swap in its own. Inferred from the task when omitted."
+            "description": "The skill's inputs and the example value the recording uses for each, e.g. {\"city\": \"Austin\"}. Each value must appear in what the browser types or opens, so a later run can swap in its own. Inferred from the task when omitted; {} for a skill that reads one fixed page and takes no inputs."
           },
           "output_fields": {
             "anyOf": [
@@ -10175,7 +10388,7 @@
               }
             ],
             "title": "Triage Kind",
-            "description": "missing_fields | partial_fields | not_shown | suspect_rows | element_changed | extraction_drift | blocked | logged_out | login_failed | site_down | page_not_loaded | recording_failed | unknown"
+            "description": "missing_fields | partial_fields | not_shown | suspect_rows | wrong_values | element_changed | extraction_drift | model_unavailable | blocked | logged_out | login_failed | site_down | page_not_loaded | recording_failed | unknown"
           },
           "what_we_tried": {
             "items": {
@@ -10199,6 +10412,22 @@
             "type": "array",
             "title": "Quality Flags",
             "description": "Single-run row checks that fired: repeated rows, pages repeating earlier pages, placeholder values."
+          },
+          "field_fill": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FieldFill"
+            },
+            "type": "object",
+            "title": "Field Fill",
+            "description": "Per field: filled, not listed by the site, failed to read — set when a field was blank on some rows. A run whose only gaps are not listed is a success."
+          },
+          "wrong_values": {
+            "items": {
+              "$ref": "#/components/schemas/WrongValue"
+            },
+            "type": "array",
+            "title": "Wrong Values",
+            "description": "Filled values the run's value checks call wrong: label text in a number, two values in one cell, the whole card, another item's or a relative link, two fields alike, repeated rows."
           },
           "no_real_rows": {
             "type": "boolean",
@@ -10908,7 +11137,31 @@
               }
             ],
             "title": "Note",
-            "description": "Partial fields only, e.g. 'filled on 3/5 — on the card but not read on 2' or 'filled on 3/5 — not shown on 2 rows' cards'."
+            "description": "Partial fields only, e.g. 'filled on 3/5 — on the card but not read on 2' or 'filled on 3/5 — not shown on 2 rows' cards'; '2/10 (8 not listed by the site)' when every blank is the site's."
+          },
+          "not_listed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Listed",
+            "description": "Blank rows the site does not list the field on (no element, no value-like text on the card) — the field is null, not a miss."
+          },
+          "failed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed",
+            "description": "Blank rows that are a failed read: the element or a value is on the card, every row is blank, or the card could not be checked."
           }
         },
         "type": "object",
@@ -10924,19 +11177,27 @@
             "title": "Filled",
             "default": 0
           },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill"
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "Followup": {
         "properties": {
@@ -14223,6 +14484,18 @@
             ],
             "title": "Category"
           },
+          "category_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Label",
+            "description": "The category in words, e.g. Real Estate"
+          },
           "tags": {
             "items": {
               "type": "string"
@@ -14943,6 +15216,18 @@
               }
             ],
             "title": "Category"
+          },
+          "category_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Label",
+            "description": "The category in words, e.g. Real Estate"
           },
           "tags": {
             "items": {
@@ -16228,6 +16513,18 @@
             ],
             "title": "Category"
           },
+          "category_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Label",
+            "description": "The category in words, e.g. Real Estate"
+          },
           "tags": {
             "items": {
               "type": "string"
@@ -17205,14 +17502,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -17436,6 +17733,18 @@
             ],
             "title": "Visibility"
           },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Category slug, e.g. real_estate (GET /v1/skills/categories)",
+            "default": "other"
+          },
+          "category_label": {
+            "type": "string",
+            "title": "Category Label",
+            "description": "The category in words, e.g. Real Estate",
+            "default": "Other"
+          },
           "inputs": {
             "items": {
               "$ref": "#/components/schemas/SkillInputSummary"
@@ -17631,6 +17940,18 @@
               }
             ],
             "title": "Description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category",
+            "description": "Slug, e.g. real_estate"
           },
           "inputs": {
             "anyOf": [
@@ -18295,7 +18616,20 @@
                 "type": "null"
               }
             ],
-            "title": "Category"
+            "title": "Category",
+            "description": "Category slug (skills), e.g. real_estate"
+          },
+          "category_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Label",
+            "description": "The category in words, e.g. Real Estate"
           },
           "official": {
             "type": "boolean",
@@ -20209,6 +20543,70 @@
           "personal"
         ],
         "title": "WorkspaceRef"
+      },
+      "WrongValue": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field",
+            "description": "The field, or * for the rows as a whole (duplicates)."
+          },
+          "cause": {
+            "type": "string",
+            "title": "Cause",
+            "description": "junk | glued | whole_card | other_item_link | not_own_link | twin_fields | duplicates"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "default": 0
+          },
+          "filled": {
+            "type": "integer",
+            "title": "Filled",
+            "default": 0
+          },
+          "examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Examples"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "cause"
+        ],
+        "title": "WrongValue",
+        "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
+      },
+      "app__published_skills__improvements__schemas__FieldFill": {
+        "properties": {
+          "filled": {
+            "type": "integer",
+            "title": "Filled",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "FieldFill"
       },
       "Error": {
         "type": "object",
