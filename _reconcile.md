@@ -6,7 +6,10 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 
 | Page | Method and path | Source of truth |
 | --- | --- | --- |
-| api-reference/skills/list.mdx | GET /v1/skills (q, status, limit 1–100 default 50, cursor → `skills`, `next_cursor`) | published_skills/manage/router.py |
+| api-reference/skills/list.mdx | GET /v1/skills (q, status, category, limit 1–100 default 50, cursor → `skills`, `next_cursor`) | published_skills/manage/router.py, manage/listing.py |
+| api-reference/skills/list-categories.mdx | GET /v1/skills/categories (status → `[{slug,label,description,count}]`, all 25, zeros included) | published_skills/execute_router.py, categories/listing.py |
+| api-reference/marketplace/list-categories.mdx | GET /v1/marketplace/categories (public, live skills only) | published_skills/search/router.py, categories/listing.py |
+| concepts/skills.mdx#categories | the fixed category list, auto-assign, edit, filters | published_skills/categories/taxonomy.py, assign.py |
 | api-reference/skills/create.mdx | POST /v1/skills | skill_creation/router.py |
 | api-reference/skills/get-creation.mdx | GET /v1/skill-creations/{creation_id} | skill_creation/router.py |
 | api-reference/skills/list-creations.mdx | GET /v1/skill-creations (status comma list or `active`, limit 20 max 100, cursor → `data`, `next_cursor`, `has_more`). Manual `api:` page until the spec has the route; then switch to `openapi:` | skill_creation/router.py |
