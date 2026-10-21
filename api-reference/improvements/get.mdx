@@ -11,7 +11,8 @@ openapi: "GET /v1/skill-improvements/{improvement_id}"
 | `result` | `improved` (new version is live), `kept_old`, `no_change`, `failed`, `running`, or `applied` (an imported past change). |
 | `improved` | `true` if the new version is live. |
 | `changes` | Each target field's rows filled, before → after. |
-| `details` | `new_fields`, `merged` duplicates, `ambiguous` requests with a `question`, and a `diff_summary`. |
+| `details` | `new_fields`, `merged` duplicates, `ambiguous` requests with a `question`, and a `diff_summary`. On a skill built on an open API, also `source` (`api`), `endpoint`, `rescouted`, `not_in_api`, `thin`, `api_gone`, and `browser_offer`. See [Skills built on an open API](/guides/improve-a-skill#skills-built-on-an-open-api). |
+| `strategy` | `fields` (where the fields are was learned again), `rerecord` (the steps were recorded again), `api_remap` (the fields were mapped again on the skill's API), or `api_rescout` (the site's API was looked for again). |
 | `recipe_version`, `candidate_version` | The live version at the end, and the version kept but not made live. |
 | `outcome` | What happened, in words. |
 

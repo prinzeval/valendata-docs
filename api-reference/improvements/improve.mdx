@@ -4,7 +4,7 @@ description: "Fix a field, add fields, or re-learn how a skill opens each result
 openapi: "POST /v1/skills/{slug}/improve"
 ---
 
-Pick a `mode`: `fix` (default), `add_fields`, or `relearn_details`. `feedback` is required for the first two. The call answers at once; read [Get an improvement](/api-reference/improvements/get) until `status` is `done` or `failed`.
+Pick a `mode`: `fix` (default), `add_fields`, `relearn_details`, or `relearn_steps`. `feedback` is required for the first two. On a skill built on the site's open API, each mode works on the API instead of a browser: see [Skills built on an open API](/guides/improve-a-skill#skills-built-on-an-open-api). The call answers at once; read [Get an improvement](/api-reference/improvements/get) until `status` is `done` or `failed`.
 
 When to use each mode, how to read a run's `diagnosis`, and what happens step by step are in [Improve a skill](/guides/improve-a-skill).
 

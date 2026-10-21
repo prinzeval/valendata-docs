@@ -25,7 +25,20 @@ Optionally name the **inputs** (with the example value the task uses) and the **
 
 ### Open APIs first
 
-Many sites publish their data through an open API: a web address that answers with data, without a browser. Before it opens a browser, Valendata looks for one. It searches the web for the site's API docs and looks at the data calls the site's own page makes. It then calls each API it finds and checks that the answer holds the fields you asked for. While it looks, `progress` reads like `Looking for an open API for bayse.markets…`, then `Found its public API — building the skill on it` and `Checking the API returns the fields…`.
+Many sites publish their data through an open API: a web address that answers with data, without a browser. Before it opens a browser, Valendata looks for one in four places at once:
+
+| Where | What it looks for |
+| --- | --- |
+| Known platforms | Sites built on Shopify, WordPress or WooCommerce, Greenhouse, Lever, Ashby, Workable, or Algolia search. Their public list API is standard, so once the platform is recognized from the address or the page, the address is known. No key or cookie is sent. The one exception is the public search key a site ships for its own Algolia search box, sent as the site sends it. |
+| API docs | The site's API documentation, found with a web search. |
+| Feeds and sitemaps | The site's RSS, Atom, and JSON feeds and its XML sitemaps. |
+| The page's own data calls | The calls the start page makes for its data when it loads. |
+
+It then calls each API it finds and checks that the answer holds the fields you asked for. While it looks, `progress` reads like `Looking for an open API for bayse.markets…`, then `Found its public API — building the skill on it` and `Checking the API returns the fields…`.
+
+**When the site blocks our server.** Some sites refuse requests from our servers, or show no data calls to them. If you have agreed that Valendata may use your Chrome and the Valendata extension is connected, Valendata then opens the start page once in a background tab of your Chrome, reads the data calls it makes, and closes the tab. Your other tabs are not touched, and nothing is recorded. `progress` says `The site blocked our server — reading its page in your Chrome…` or `Reading the page's data calls in your Chrome…`. If our server can then call the API directly, the skill does. If the site answers it only inside its own page, each run makes the call from a browser page on the site.
+
+**Inputs the task names.** When the task names a value, such as "jobs in the programming category", and the API takes no parameter for it, Valendata maps the input another way the source allows: a part of the address (the category's own feed, a store's collection) or a filter on an output field. A part of the address must be one of the site's own values, and a filter must keep some of the sample rows. See [Inputs](/concepts/skills#inputs).
 
 If an API checks out, the skill is built on it. There is no recording. Each run is one direct call to the API, with no browser, and returns the site's own values. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**.
 
@@ -166,7 +179,7 @@ To stop one that is still going, use [Cancel a skill creation](/api-reference/sk
     Stop the session. The recording is saved under **Configs**. Open it, click **Publish as skill**, give it a name and description, choose the visibility, and click **Publish Skill**.
   </Step>
   <Step title="Check the inputs and output fields">
-    Open the skill. Click **Suggest** to detect inputs and output fields from the recording, then rename or adjust them.
+    Open the skill. Under **Available inputs**, turn on the ones a run should be able to change. Under **Data contract**, click **Suggest** to detect output fields from the recording, then rename them or [change their type](/concepts/skills#output-field-types).
   </Step>
 </Steps>
 

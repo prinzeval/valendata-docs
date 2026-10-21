@@ -77,6 +77,16 @@ Each skill has its own chat at the top of its page. Say what is wrong or what yo
 
 From code, use [Talk to a skill](/api-reference/improvements/talk). An AI assistant uses the `talk_to_skill` tool.
 
+### A skill built on an open API
+
+A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so its repairs work on the API. When one of its runs fails (the API answers "not found", changes shape, or asks for a key) or comes back with fields missing or wrong, the skill starts one free repair on its own:
+
+1. It calls the same API address fresh and maps the fields again on the answer.
+2. If that address is gone, it looks for the site's API again and rebuilds the skill on what it finds.
+3. If no other open API turns up, it tells you in the skill's chat and offers to record the skill in a browser. Nothing is recorded until you say yes.
+
+Each skill has a small daily limit on these automatic repairs. In its chat, the skill offers only what fits an API: no browser, proxy, or sign-in settings. What each repair mode does is in [Skills built on an open API](/guides/improve-a-skill#skills-built-on-an-open-api).
+
 ## Cookie and consent banners
 
 When a skill runs in a cloud browser, Valendata clears cookie and consent banners after each page load. It recognizes common consent tools (OneTrust, Cookiebot, Didomi, Quantcast, TrustArc and others), Google's "Before you continue" page, and other cookie pop-ups in several languages. It clicks the site's own button. By default this is "Reject all" or "Only necessary", and "Accept" if there is no reject button. This uses no AI model.
@@ -107,4 +117,5 @@ A fast path that keeps failing is paused, and runs use the browser until the fas
 - **Each run result**: `triage_kind`, `heal_kind`, `recipe_version`, `tier_used`, and the trust fields.
 - **[`GET /v1/skills/{slug}`](/api-reference/skills/get)**: `reliability`, `recipe_version`, `pinned_recipe_version`, and `fast_path`.
 - **[`GET /v1/skills/{slug}/health`](/api-reference/skills/health)**: success rate and repairs over the last 20 runs, the last failure kind, and health for each route.
+- **The skill's Optimizer tab**: for a skill built on an open API, what it reads instead of steps to speed up: the API address and a link to its docs, where it was found (the site's API docs, the address you gave, the site's own calls, its feed, or its platform), where each field comes from in the answer, how it reads more pages, and how its calls have done.
 - **AI assistants**: each `skill_<slug>` tool's description includes the same short track record. See [MCP tools](/ai-assistants/mcp-tools).

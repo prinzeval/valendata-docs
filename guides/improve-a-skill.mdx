@@ -3,13 +3,14 @@ title: "Improve a skill"
 description: "Tell a skill in plain English what to fix or add. It relearns, a short check run tests it, and the new version goes live only if it is better."
 ---
 
-You can change a skill the way you would coach a person. There are three kinds of improvement:
+You can change a skill the way you would coach a person. There are four kinds of improvement:
 
 | Mode | Use it when | What to write |
 | --- | --- | --- |
 | **Fix missing data** (`fix`) | A field comes back empty, for example `phone` is blank because the number is only on each place's details page. | Where the data is. Required. |
 | **Add fields** (`add_fields`) | You want more fields, for example "also capture the star rating and review count". | The fields you want. Required. |
 | **Re-learn detail steps** (`relearn_details`) | The site changed, or fields from each result's details page come back empty. | A note. Optional. |
+| **Re-record the steps** (`relearn_steps`) | A step no longer works, or a run returns no rows. The steps to the results are recorded again, the old ones as a guide. | A note on how to reach the results. Optional. |
 
 Start one from:
 
@@ -76,6 +77,22 @@ For **Add fields**, Valendata first compares your request with the fields the sk
 
 The result says `improved` (`true` if the new version is live), `changes` (each field's rows before → after), and `credits_charged`.
 
+## Skills built on an open API
+
+A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so every mode works on the API instead:
+
+| Mode | What it does |
+| --- | --- |
+| `fix` | Calls the skill's API address once, fresh, and maps the named fields again on its answer, using your hint. If the first mapping does not help, it tries once more, told why. |
+| `add_fields` | Compares your request with the skill's fields, as for any skill, then maps the new fields from the same API. A field the API's records do not hold is not added: it is listed in `details.not_in_api`. A new field that only a few records hold is left out too, listed in `details.thin` with how many, such as `"1/10"`. No field is ever filled from another value that only looks like it. |
+| `relearn_steps`, `relearn_details` | Looks for the site's open API again, for the skill's task, start page, inputs, and fields. A new API that checks out replaces the old one when it is no worse. |
+
+If the skill's API address is gone (it answers "not found", asks for a key, or no longer returns a list), any mode looks for the site's API again. If the API only failed for a moment, nothing is changed and the improvement says to try again.
+
+If no other open API turns up and the old one is gone, the improvement says so, and `details.api_gone` and `details.browser_offer` are `true`. The skill can then be rebuilt by recording it in a browser. That happens only when you say yes: say "record it in a browser" in the skill's chat, or [create it again](/guides/create-a-skill) with `source: "browser"`. The recording is a new skill, charged as a creation, and the API skill stays as it is.
+
+Every change is checked by calling the old and the new version for real. One that helps goes live as a new version. One that does not is kept as a candidate version. There is no check run and no browser: an improvement of an API skill costs only the AI model calls and searches it made. `strategy` is `api_remap` when the fields were mapped again, or `api_rescout` when the site's API was looked for again, and `details.endpoint` names the API the skill reads after it.
+
 ## Compare, pin, or roll back
 
 Every improvement and every automatic repair is a new [version](/concepts/keeping-skills-working#versions). You can:
@@ -88,4 +105,4 @@ Every improvement and every automatic repair is a new [version](/concepts/keepin
 
 ## Limits
 
-One improvement at a time for your account and for each skill (`409`), up to 6 an hour (`429`), and at least 10 credits to start (`402`). Every mode uses a cloud browser, the AI model, and the check run, all charged to you.
+One improvement at a time for your account and for each skill (`409`), up to 6 an hour (`429`), and at least 10 credits to start (`402`). On a skill built from a recording, every mode uses a cloud browser, the AI model, and the check run, all charged to you.
