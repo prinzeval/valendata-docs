@@ -2890,7 +2890,7 @@
           "Marketplace"
         ],
         "summary": "Find a skill for a task",
-        "description": "Skills that do the task in `q`, best first, from the public marketplace and (with `skills:read`) your own and your workspaces' (`yours: true`). `category` (a slug from `GET /v1/marketplace/categories`) keeps one category; an unknown one is 422. Each result has its inputs, `price` (the typical cost of its recent runs in credits and dollars, or its base price before any run), `health` (success rate over its last 20 runs) and the route to run it. Matching reads the meaning of `q`, not only its words. When nothing does the task, the closest skills come back with `match: \"near\"` and a `hint`. No key needed for the public marketplace.",
+        "description": "Skills that do the task in `q`, best first, from the public marketplace and (with `skills:read`) your own and your workspaces' (`yours: true`). `category` (a slug from `GET /v1/marketplace/categories`) keeps one category; an unknown one is 422. Each result has its inputs, `price` (the typical cost of its recent runs in credits and dollars, or its base price before any run), `health` (success rate over its last 20 runs), `proof` (a public skill's track record on real runs: how many of its last 20 runs worked, typical run time, typical rows and credits, when it last worked and was last checked, and a status) and the route to run it. Skills with a Working track record rank a little higher. Matching reads the meaning of `q`, not only its words. When nothing does the task, the closest skills come back with `match: \"near\"` and a `hint`. No key needed for the public marketplace.",
         "operationId": "search_skills",
         "security": [
           {
@@ -5439,7 +5439,7 @@
           "Skills"
         ],
         "summary": "Get a skill",
-        "description": "The skill and its contract: `input_schema`, `output_json_schema`, `reliability`, versions, and fast path. A public skill needs no key. A private skill returns 404 to anyone who may not run it.",
+        "description": "The skill and its contract: `input_schema`, `output_json_schema`, `reliability`, versions, and fast path. A public skill also has `proof`, its track record on real runs (its own and its marketplace copies'). A public skill needs no key. A private skill returns 404 to anyone who may not run it.",
         "operationId": "get_skill",
         "security": [
           {
@@ -10415,7 +10415,7 @@
           },
           "field_fill": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__diagnosis__schemas__FieldFill"
             },
             "type": "object",
             "title": "Field Fill",
@@ -11177,27 +11177,19 @@
             "title": "Filled",
             "default": 0
           },
-          "not_listed": {
-            "type": "integer",
-            "title": "Not Listed",
-            "description": "Blank because the site does not list it on that result.",
-            "default": 0
-          },
-          "failed": {
-            "type": "integer",
-            "title": "Failed",
-            "description": "Blank because the read failed (or could not be told apart).",
-            "default": 0
-          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill",
-        "description": "One field over the run's rows (field_fill.py)."
+        "title": "FieldFill"
       },
       "Followup": {
         "properties": {
@@ -12910,6 +12902,32 @@
           "monthly_allowance"
         ],
         "title": "Plan"
+      },
+      "ProofRun": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "worked",
+              "missing_fields",
+              "failed"
+            ],
+            "title": "Outcome",
+            "description": "worked; missing_fields (came back with fields empty — no success); failed"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome",
+          "at"
+        ],
+        "title": "ProofRun",
+        "description": "One recent counted run, as the strip shows it: how it ended and when."
       },
       "ProvenSite": {
         "properties": {
@@ -14945,6 +14963,16 @@
               }
             ]
           },
+          "proof": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillProof"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "input_schema": {
             "additionalProperties": true,
             "type": "object",
@@ -15672,6 +15700,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/SkillPrice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proof": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillProof"
               },
               {
                 "type": "null"
@@ -16974,6 +17012,16 @@
               }
             ]
           },
+          "proof": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillProof"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "input_schema": {
             "additionalProperties": true,
             "type": "object",
@@ -17502,14 +17550,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -18160,6 +18208,180 @@
         "title": "SkillPrice",
         "description": "What one run of the skill costs, before it runs."
       },
+      "SkillProof": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "working",
+              "some_failures",
+              "failing",
+              "not_enough_runs"
+            ],
+            "title": "Status"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "The status in words: Working, Some failures, Failing, Not enough runs yet"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "The track record in one plain line"
+          },
+          "window": {
+            "type": "integer",
+            "title": "Window",
+            "description": "How many recent runs the rate is read from, at most",
+            "default": 20
+          },
+          "min_runs": {
+            "type": "integer",
+            "title": "Min Runs",
+            "description": "Counted runs needed before a percentage is shown",
+            "default": 5
+          },
+          "runs": {
+            "type": "integer",
+            "title": "Runs",
+            "description": "Counted runs in the recent window — what the rate is based on",
+            "default": 0
+          },
+          "worked": {
+            "type": "integer",
+            "title": "Worked",
+            "description": "Of those, how many worked",
+            "default": 0
+          },
+          "success_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate",
+            "description": "Percent of the recent runs that worked; null under min_runs"
+          },
+          "runs_30d": {
+            "type": "integer",
+            "title": "Runs 30D",
+            "description": "Counted runs in the last 30 days",
+            "default": 0
+          },
+          "worked_30d": {
+            "type": "integer",
+            "title": "Worked 30D",
+            "description": "Of those, how many worked",
+            "default": 0
+          },
+          "success_rate_30d": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Rate 30D",
+            "description": "Percent over 30 days; null under min_runs"
+          },
+          "median_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Seconds",
+            "description": "Median run time, start to rows, of recent runs that worked"
+          },
+          "p90_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P90 Seconds",
+            "description": "9 in 10 recent runs that worked finished within this"
+          },
+          "typical_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Rows",
+            "description": "Median rows of the recent runs that worked"
+          },
+          "typical_credits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Credits",
+            "description": "Median credits of the recent runs that worked"
+          },
+          "last_worked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Worked At",
+            "description": "When a run last worked"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At",
+            "description": "When the newest counted run ran"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/ProofRun"
+            },
+            "type": "array",
+            "title": "Recent",
+            "description": "The recent counted runs, newest first"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "label",
+          "summary"
+        ],
+        "title": "SkillProof",
+        "description": "How the skill has done on real runs — its own and its marketplace copies'."
+      },
       "SkillReliability": {
         "properties": {
           "success_rate": {
@@ -18654,6 +18876,17 @@
           },
           "health": {
             "$ref": "#/components/schemas/SearchHealth"
+          },
+          "proof": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillProof"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A public skill's track record from real runs (its own and its marketplace copies'): success rate, speed, last worked, last checked. Null for a private skill or a workflow"
           },
           "sample_rows": {
             "items": {
@@ -20587,26 +20820,34 @@
         "title": "WrongValue",
         "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
       },
-      "app__published_skills__improvements__schemas__FieldFill": {
+      "app__published_skills__diagnosis__schemas__FieldFill": {
         "properties": {
           "filled": {
             "type": "integer",
             "title": "Filled",
             "default": 0
           },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill"
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "Error": {
         "type": "object",
