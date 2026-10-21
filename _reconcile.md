@@ -14,8 +14,9 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/skills/create.mdx | POST /v1/skills | skill_creation/router.py |
 | api-reference/skills/get-creation.mdx | GET /v1/skill-creations/{creation_id} | skill_creation/router.py |
 | api-reference/skills/list-creations.mdx | GET /v1/skill-creations (status comma list or `active`, limit 20 max 100, cursor → `data`, `next_cursor`, `has_more`). Manual `api:` page until the spec has the route; then switch to `openapi:` | skill_creation/router.py |
-| api-reference/skills/get.mdx | GET /v1/skills/{slug} (+ `price`, `proof`) | execute_router.py, published_skills/price/*, published_skills/proof/* |
+| api-reference/skills/get.mdx | GET /v1/skills/{slug} (+ `price`, `proof`, `output_types`, `available_inputs` (members only), input_schema `x-acts-as` / `x-where` / `x-known-values-count`, parameters `acts_as` / `where`) | execute_router.py, published_skills/price/*, published_skills/proof/*, manage/detail.py, available_inputs/schemas.py, view.py, input_model/schema_view.py |
 | api-reference/skills/update.mdx | PATCH /v1/skills/{slug} (SkillPatch → SkillEditResult: GET shape + changes, warnings, login) | manage/schemas.py, edit.py |
+| api-reference/skills/update.mdx#inputs, #output-field-types, concepts/skills.mdx#inputs, #available-inputs, #output-field-types | InputAdd `acts_as` / `where` / `known_values` (required default by kind; name-inferred mapping on API skills; refusals), inputs.remove; OutputUpdate.type (14 types); typing of new skills, frozen types on first retype, `type_notes` | manage/schemas.py, manage/contract_edit.py, input_model/*, input_suggest/*, available_inputs/* (payer.py who pays), contract/value_types/*, contract/typed_rows.py, contract/output_schema.py, value_types/infer.py |
 | api-reference/skills/delete.mdx | DELETE /v1/skills/{slug}?force (409 lists workflows; runs kept) | manage/delete.py |
 | api-reference/skills/health.mdx | GET /v1/skills/{slug}/health | execute_router.py |
 | api-reference/marketplace/search.mdx | GET /v1/marketplace/search (q 2–300, site, category, limit 1–50 default 10, kind skill/workflow; public, `skills:read` / `workflows:read` adds yours) | published_skills/search/*, price/*, proof/*, workflows/marketplace_public.py |
@@ -74,6 +75,26 @@ Open follow-ups:
   reliability.py describe_fast_path) while it was being built, and hand-added to `openapispec.json`
   (CreateSkillRequest, SkillCreationStatus). The guide names only what api_scout/ does today (API docs search, the
   page's own data calls); add known platforms (Shopify, Greenhouse) and feeds/sitemaps to "Open APIs first" if they
-  ship. Re-export the spec once it ships.
+  ship (done 2026-10-22, see below). Re-export the spec once it ships.
 
 2026-10-19: `openapispec.json` re-exported with `scripts/export_public_openapi.py`; it now has the sites, site APIs, skill-creation cancel and doctor routes.
+
+2026-10-22: inputs, typed values, API-skill repairs and the API check's new sources documented from the backend working
+tree (not yet pushed): inputs acting as request / filter / step and the available inputs (concepts/skills.mdx#inputs,
+api-reference/skills/update.mdx#inputs, get.mdx#available-inputs, guides/run-a-skill.mdx no-rows error from
+api_scout/run.py); output field types and `type_notes` (concepts/skills.mdx#output-field-types, concepts/runs.mdx);
+improve_skill on API skills, `details` api fields and strategies api_remap / api_rescout, the doctor's automatic API
+repair and the Optimizer's API view (guides/improve-a-skill.mdx#skills-built-on-an-open-api,
+concepts/keeping-skills-working.mdx; improvements/api_skill.py, doctor/api_skill.py, api_scout/repair/*,
+api_scout/view.py — the Optimizer block is GET /api/skills/{id}/optimization, an app route, described as the tab only);
+known platforms, feeds and sitemaps, and the owner's Chrome when the site blocks our server added to "Open APIs first"
+(api_scout/sources.py, platforms/*, feeds/*, site_calls.py) — this closes the 2026-10-21 note about platforms and feeds.
+The app's GET /api/configs/{config_id}/suggest-inputs (?refresh=true) is not documented by route: the docs describe the
+**Look again** button and `available_inputs` on GET /v1/skills/{slug}. `openapispec.json` was merged by hand from a
+fresh `scripts/export_public_openapi.py` export: AvailableInput / AvailableInputs added; InputAdd, OutputUpdate taken
+from the export; new properties added to SkillApiInfo, SkillCloned, SkillEditResult (`output_types`,
+`available_inputs`, `fast_path_transport`, `fast_path_endpoint`), SkillParameterView, RunStatusResponse /
+ExecuteSkillResponse (`type_notes`), ImprovementDetails, SkillImprovementStatus.strategy, ImproveSkillRequest.mode,
+FastPath, InputsPatch.remove. Hand text kept for the earlier hand-added creation fields. `type_notes` items carry
+field/type/count/examples here; the backend's RunStatusResponse says only "object" — give it that item shape, then
+re-export.

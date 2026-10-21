@@ -10,11 +10,76 @@ A **skill** is one task on a website, saved so it can be run again. For example:
 | Part | What it is | Example |
 | --- | --- | --- |
 | **Name and slug** | The skill's name, and the short id you use in the API and in tool names. | `Austin dentists`, `austin-dentists` |
-| **Inputs** | The values you can change on each run. Each has a type and an optional default. | `city` (string, default `Austin`) |
-| **Output fields** | The columns every row has. | `name`, `rating`, `phone` |
+| **Inputs** | The values you can change on each run. Each has a type, an optional default, and a way it acts on the data. See [Inputs](#inputs). | `city` (string, default `Austin`) |
+| **Output fields** | The columns every row has. Each has a type, such as text, a price, or a date. See [Output field types](#output-field-types). | `name`, `rating`, `phone` |
 | **Contract** | The inputs and output fields together, as JSON Schema. Callers and AI assistants read it to know what to send and what comes back. | `input_schema`, `output_json_schema` |
 | **Version** | The saved steps. Every change makes a new numbered version, so you can compare and roll back. | version `3` |
 | **Visibility** | `private` (only you), `workspace` (shared with a team workspace), or `public` (listed in the [marketplace](/guides/use-the-marketplace)). | `private` |
+
+## Inputs
+
+An input acts on the data in one of three ways:
+
+| Acts as | What it does | Example |
+| --- | --- | --- |
+| `request` | Sent to the site, so the site answers only the matching records: a query parameter, a part of the address, or a key in the request body. Only a skill built on an [open API](/guides/create-a-skill#open-apis-first) has a request to send it with. | `q` sent as `?q=laptop`; `category` filled into `https://example.com/categories/{value}.rss` |
+| `filter` | Keeps only the rows that match. It is applied after the rows are fetched, so it works on any skill, including sites that cannot filter for you. | `department` keeps rows whose `department` contains `Engineering` |
+| `step` | Typed into the page in place of the value the recording used. | `city` replaces `Austin` in the search box |
+
+A filter is one of these kinds:
+
+| Kind | A row is kept when |
+| --- | --- |
+| `contains` | One of the named fields contains the value. Case does not matter. |
+| `equals` | One of the named fields is exactly the value. Case does not matter. |
+| `one_of` | One of the named fields is one of the values, separated by commas. |
+| `min`, `max` | The field's number is at least, or at most, the value. `$1,234.50` reads as `1234.5`. |
+| `since` | The field's date is on or after the value: a date like `2026-10-01`, or a span back from now like `24h`, `7d`, `2w`, or `3 months`. |
+
+A filter runs before rows are counted against `max_results`, so a run still returns up to `max_results` matching rows. A skill built on an open API reads more pages when the filter drops rows. A run where no row matches returns no rows. A filter value that cannot be read, such as a `min` of `abc`, fails the run and says which input was wrong. It is never ignored.
+
+### Available inputs
+
+Valendata works out every input a skill can take when the skill is created, and again each time its steps change. It tries each one for real before it lists it. A `request` input must change the rows the site answers. A `filter` must keep some of the skill's sample rows. What it finds depends on where the rows come from:
+
+- **A recording**: the values typed and the parts of the address it opened, plus filters on the output fields.
+- **An open API**: the parameters its docs show, the ones the call already sends, and the fields that make good filters. A field with a few repeating values (a status, a region) is offered as `one_of` with its values. A number is offered as `min` and `max`, a date as `since`, and the text fields together as one `keyword`.
+- **A feed**: the site's other feeds for each category or tag, as one input whose known values are those categories.
+- **A known platform**: its standard parameters, such as a Shopify store's collection, a WordPress site's search and categories, or Algolia's query. Job boards (Greenhouse, Lever, Ashby, Workable) list every job at once, so their department, location, and keyword are filters.
+
+On the skill's page, **Available inputs** lists them, each with a switch. Turn on the ones a run should be able to change. **Look again** works the list out again now, charged to you. Over the API, the list is the skill's [`available_inputs`](/api-reference/skills/get#available-inputs), and you turn one on or off with [Update a skill](/api-reference/skills/update#inputs).
+
+A `request` input or a `filter` can always be turned off: the skill then runs as it did before. A `step` input cannot be turned off while the recorded steps still use it.
+
+Working out the list is part of what a new skill costs. After a change you make, it is charged to you. After an automatic repair, it is free.
+
+## Output field types
+
+Each output field has a type. A run reads every value as its field's type, whichever way the rows were read: a browser, a page download, or an API.
+
+| Type | What a row holds | Example |
+| --- | --- | --- |
+| `string` | The text as read. | `"Lone Star Dental"` |
+| `number` | A number. | `15178867.53` |
+| `integer` | A whole number. | `1204` |
+| `boolean` | `true` or `false`. | `true` |
+| `date` | A calendar date, `YYYY-MM-DD`. | `"2026-10-30"` |
+| `datetime` | A moment in UTC, ISO 8601. A relative value, such as "Ends in 13 days", is made absolute from the run's time. | `"2026-10-30T23:59:00Z"` |
+| `url` | An absolute address. | `"https://example.com/item/42"` |
+| `price` | The amount as a number. When the value showed a currency, `<field>_currency` beside it holds the ISO 4217 code. | `47.82`, `price_currency: "GBP"` |
+| `chance` | A probability from 0 to 1. | `"73%"` → `0.73` |
+| `percent` | Percentage points. | `"73%"` → `73` |
+| `count` | A whole number. | `"1.5k"` → `1500` |
+| `duration` | Seconds. | `"2h 30m"` → `9000` |
+| `array`, `object` | Passed through as the run produced them. | |
+
+**How a type is set.** For a new skill, Valendata picks each field's type from two things that must agree: what the field is called and described as, and its sample values. At least three values must be filled, and nearly all of them must read as that type. A field that cannot be decided yet is decided by a later run's sample. Numbers are never typed from values alone, so a zip code like `02134` stays text. Skills made before types return what they always have, until you change a field's type.
+
+**Change a type.** On the skill's page, pick it next to the field under **Data contract**. Over the API, send `outputs.update` with `type` to [Update a skill](/api-reference/skills/update). `string` makes a field text again. The first time you retype a field on an older skill, its other fields keep the shape they return today.
+
+**Values that do not fit.** A value that cannot be read as its type is kept as printed, never dropped. The run lists these in `type_notes`: the field, its type, how many values, and up to 3 examples. In the app this shows as **Some values were kept as printed**. A field with no value is `""`.
+
+In the skill's `output_json_schema`, a typed field reads as its type or a string, for example `["number", "string"]`, because a value that does not fit stays text. `date`, `datetime`, and `url` are strings with a `format`. A `price` field also lists its `<field>_currency`.
 
 ## Categories
 

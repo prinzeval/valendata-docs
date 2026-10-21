@@ -31,7 +31,7 @@ When an agent starts runs for you while you keep talking, each is tracked as a [
 
 ## What a finished run holds
 
-- **Rows**: the data, one object per row, with the skill's output fields.
+- **Rows**: the data, one object per row, with the skill's output fields. Each value has its field's [type](/concepts/skills#output-field-types).
 - **Count** and **time taken**.
 - **Version**: the skill version this run used (`recipe_version`).
 - **Route**: how it ran (`tier_used`): a fast path or the full browser steps. See [Fast path](/concepts/keeping-skills-working#fast-path).
@@ -48,6 +48,7 @@ Valendata never fills in a value it did not see. Each result says what it is uns
 | `unverified_fields` | Fields Valendata has not yet proven it reads correctly. |
 | `rejected_values` | Values that were not on the page. They are removed, not returned. |
 | `truncated_sections` | Sections that had more data than this run collected. |
+| `type_notes` | Values that could not be read as their field's type, such as `TBD` in a date field. They are kept in the rows as printed. Each entry has `field`, `type`, `count`, and up to 3 `examples`. See [Output field types](/concepts/skills#output-field-types). |
 | `diagnosis` | Present when a run failed, a field came back on fewer than half the rows, or the rows look wrong. It says what was tried and suggests a hint for [Improve](/guides/improve-a-skill#read-the-diagnosis). |
 
 ## Why a run failed

@@ -8,9 +8,11 @@ The fields you will use most:
 
 | Field | What it is |
 | --- | --- |
-| `input_schema` | JSON Schema for the inputs: each input's `type`, `description`, `default`, and example. `required` lists the ones you must send. Unknown inputs are refused. |
-| `parameters` | Each input, with the values the site is known to accept (`known_values`) and the ones it would not take (`refused_values`). See [Values an input takes](/guides/run-a-skill#values-an-input-takes). |
+| `input_schema` | JSON Schema for the inputs: each input's `type`, `description`, `default`, and examples. `required` lists the ones you must send. Unknown inputs are refused. An input that acts as a `request` or a `filter` also has `x-acts-as` and `x-where` (see [Inputs](/concepts/skills#inputs)). Its `examples` include the values the site is known to take, and `x-known-values-count` says how many there are. |
+| `parameters` | Each input, with the values the site is known to accept (`known_values`) and the ones it would not take (`refused_values`). See [Values an input takes](/guides/run-a-skill#values-an-input-takes). A mapped input also has `acts_as` and `where`. |
 | `output_json_schema` | JSON Schema for the run result, including each row. |
+| `output_types` | Each output field's type, such as `{"yes_price": "chance", "end_date": "datetime"}`. `null` on a skill made before types. See [Output field types](/concepts/skills#output-field-types). |
+| `available_inputs` | Every input the skill can take, each on or off. See [Available inputs](#available-inputs). |
 | `reliability` | Success rate, runs, and repairs over the last 20 runs, and the last failure kind. |
 | `price` | What a run usually costs, before you run it. See [Price](#price). |
 | `proof` | A public skill's [track record](/guides/use-the-marketplace#track-record) on real runs, its own and its marketplace copies': how many of the last 20 worked, typical run time, rows and credits, when it last worked and was last checked, and a status. The fields are listed under [Find a skill for a task](/api-reference/marketplace/search). `null` for a private skill. |
@@ -22,6 +24,56 @@ The fields you will use most:
 A public skill needs no key. Anyone may read it, but runs only their own copy: [clone it](/api-reference/skills/clone) first. A private skill returns `404` to anyone who may not run it.
 
 MCP tool: `get_skill`.
+
+## Available inputs
+
+`available_inputs` lists every input the skill can take, worked out on its own when the skill is created or changed. What it looks for is in [Available inputs](/concepts/skills#available-inputs). Only the skill's owner and its workspace see it; for anyone else it is `null`.
+
+| Field | What it is |
+| --- | --- |
+| `computing` | `true` while the list is being worked out. Read the skill again in a minute. |
+| `computed_at` | When the list was last worked out. |
+| `recipe_version` | The [version](/concepts/keeping-skills-working#versions) it was worked out for. |
+| `source` | Where the rows come from: `browser`, `api`, `feed`, or `platform:<name>`, such as `platform:shopify`. |
+| `inputs` | One entry per input. See below. |
+| `explanation` | What was found, in plain words. |
+
+Each entry in `inputs`:
+
+| Field | What it is |
+| --- | --- |
+| `name`, `type`, `description`, `required`, `default` | The input as it would be added. |
+| `acts_as`, `where` | How it acts on the data. See [Update a skill](/api-reference/skills/update#inputs). |
+| `example` | A value that passed the check. |
+| `known_values` | Values the site is known to take. |
+| `verified`, `check` | Whether it was tried for real, and what the try saw, such as `keeps 4 of 20 sample row(s) for 'Engineering'`. |
+| `on` | `true` when the skill has this input now. `input_name` is the name it has it under. |
+| `can_turn_off`, `off_note` | For an input that is on: whether `inputs.remove` takes it, and why not. |
+
+```json
+"available_inputs": {
+  "computing": false,
+  "computed_at": "2026-10-22T09:14:03Z",
+  "recipe_version": 4,
+  "source": "platform:greenhouse",
+  "inputs": [
+    {
+      "name": "department",
+      "type": "string",
+      "acts_as": "filter",
+      "where": {"kind": "one_of", "fields": ["department"]},
+      "example": "Engineering",
+      "known_values": ["Engineering", "Sales", "Design"],
+      "verified": true,
+      "check": "keeps 4 of 20 sample row(s) for 'Engineering'",
+      "on": false
+    }
+  ],
+  "explanation": "Greenhouse lists every job at once, so department and location are filters."
+}
+```
+
+To turn an entry on, send it as it is in `inputs.add` to [Update a skill](/api-reference/skills/update#inputs). To turn it off, send its `input_name` in `inputs.remove`.
 
 ## Price
 

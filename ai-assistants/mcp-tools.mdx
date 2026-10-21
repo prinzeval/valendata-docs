@@ -29,6 +29,8 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 | `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
 | `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
 
+`get_skill` lists the skill's [available inputs](/concepts/skills#available-inputs) in its text, each with how it acts and whether it is on, for example `Available inputs: department (filter, off), q (request, on).` To turn one on, the assistant sends that entry from `available_inputs` in `update_skill`'s `inputs.add`; to turn it off, its name in `inputs.remove`. `update_skill` also changes an output field's type with `outputs.update`. See [Update a skill](/api-reference/skills/update#inputs).
+
 Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
 
 `create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. A `queued` creation may be waiting for a free browser; nothing is charged while it waits. When the site has an [open API](/guides/create-a-skill#open-apis-first), the skill is built on it with no browser, and the result's `source` is `api`. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
@@ -140,14 +142,14 @@ A skill run's answer (from a skill tool, `run_skill`, or `get_run`) holds only w
 | `diagnosis_summary` | Why rows came back short, in one line. |
 | `next_step` | What to do next, in plain words. |
 
-It also has `suggested_hint_examples` (hints for `improve_skill`) when there are some, and `idempotent_replay: true` on a replay. `get_run` adds `kind` (`skill` or `workflow`). A workflow run answers its own fields (`outputs`, `steps`, and the rest; statuses `pending`, `running`, `waiting_for_human`, `completed`, `failed`, `cancelled`), with each final step's rows paged the same way and `has_more`, `next_offset`, and `next_step` added.
+It also has `suggested_hint_examples` (hints for `improve_skill`) when there are some, `type_notes` when some values were kept as printed (see [Output field types](/concepts/skills#output-field-types)), and `idempotent_replay: true` on a replay. `get_run` adds `kind` (`skill` or `workflow`). A workflow run answers its own fields (`outputs`, `steps`, and the rest; statuses `pending`, `running`, `waiting_for_human`, `completed`, `failed`, `cancelled`), with each final step's rows paged the same way and `has_more`, `next_offset`, and `next_step` added.
 
 ### Less or more: `detail`, `fields`, `offset`, `limit`
 
 | Argument | On | What it does |
 | --- | --- | --- |
 | `detail` | skill tools, `run_skill`, `get_run` | `summary` (default): the fields above. `full`: everything a skill run recorded, as [Get a run](/api-reference/runs/get) returns it (timings, cost estimates, field checks). |
-| `fields` | skill tools, `run_skill`, `get_run` | Only these row columns, for example `["name", "phone"]`. An unknown name is refused with `invalid_arguments`, and `details.valid_fields` lists the valid ones. |
+| `fields` | skill tools, `run_skill`, `get_run` | Only these row columns, for example `["name", "phone"]`. A `price` field's `<field>_currency` comes with it. An unknown name is refused with `invalid_arguments`, and `details.valid_fields` lists the valid ones. |
 | `offset` | `get_run` | First row to return. Default `0`. |
 | `limit` | `get_run` | Rows per page. Default `100`, max `500`. |
 

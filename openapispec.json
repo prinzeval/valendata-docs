@@ -9761,6 +9761,178 @@
         ],
         "title": "AutoRecharge"
       },
+      "AvailableInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "default": "string"
+          },
+          "acts_as": {
+            "type": "string",
+            "title": "Acts As",
+            "description": "request | filter | step"
+          },
+          "where": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Where"
+          },
+          "example": {
+            "type": "string",
+            "title": "Example",
+            "default": ""
+          },
+          "known_values": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Known Values"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "required": {
+            "type": "boolean",
+            "title": "Required",
+            "default": false
+          },
+          "default": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified",
+            "default": false
+          },
+          "check": {
+            "type": "string",
+            "title": "Check",
+            "description": "What the check saw, in plain words",
+            "default": ""
+          },
+          "example_value": {
+            "type": "string",
+            "title": "Example Value",
+            "default": ""
+          },
+          "on": {
+            "type": "boolean",
+            "title": "On",
+            "description": "The skill has this input now",
+            "default": false
+          },
+          "input_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Name",
+            "description": "When on: the name the skill has it under"
+          },
+          "can_turn_off": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Turn Off",
+            "description": "When on: inputs.remove will take it"
+          },
+          "off_note": {
+            "type": "string",
+            "title": "Off Note",
+            "description": "When on and it cannot be turned off: why, in plain words",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "acts_as"
+        ],
+        "title": "AvailableInput",
+        "description": "One input the skill can take — send it as it is to PATCH /v1/skills/{slug}\n``inputs.add`` to turn it on; ``inputs.remove: [input_name]`` turns it off."
+      },
+      "AvailableInputs": {
+        "properties": {
+          "computing": {
+            "type": "boolean",
+            "title": "Computing",
+            "description": "Being worked out now; skill_inputs_ready is pushed when done",
+            "default": false
+          },
+          "computed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Computed At"
+          },
+          "recipe_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipe Version",
+            "description": "The recipe version the list was worked out for"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "browser | api | feed | platform:<name>"
+          },
+          "inputs": {
+            "items": {
+              "$ref": "#/components/schemas/AvailableInput"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AvailableInputs"
+      },
       "CancelRunResponse": {
         "properties": {
           "run_id": {
@@ -10764,6 +10936,35 @@
             "type": "array",
             "title": "Data"
           },
+          "type_notes": {
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "The output field."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Its type."
+                },
+                "count": {
+                  "type": "integer",
+                  "description": "How many of its values could not be read as that type."
+                },
+                "examples": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Up to 3 of them, as printed."
+                }
+              }
+            },
+            "type": "array",
+            "title": "Type Notes",
+            "description": "Values of typed output fields that could not be read as their type. They are kept in the rows as printed; each entry names the field, its type, how many values and up to 3 examples."
+          },
           "count": {
             "type": "integer",
             "title": "Count"
@@ -11014,6 +11215,28 @@
               }
             ],
             "title": "Description"
+          },
+          "transport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transport"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
           }
         },
         "type": "object",
@@ -11638,7 +11861,7 @@
               "relearn_steps"
             ],
             "title": "Mode",
-            "description": "fix: fill fields the skill misses, from a hint about where the data is (the default). add_fields: capture NEW fields described in plain English. relearn_details: rebuild how the skill clicks into each result (its per-row detail steps) — for a site that changed or detail fields that come back empty. relearn_steps: re-record how the skill gets to its results from its task (a step no longer works, a run returns no rows) — the AI re-recorder redoes the navigation, the old plan as a guide.",
+            "description": "fix: fill fields the skill misses, from a hint about where the data is (the default). add_fields: capture NEW fields described in plain English. relearn_details: rebuild how the skill clicks into each result (its per-row detail steps) — for a site that changed or detail fields that come back empty. relearn_steps: re-record how the skill gets to its results from its task (a step no longer works, a run returns no rows) — the AI re-recorder redoes the navigation, the old plan as a guide. On a skill built on the site's open API there is no browser: fix and add_fields map the fields again on its API, relearn_steps and relearn_details look for the site's API again.",
             "default": "fix"
           },
           "feedback": {
@@ -11749,6 +11972,64 @@
             ],
             "title": "Browser Type",
             "description": "The browser it learned and checked on: remote | extension"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "api when the skill reads the site's open API (no browser)"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint",
+            "description": "The API address the skill reads (host + path), after it"
+          },
+          "rescouted": {
+            "type": "boolean",
+            "title": "Rescouted",
+            "description": "The site's API was looked for again",
+            "default": false
+          },
+          "not_in_api": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not In Api",
+            "description": "Fields asked for that the API's records do not hold — not added"
+          },
+          "thin": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Thin",
+            "description": "New fields left out because too few of the API's records hold them (field → how many, e.g. \"1/10\")"
+          },
+          "api_gone": {
+            "type": "boolean",
+            "title": "Api Gone",
+            "description": "The skill's API no longer gives its rows and no other open API was found",
+            "default": false
+          },
+          "browser_offer": {
+            "type": "boolean",
+            "title": "Browser Offer",
+            "description": "The skill can be rebuilt by recording it in a browser — only on the owner's yes (say \"record it in a browser\" in its chat)",
+            "default": false
           }
         },
         "type": "object",
@@ -11789,9 +12070,16 @@
             "title": "Default"
           },
           "required": {
-            "type": "boolean",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Required",
-            "default": true
+            "description": "Default: true for a step input, false for a request input or a filter."
           },
           "recorded_value": {
             "anyOf": [
@@ -11804,7 +12092,53 @@
               }
             ],
             "title": "Recorded Value",
-            "description": "The value the recording typed or opened that this input replaces on each run. It must appear in the recipe. Without it the input is added but changes nothing yet."
+            "description": "A step input: the value the recording typed or opened that this input replaces on each run. It must appear in the recipe."
+          },
+          "acts_as": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "request",
+                  "filter",
+                  "step"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acts As",
+            "description": "request: sent to the source; filter: keeps rows; step: typed in; default: from where"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where",
+            "description": "request {\"in\":\"query|path|body\",\"key\"|\"template\"}; filter {\"kind\":\"contains|equals|one_of|min|max|since\",\"fields\":[...]}; step {\"recorded_value\"}"
+          },
+          "known_values": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Known Values",
+            "description": "Values the source is known to take; shown as the input's examples."
           }
         },
         "type": "object",
@@ -11906,7 +12240,7 @@
             },
             "type": "array",
             "title": "Remove",
-            "description": "Names to remove; refused while the recipe uses one"
+            "description": "A step input the recipe uses is refused"
           }
         },
         "type": "object",
@@ -12794,6 +13128,14 @@
                   "number",
                   "integer",
                   "boolean",
+                  "date",
+                  "datetime",
+                  "url",
+                  "price",
+                  "chance",
+                  "percent",
+                  "count",
+                  "duration",
                   "array",
                   "object"
                 ]
@@ -12802,7 +13144,8 @@
                 "type": "null"
               }
             ],
-            "title": "Type"
+            "title": "Type",
+            "description": "chance: 0-1 (73% -> 0.73); price: number + <field>_currency; datetime: ISO UTC; percent: 73% -> 73; count: 1.5k -> 1500; duration: seconds. Unreadable values stay as printed."
           }
         },
         "type": "object",
@@ -13411,6 +13754,35 @@
             },
             "type": "array",
             "title": "Truncated Sections"
+          },
+          "type_notes": {
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "The output field."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Its type."
+                },
+                "count": {
+                  "type": "integer",
+                  "description": "How many of its values could not be read as that type."
+                },
+                "examples": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Up to 3 of them, as printed."
+                }
+              }
+            },
+            "type": "array",
+            "title": "Type Notes",
+            "description": "Values of typed output fields that could not be read as their type. They are kept in the rows as printed; each entry names the field, its type, how many values and up to 3 examples."
           },
           "triage_kind": {
             "anyOf": [
@@ -14496,6 +14868,21 @@
             "type": "object",
             "title": "Output Schema"
           },
+          "output_types": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Types",
+            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+          },
           "sample_output": {
             "anyOf": [
               {
@@ -14988,6 +15375,17 @@
               }
             ]
           },
+          "available_inputs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvailableInputs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+          },
           "price": {
             "anyOf": [
               {
@@ -15075,6 +15473,28 @@
               }
             ],
             "title": "Fast Path"
+          },
+          "fast_path_transport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Transport"
+          },
+          "fast_path_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Endpoint"
           },
           "tiers": {
             "additionalProperties": {
@@ -15239,6 +15659,21 @@
             "type": "object",
             "title": "Output Schema"
           },
+          "output_types": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Types",
+            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+          },
           "sample_output": {
             "anyOf": [
               {
@@ -15731,6 +16166,17 @@
               }
             ]
           },
+          "available_inputs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvailableInputs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+          },
           "price": {
             "anyOf": [
               {
@@ -15818,6 +16264,28 @@
               }
             ],
             "title": "Fast Path"
+          },
+          "fast_path_transport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Transport"
+          },
+          "fast_path_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Endpoint"
           },
           "tiers": {
             "additionalProperties": {
@@ -16643,6 +17111,21 @@
             "type": "object",
             "title": "Output Schema"
           },
+          "output_types": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Types",
+            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+          },
           "sample_output": {
             "anyOf": [
               {
@@ -17135,6 +17618,17 @@
               }
             ]
           },
+          "available_inputs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvailableInputs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+          },
           "price": {
             "anyOf": [
               {
@@ -17222,6 +17716,28 @@
               }
             ],
             "title": "Fast Path"
+          },
+          "fast_path_transport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Transport"
+          },
+          "fast_path_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Endpoint"
           },
           "tiers": {
             "additionalProperties": {
@@ -17650,7 +18166,7 @@
               }
             ],
             "title": "Strategy",
-            "description": "fields (re-learn where the fields live) | rerecord (re-do the steps)"
+            "description": "fields (re-learn where the fields live) | rerecord (re-do the steps) | api_remap (fields mapped again on the skill's API) | api_rescout (the site's API looked for again)"
           },
           "target_fields": {
             "items": {
@@ -18086,6 +18602,31 @@
             "type": "array",
             "title": "Refused Values",
             "description": "Values the site was asked to take once and would not"
+          },
+          "acts_as": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acts As",
+            "description": "request | filter | step, when the input is mapped"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where",
+            "description": "Where it goes (request) or what it reads (filter)"
           }
         },
         "type": "object",

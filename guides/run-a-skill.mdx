@@ -122,6 +122,9 @@ When you send a new value:
 
 - **A value the site keeps as its own code** is learned the first time. The site may store "Under $50,000" as a number in its address, for example. The run answers at once that the value is being learned, and returns no rows for the recorded value in its place. Run the skill again in a few minutes, and it uses the new value.
 - **A value the site will not take** is refused with the reason and the closest known values. Pick one of those and run again.
+- **A value the site's API has no rows for**: on a skill built on an [open API](/guides/create-a-skill#open-apis-first), the run fails with an `error` like `The site's API (api.example.com/jobs) has no rows for category='robotics'. That may not be a value it has — the skill's input_schema lists the values it is known to take.` Its `failure_class` is `user`: the value is the problem, not the skill. The input's `examples` in `input_schema` list the values it is known to take. In the app the run shows **Nothing found for "robotics"** and those values.
+
+An input that acts as a filter takes a value in the filter's own form: text for `contains`, `equals`, and `one_of` (comma-separated), a number for `min` and `max`, and a date or a span like `7d` for `since`. See [Inputs](/concepts/skills#inputs).
 
 ## From an AI assistant
 
