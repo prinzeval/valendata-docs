@@ -11,7 +11,7 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `skill_<slug>`, `run_skill`, `call_site_api` | Adds a run (none if its `idempotency_key` already started one). Visits websites in a browser. Can sign in with the skill's saved login if you granted `logins:use`. | Yes |
 | `workflow_<slug>`, `run_workflow` | Adds a workflow run (none if its `idempotency_key` already started one). Runs the workflow's own steps, which can write rows to connected sheets or send HTTP requests. | Yes |
 | `cancel_run` | Stops a run you started, and what a workflow run is running inside. Rows already produced are kept. Credits already used stay charged. | No |
-| `create_skill` | Creates a skill in a cloud browser and adds it to your account as private. If its check run does not pass, it is kept as a draft to fix with `improve_skill`. | Yes |
+| `create_skill` | Creates a skill in a browser (the cloud, or your Chrome) and adds it to your account as private. If its check run does not pass, it is kept as a draft to fix with `improve_skill`. | Yes |
 | `improve_skill` | Adds a new version. Old versions are kept. A version that does not test better is kept as a candidate, not made live. | Yes |
 | `talk_to_skill` | Can change the skill: re-learn a step or a field, change its browser or proxy, or restore a version that worked. Each change is a new version; old versions are kept. | Repairs are free. New fields you ask for are charged as an improvement. |
 | `update_from_marketplace` | Only checks by default. With `apply: true`, merges the marketplace's newer version into your copy as a new version; your own changes are kept, and the version before stays restorable. | No |
