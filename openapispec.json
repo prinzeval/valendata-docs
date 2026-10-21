@@ -10155,6 +10155,41 @@
             ],
             "title": "Login Id",
             "description": "Your saved login (POST /v1/logins, GET /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way. Without one, a start page behind a sign-in ends the creation with needs_user (kind no_login) — unless auto sign-up is on, then an account is made for the site with your Valendata email and bound the same way (needs logins:use)."
+          },
+          "browser": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "cloud",
+              "extension"
+            ],
+            "title": "Browser",
+            "description": "Where the recording runs. auto (the default): a Valendata cloud browser, or your own Chrome (the Valendata extension) when the cloud is busy or the site blocks cloud browsers. cloud: a cloud browser only. extension: your own Chrome only; the extension must be connected. A creation with login_id records on the cloud only.",
+            "default": "auto"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "api",
+              "browser"
+            ],
+            "title": "Source",
+            "description": "How the skill reads the site. auto (the default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser, the site's exact values; otherwise record it in a browser. api: the open API or nothing (the creation fails, refunded, when none is found). browser: always record it in a browser. login_id with api is refused.",
+            "default": "auto"
+          },
+          "api_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Url",
+            "description": "The site's API address when you already know it, e.g. https://api.example.com/v1/items?status=open — skips the search: its JSON is matched to the fields and checked. It must answer without a key; a key is never stored. Refused with source browser."
           }
         },
         "type": "object",
@@ -15872,6 +15907,35 @@
             "title": "Progress",
             "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
           },
+          "browser": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cloud",
+                  "extension"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser",
+            "description": "Where it records: cloud (a Valendata cloud browser) or extension (your own Chrome). null until it starts."
+          },
+          "queue_position": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Position",
+            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it. null once it starts, and when it is not waiting."
+          },
           "skill_id": {
             "anyOf": [
               {
@@ -16155,6 +16219,75 @@
             ],
             "title": "Progress",
             "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
+          },
+          "browser": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cloud",
+                  "extension"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser",
+            "description": "Where it records: cloud (a Valendata cloud browser) or extension (your own Chrome). null until it starts, and for a skill built on the site's open API."
+          },
+          "queue_position": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Position",
+            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it. null once it starts, and when it is not waiting."
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "api",
+                  "browser"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "How the saved skill reads the site: api (the site's open API — no browser, exact values) or browser (a browser recording). null until a skill is saved."
+          },
+          "api_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Endpoint",
+            "description": "For source api: the API endpoint it reads, host and path, e.g. gamma-api.polymarket.com/markets."
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note",
+            "description": "For source browser: why it was not built on an open API (what the search for one found)."
           },
           "skill_id": {
             "anyOf": [

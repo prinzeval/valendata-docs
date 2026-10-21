@@ -4,7 +4,7 @@ description: "Check a skill creation until it is ready to run, needs a fix, or h
 openapi: "GET /v1/skill-creations/{creation_id}"
 ---
 
-`status` moves through `queued`, `recording`, `validating`, then `ready`, `needs_fix`, or `failed`. Check about every 30 seconds and show `progress` while it runs. When it stops, `next_step` says what to do.
+`status` moves through `queued`, `recording`, `validating`, then `ready`, `needs_fix`, or `failed`. Check about every 30 seconds and show `progress` while it runs. While it waits for a free browser, it stays `queued` and `queue_position` says how many of your creations are ahead. `browser` says where it records (`cloud` or `extension`) once it starts. Once a skill is saved, `source` says how it reads the site: `api` (its [open API](/guides/create-a-skill#open-apis-first), named in `api_endpoint`) or `browser`. When it stops, `next_step` says what to do.
 
 `needs_fix` means the skill was saved as a draft but its check run did not pass: fix it with [Improve a skill](/api-reference/improvements/improve), do not create it again. `failed` means nothing was saved. `cancelled` means you [stopped it](/api-reference/skills/cancel-creation) while it was building; nothing was saved.
 

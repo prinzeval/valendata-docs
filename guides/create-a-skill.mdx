@@ -13,7 +13,7 @@ There are three ways to get a skill:
 
 ## From a sentence
 
-You describe the task and the page it starts on. Valendata does the task in a cloud browser, learns the steps, and checks them with one more run. This takes a few minutes.
+You describe the task and the page it starts on. Valendata first looks for the site's [open API](#open-apis-first). If none fits, it does the task in a browser, learns the steps, and checks them with one more run. This takes a few minutes.
 
 You can start it from:
 
@@ -22,6 +22,35 @@ You can start it from:
 - **The API**: [`POST /v1/skills`](/api-reference/skills/create).
 
 Optionally name the **inputs** (with the example value the task uses) and the **output fields** you want. If you leave them out, Valendata works them out from the task. Names are turned into `snake_case`, so `Phone number` becomes `phone_number`.
+
+### Open APIs first
+
+Many sites publish their data through an open API: a web address that answers with data, without a browser. Before it opens a browser, Valendata looks for one. It searches the web for the site's API docs and looks at the data calls the site's own page makes. It then calls each API it finds and checks that the answer holds the fields you asked for. While it looks, `progress` reads like `Looking for an open API for bayse.markets…`, then `Found its public API — building the skill on it` and `Checking the API returns the fields…`.
+
+If an API checks out, the skill is built on it. There is no recording. Each run is one direct call to the API, with no browser, and returns the site's own values. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**.
+
+If none checks out, it records in a browser as usual. `progress` says `No open API to build on — recording it in a browser`, `source` is `browser`, and `source_note` says what the search found.
+
+Two optional fields change this:
+
+| Field | What it does |
+| --- | --- |
+| `source` | `auto` (default): an open API first, then a browser. `api`: an open API only. When none is found, the creation fails and is refunded. `browser`: skip the search and record in a browser. |
+| `api_url` | The API's address when you already know it, such as `https://api.example.com/v1/items?status=open`. Valendata skips the search, matches the answer to your fields, and checks it. It must answer without a key. In the app, open **Have an API link?** |
+
+A creation with a saved login (`login_id`) does not look for an API: its data is behind a sign-in. Sending `login_id` with `source: "api"`, or `api_url` with `source: "browser"`, is refused.
+
+### Which browser records it
+
+The browser is used only when no open API is found. Pick it under **Browser** in the app, or send `browser` in the API and to `create_skill`:
+
+| `browser` | In the app | Where it records |
+| --- | --- | --- |
+| `auto` (default) | **Automatic** | A Valendata cloud browser. It switches to your Chrome when the cloud is busy or the site blocks cloud browsers. |
+| `cloud` | **Cloud** | A Valendata cloud browser only. |
+| `extension` | **My Chrome** | Your own Chrome, through the Valendata extension. Chrome must be open with the extension connected. |
+
+Pick **My Chrome** for sites that block cloud browsers. When **Automatic** switches for that reason, `progress` says `The site blocked the cloud browser — recording on your Chrome instead`. A creation with a saved login (`login_id`) always records on the cloud. For how the two browsers differ when a skill runs, see [Where a skill runs](/concepts/skills#where-a-skill-runs).
 
 <CodeGroup>
 
@@ -69,8 +98,8 @@ The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{c
 
 | `status` | Meaning |
 | --- | --- |
-| `queued` | Waiting to start. |
-| `recording` | The cloud browser is doing the task. |
+| `queued` | Waiting to start, or looking for an open API. While it waits for a free browser, `queue_position` says how many of your creations are ahead. |
+| `recording` | The browser is doing the task. |
 | `validating` | Saved as a skill (`slug` is set). Valendata runs it once more to check it. |
 | `ready` | Passed the check. You can run it. |
 | `needs_fix` | Saved as a **draft** skill (`slug` is set), but the check run did not pass. Fix it with [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve) (MCP: `improve_skill`). Do not create it again. |
@@ -82,7 +111,12 @@ Each check also tells you:
 | Field | What it is |
 | --- | --- |
 | `task`, `start_url`, `name` | What you asked for. |
-| `progress` | The latest step in plain words, such as `Step 4: typing 'trouser' into the search box`. Show it to whoever is waiting. |
+| `progress` | The latest step in plain words, such as `Step 4: typing 'trouser' into the search box`. While it waits, it reads like `Waiting for a free browser — 1 ahead`. Show it to whoever is waiting. |
+| `browser` | Where it records: `cloud` or `extension` (your Chrome). `null` until it starts, and for a skill built on an API. |
+| `source` | How the saved skill reads the site: `api` (its open API) or `browser` (a recording). `null` until a skill is saved. |
+| `api_endpoint` | For `source: "api"`, the API it reads, as host and path. Otherwise `null`. |
+| `source_note` | For `source: "browser"`, why it was not built on an open API. |
+| `queue_position` | While it waits for a free browser, how many of your creations are ahead of it. Otherwise `null`. |
 | `next_step` | One sentence that says what to do next. |
 | `sample_rows` | Up to 3 rows from the recording, set for `needs_fix` and `ready`. `sample_row_count` is how many rows the recording got. |
 | `credits_charged` | Credits used so far, to 0.01. |
@@ -115,9 +149,9 @@ To see all your creations, newest first, use [List skill creations](/api-referen
 
 To stop one that is still going, use [Cancel a skill creation](/api-reference/skills/cancel-creation). It stops at its next step. Credits it already used are not refunded.
 
-**Limits:** 2 creations in progress at once, at least 10 credits to start, and 30 minutes per creation.
+**Limits:** up to 10 creations at a time, counting the ones waiting, at least 10 credits to start, and 30 minutes per creation. Creations that cannot start yet wait in a queue (`queued`) for a free browser. Nothing is charged while one waits.
 
-**Behind a sign-in:** if the start page asks you to sign in, pick a saved login under **Sign in with** (`login_id` in the API, from [List logins](/api-reference/logins/list)). The cloud browser signs in with it first, and the new skill keeps using that login. Without one, the creation stops and asks you to save a login for the site, then create it again.
+**Behind a sign-in:** if the start page asks you to sign in, pick a saved login under **Sign in with** (`login_id` in the API, from [List logins](/api-reference/logins/list)). A cloud browser signs in with it first, and the new skill keeps using that login. Without one, the creation stops and asks you to save a login for the site, then create it again.
 
 ## By recording it
 

@@ -4,7 +4,7 @@ description: "Make a skill from a one-sentence task. Answers at once with a crea
 openapi: "POST /v1/skills"
 ---
 
-A cloud browser does the task, learns the steps, and checks them. Read [Get a skill creation](/api-reference/skills/get-creation) about every 30 seconds until `status` is `ready`, `needs_fix`, or `failed`. Send an `Idempotency-Key` so a retry does not start a second creation.
+Valendata first looks for the site's open API and, when one returns your fields, builds the skill on it with no browser. Send `api_url` when you already know the API's address, and `source` to choose: `auto` (the default: an API first, then a browser), `api` (an API only), or `browser` (skip the search). See [Open APIs first](/guides/create-a-skill#open-apis-first). Otherwise a browser does the task, learns the steps, and checks them. Send `browser` to choose a Valendata cloud browser (`cloud`), your own Chrome through the Valendata extension (`extension`), or `auto` (the default: the cloud, switching to your Chrome when the cloud is busy or the site blocks it). See [Which browser records it](/guides/create-a-skill#which-browser-records-it). Read [Get a skill creation](/api-reference/skills/get-creation) about every 30 seconds until `status` is `ready`, `needs_fix`, or `failed`. Send an `Idempotency-Key` so a retry does not start a second creation. Up to 10 creations can be going at once; the ones that cannot start yet wait in a queue, uncharged.
 
 A walkthrough with code, statuses, fields, and limits is in [Create a skill](/guides/create-a-skill#from-a-sentence).
 

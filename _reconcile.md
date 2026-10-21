@@ -64,5 +64,16 @@ Open follow-ups:
 - The backend's own descriptions for GET /v1/sites/proven and GET /v1/sites/{domain} (public_api/operations.py) still
   say "3+ people, 10+ runs, 90%+ worked"; app/sites/status.py (one working skill proves a site) is what runs, and the
   docs follow it. Fix the backend text, then re-export.
+- 2026-10-21: skill creation `browser` (request: auto/cloud/extension; response: cloud/extension/null) and
+  `queue_position`, plus the queue (up to 10 creations at a time, waiting ones uncharged), were written from the agreed
+  contract while the backend was being built, and hand-added to `openapispec.json` (CreateSkillRequest,
+  SkillCreationStatus, SkillCreationCancelled). Check them against skill_creation/* once it ships, then re-export.
+- 2026-10-21: skill creation "open APIs first" — request `source` (auto/api/browser) and `api_url`; response `source`
+  (api/browser/null), `api_endpoint`, `source_note`; the scout's progress lines; `fast_path` text for an API skill —
+  written from the agreed contract and the staged backend (skill_creation/schemas.py, api_first.py, api_scout/scout.py,
+  reliability.py describe_fast_path) while it was being built, and hand-added to `openapispec.json`
+  (CreateSkillRequest, SkillCreationStatus). The guide names only what api_scout/ does today (API docs search, the
+  page's own data calls); add known platforms (Shopify, Greenhouse) and feeds/sitemaps to "Open APIs first" if they
+  ship. Re-export the spec once it ships.
 
 2026-10-19: `openapispec.json` re-exported with `scripts/export_public_openapi.py`; it now has the sites, site APIs, skill-creation cancel and doctor routes.
