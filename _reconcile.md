@@ -9,15 +9,16 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/skills/list.mdx | GET /v1/skills (q, status, category, limit 1–100 default 50, cursor → `skills`, `next_cursor`) | published_skills/manage/router.py, manage/listing.py |
 | api-reference/skills/list-categories.mdx | GET /v1/skills/categories (status → `[{slug,label,description,count}]`, all 25, zeros included) | published_skills/execute_router.py, categories/listing.py |
 | api-reference/marketplace/list-categories.mdx | GET /v1/marketplace/categories (public, live skills only) | published_skills/search/router.py, categories/listing.py |
+| guides/use-the-marketplace.mdx#track-record | which runs count, the numbers, status, Most reliable sort, search lift | published_skills/proof/*, search/rank.py |
 | concepts/skills.mdx#categories | the fixed category list, auto-assign, edit, filters | published_skills/categories/taxonomy.py, assign.py |
 | api-reference/skills/create.mdx | POST /v1/skills | skill_creation/router.py |
 | api-reference/skills/get-creation.mdx | GET /v1/skill-creations/{creation_id} | skill_creation/router.py |
 | api-reference/skills/list-creations.mdx | GET /v1/skill-creations (status comma list or `active`, limit 20 max 100, cursor → `data`, `next_cursor`, `has_more`). Manual `api:` page until the spec has the route; then switch to `openapi:` | skill_creation/router.py |
-| api-reference/skills/get.mdx | GET /v1/skills/{slug} (+ `price`) | execute_router.py, published_skills/price/* |
+| api-reference/skills/get.mdx | GET /v1/skills/{slug} (+ `price`, `proof`) | execute_router.py, published_skills/price/*, published_skills/proof/* |
 | api-reference/skills/update.mdx | PATCH /v1/skills/{slug} (SkillPatch → SkillEditResult: GET shape + changes, warnings, login) | manage/schemas.py, edit.py |
 | api-reference/skills/delete.mdx | DELETE /v1/skills/{slug}?force (409 lists workflows; runs kept) | manage/delete.py |
 | api-reference/skills/health.mdx | GET /v1/skills/{slug}/health | execute_router.py |
-| api-reference/marketplace/search.mdx | GET /v1/marketplace/search (q 2–300, site, category, limit 1–50 default 10, kind skill/workflow; public, `skills:read` / `workflows:read` adds yours) | published_skills/search/*, price/*, workflows/marketplace_public.py |
+| api-reference/marketplace/search.mdx | GET /v1/marketplace/search (q 2–300, site, category, limit 1–50 default 10, kind skill/workflow; public, `skills:read` / `workflows:read` adds yours) | published_skills/search/*, price/*, proof/*, workflows/marketplace_public.py |
 | api-reference/runs/run-skill.mdx | POST /v1/skills/{slug}/run | execute_router.py |
 | api-reference/runs/start-skill-run.mdx | POST /v1/skills/{slug}/runs | async_runs/router.py |
 | api-reference/runs/list-skill-runs.mdx | GET /v1/skills/{slug}/runs (status, since, limit 50, cursor) | manage/runs.py |
