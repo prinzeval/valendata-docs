@@ -56,11 +56,11 @@ Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a
 | `search_skills` | `query` (the task, in plain words), optional `site`, `category`, `limit` | None. With `skills:read` it also searches your own skills and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search) |
 | `search_workflows` | `query` (the task, in plain words), optional `limit` | None. With `workflows:read` it also searches your own workflows and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search#workflows) with `kind=workflow` |
 
-Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", what percent of its last 20 runs worked, and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(slug=...)`, and how to clone the others, `clone_skill(slug=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
+Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", its [track record](/guides/use-the-marketplace#track-record) (for a public skill, for example "track record: Working: worked 18 of the last 20 runs (90%) · typical run 6.2 s · last worked 2 h ago · checked 2 h ago"; for your own private skill, what percent of its last 20 runs worked), and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(slug=...)`, and how to clone the others, `clone_skill(slug=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
 
 An assistant can read everything public about a marketplace skill: its inputs, sample rows, price, and health. It runs only its own skills and its workspaces'. To use a marketplace skill:
 
-1. Find it with `search_skills`. Read its inputs, `sample_rows`, and price, or call `get_skill` for the full contract.
+1. Find it with `search_skills`. Read its inputs, `sample_rows`, price, and track record, or call `get_skill` for the full contract. The text of `get_skill` has the same "Track record:" line for a public skill.
 2. Copy it with `clone_skill`. Cloning is free. The answer says `Cloned <slug> as <new slug>. Run it with run_skill(slug="<new slug>").`
 3. Run the copy with `run_skill` and its new slug.
 

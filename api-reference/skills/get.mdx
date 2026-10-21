@@ -13,6 +13,7 @@ The fields you will use most:
 | `output_json_schema` | JSON Schema for the run result, including each row. |
 | `reliability` | Success rate, runs, and repairs over the last 20 runs, and the last failure kind. |
 | `price` | What a run usually costs, before you run it. See [Price](#price). |
+| `proof` | A public skill's [track record](/guides/use-the-marketplace#track-record) on real runs, its own and its marketplace copies': how many of the last 20 worked, typical run time, rows and credits, when it last worked and was last checked, and a status. The fields are listed under [Find a skill for a task](/api-reference/marketplace/search). `null` for a private skill. |
 | `recipe_version`, `pinned_recipe_version` | The live [version](/concepts/keeping-skills-working#versions), and the pinned one (or `null`). |
 | `fast_path` | A short description of the skill's [fast path](/concepts/keeping-skills-working#fast-path), or `null`. |
 | `api_endpoint`, `runs_endpoint`, `versions_endpoint` | The routes to run it and see its versions. |

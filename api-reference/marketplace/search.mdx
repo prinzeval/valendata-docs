@@ -10,7 +10,7 @@ Narrow the search with `site` (only skills for this website, for example `linked
 
 `kind` picks what to search: `skill` (the default) or `workflow`. See [Workflows](#workflows).
 
-Results are ranked by how well they match, weighed by health (success rate over the last 20 runs, and a recent success) and a little by use.
+Results are ranked by how well they match, weighed by health (success rate over the last 20 runs, and a recent success) and a little by use. A public skill whose [track record](/guides/use-the-marketplace#track-record) reads **Working** ranks a little higher.
 
 | Field | What it is |
 | --- | --- |
@@ -22,6 +22,7 @@ Results are ranked by how well they match, weighed by health (success rate over 
 | `inputs` | Each input's `name`, `type`, and `required`. For the full contract, call [Get a skill](/api-reference/skills/get). |
 | `price` | What a run usually costs, in credits and dollars. See [Price](/api-reference/skills/get#price). |
 | `health` | `success_rate_20` (percent of the last 20 runs that worked), `last_success_at`, and `total_runs`. |
+| `proof` | A public skill's [track record](/guides/use-the-marketplace#track-record) on real runs: `status` (`working`, `some_failures`, `failing`, `not_enough_runs`), `label`, `summary` (one plain line), `runs` and `worked` (of the last 20 counted runs), `success_rate` (`null` under 5 runs), the same over 30 days (`runs_30d`, `worked_30d`, `success_rate_30d`), `median_seconds`, `p90_seconds`, `typical_rows`, `typical_credits`, `last_worked_at`, `last_checked_at`, and `recent` (each recent run's `outcome` and `at`). `null` for a private skill. |
 | `sample_rows` | Up to 3 rows the skill returned when it was published, so you can see what it returns. |
 | `match` | `strong`: it does this task. `near`: the closest there is. |
 | `score` | How well it matches, weighed by health. Higher is better. |
@@ -41,7 +42,7 @@ MCP tool: `search_skills`.
 With `kind=workflow`, the results are workflows, in the same shape:
 
 - `inputs`, `price`, `sample_rows`, `match`, and `score` work as for skills. `price` is the typical cost of its last 20 completed runs, or its base fee before any. Sample rows hold no secret fields, and long values are cut short.
-- `health` has `total_runs` only.
+- `health` has `total_runs` only, and `proof` is `null`.
 - `site` and `official` are not used. The `site` filter does not apply.
 - `run_url` is [Run a workflow and wait](/api-reference/runs/run-workflow), `info_url` is [Get a workflow](/api-reference/workflows/get), and `clone_url` is [Clone a workflow](/api-reference/workflows/clone). `clone_url` is `null` when `yours` is `true`. A workflow that is not yours answers `404` to a run until you clone it.
 
