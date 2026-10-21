@@ -12,7 +12,7 @@ Open **Marketplace** from the main sidebar. It has two tabs:
 - **Skills**: single skills you can clone, then run.
 - **Workflows**: workflows other people have shared.
 
-The **Skills** tab lists public skills you can search and sort by **Trending**, **Most Runs**, or **Recent**. Each card shows the skill's name, description, and creator. Click a card to open the skill's page, which shows its total runs, clones, rating, and credits per run.
+The **Skills** tab lists public skills you can search and sort by **Trending**, **Most Runs**, **Recent**, or **Most reliable**. Each card shows the skill's name, description, creator, and a one-line [track record](#track-record), such as "Worked 18 of 20 recent runs · ~6s · checked 2 h ago". Click a card to open the skill's page, which shows its full track record, total runs, clones, rating, and credits per run.
 
 <Tip>
   Search by the site name, the kind of data, or the task.
@@ -21,6 +21,39 @@ The **Skills** tab lists public skills you can search and sort by **Trending**, 
 From code or an AI assistant, find a skill by its task with [Find a skill for a task](/api-reference/marketplace/search) or the `search_skills` [MCP tool](/ai-assistants/mcp-tools#marketplace). Find a workflow the same way with `kind=workflow` or the `search_workflows` tool.
 
 Anyone may read a public skill or workflow. You run only your own copy. Clone it first with [Clone a skill](/api-reference/skills/clone) or [Clone a workflow](/api-reference/workflows/clone) (MCP tools: `clone_skill`, `clone_workflow`), then run the copy. A run of a public skill you have not cloned returns `403` `clone_required`.
+
+## Track record
+
+Every public skill shows how it has done on real runs, so you can decide whether to trust it before you clone it. The numbers come only from runs that really happened. Nothing is run to make them, and nothing is added to them.
+
+**Which runs count**
+
+- The skill's own runs, and the runs of the copies people cloned from the marketplace. A copy runs the same steps, so its runs say whether the skill works. Only totals are shown: never anyone's inputs, rows, or name.
+- Finished runs only. A cancelled run and a run still going are not counted.
+- Not counted: runs that failed on our side (these are refunded), runs stopped by the person or by inputs the skill could not use, answers served from the cache, and repair checks. Of the test runs made while the skill was being built, only the last one counts.
+
+**What the numbers mean**
+
+| Number | What it is |
+| --- | --- |
+| Recent runs that worked | Of the last 20 counted runs, how many worked. A run that came back with fields missing counts as a failure, as does a run that failed. |
+| Last 30 days | The same, over the counted runs of the last 30 days. |
+| Typical run time | The median time from start to rows of the recent runs that worked. "9 in 10 within" is the 90th percentile. |
+| Typical result | The median number of rows, and the median credits, of the recent runs that worked. |
+| Last worked | When a run last worked. |
+| Last checked | When the newest counted run ran. |
+| Recent runs | The last 20 counted runs, oldest first: green worked, yellow came back with fields missing, red failed. |
+
+**Status**
+
+- **Working**: 80% or more of the recent runs worked.
+- **Some failures**: 50% to 79% worked.
+- **Failing**: under 50% worked.
+- **Not enough runs yet**: fewer than 5 counted runs. No percentage is shown until then, so one lucky run never reads "100%".
+
+**Most reliable** sorts skills with 5 or more counted runs first, then by the share that worked, then by how many runs they have. In a search, a skill whose status is **Working** ranks a little higher among the skills that do the task.
+
+The same numbers are in the API and MCP: `proof` on [Find a skill for a task](/api-reference/marketplace/search) and [Get a skill](/api-reference/skills/get), and one "Track record:" line in the text of the `search_skills` and `get_skill` [MCP tools](/ai-assistants/mcp-tools#marketplace). They are read again about once a minute.
 
 ## Clone a skill
 
