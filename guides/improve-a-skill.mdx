@@ -84,7 +84,7 @@ A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) h
 | Mode | What it does |
 | --- | --- |
 | `fix` | Calls the skill's API address once, fresh, and maps the named fields again on its answer, using your hint. If the first mapping does not help, it tries once more, told why. |
-| `add_fields` | Compares your request with the skill's fields, as for any skill, then maps the new fields from the same API. A field the API's records do not hold is not added: it is listed in `details.not_in_api`. A new field that only a few records hold is left out too, listed in `details.thin` with how many, such as `"1/10"`. No field is ever filled from another value that only looks like it. |
+| `add_fields` | Compares your request with the skill's fields, as for any skill, then maps the new fields from the same API. A field the list's records do not hold is looked for in the API's call for one record, and read from one more call per row when it is there ([list plus detail](/guides/create-a-skill#list-plus-detail)); `details.detail` names the call. A field neither holds is not added: it is listed in `details.not_in_api`. A new field that only a few records hold is left out too, listed in `details.thin` with how many, such as `"1/10"`. No field is ever filled from another value that only looks like it. |
 | `relearn_steps`, `relearn_details` | Looks for the site's open API again, for the skill's task, start page, inputs, and fields. A new API that checks out replaces the old one when it is no worse. |
 
 If the skill's API address is gone (it answers "not found", asks for a key, or no longer returns a list), any mode looks for the site's API again. If the API only failed for a moment, nothing is changed and the improvement says to try again.

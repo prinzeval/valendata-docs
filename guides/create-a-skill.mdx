@@ -40,7 +40,7 @@ It then calls each API it finds and checks that the answer holds the fields you 
 
 **Inputs the task names.** When the task names a value, such as "jobs in the programming category", and the API takes no parameter for it, Valendata maps the input another way the source allows: a part of the address (the category's own feed, a store's collection) or a filter on an output field. A part of the address must be one of the site's own values, and a filter must keep some of the sample rows. See [Inputs](/concepts/skills#inputs).
 
-If an API checks out, the skill is built on it. There is no recording. Each run is one direct call to the API, with no browser, and returns the site's own values. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**.
+If an API checks out, the skill is built on it. There is no recording. Each run calls the API directly, with no browser, and returns the site's own values: one call per page of results, plus one per row for a [list plus detail](#list-plus-detail) skill. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**.
 
 If none checks out, it records in a browser as usual. `progress` says `No open API to build on — recording it in a browser`, `source` is `browser`, and `source_note` says what the search found.
 
@@ -52,6 +52,14 @@ Two optional fields change this:
 | `api_url` | The API's address when you already know it, such as `https://api.example.com/v1/items?status=open`. Valendata skips the search, matches the answer to your fields, and checks it. It must answer without a key. In the app, open **Have an API link?** |
 
 A creation with a saved login (`login_id`) does not look for an API: its data is behind a sign-in. Sending `login_id` with `source: "api"`, or `api_url` with `source: "browser"`, is refused.
+
+#### List plus detail
+
+Some APIs list their records without every field. A jobs list can leave out each job's description, and a markets list each market's full rules. When a list checks out but leaves fields you asked for empty, Valendata looks for the API's call for one record. It tries the record's own link to itself, then the usual address for one record (such as `…/jobs/{id}` or `…/products/{handle}.json`), then the API docs it read. It calls each one for two or three real rows and keeps it only when every answer is about that row. It then reads your fields from the answer and checks the whole skill again. `progress` says `The list lacks description — looking for the API's call for one record…`.
+
+A skill built this way makes one more call per row it returns, so `max_results` limits those calls too. At most four go out at once, and each waits its turn with the site like any other call. If one row's call fails, that row's fields from it are empty and the run still succeeds. The run's `drifted_fields` says how many rows were left empty and why. There is no charge per call: a run costs what any run of an API skill costs.
+
+[`GET /v1/skills/{slug}`](/api-reference/skills/get) names the second call in `fast_path_detail_endpoint`. In the app, the skill's **Optimizer** tab shows it under **Then, for each row**, with the fields read from it. To add such a field to a skill you already have, use [Add fields](/guides/improve-a-skill#skills-built-on-an-open-api).
 
 ### Which browser records it
 
