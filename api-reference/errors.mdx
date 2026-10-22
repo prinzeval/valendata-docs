@@ -17,7 +17,7 @@ description: "Status codes, error bodies, request ids, rate limits, and how many
 | `409` | A conflict: the skill is already being improved, it already has a schedule, a workflow still uses the skill you are deleting, the run is not waiting for a code, or a request with the same `Idempotency-Key` is still running. | `detail` says which. |
 | `422` | A field is invalid (`param` names it), inputs do not match the contract, the `version` does not exist, `webhook_url` is not allowed, or the `Idempotency-Key` was already used with a different request. | Fix the request. The body lists every problem. |
 | `429` | Too many requests for your key, or too many runs, creations, or improvements in progress. | Wait `Retry-After` seconds, or run in the background. |
-| `500` | Something broke on our side. | Retry. Runs that fail on our side are refunded. |
+| `500` | Something broke on our side. | Retry. Credits a run already used are not given back. |
 | `502` | A [connected app](/concepts/connected-apps) refused the call or could not be reached. `detail` gives its reason. | Fix the inputs it names, or retry later. |
 | `503` | This part of the API is not available right now. | Retry later. |
 

@@ -13,7 +13,7 @@ Send one `message` of up to 2,000 characters, such as `this is broken`, `why did
 
 The call answers within about a minute with `messages`: your message and the skill's reply. A repair it starts carries on after the call, is checked with a short run, and its result is posted to the skill's chat. Read the chat with [Read a skill's chat](/api-reference/improvements/chat).
 
-Repairs are free. New fields you ask for are charged as an [improvement](/api-reference/improvements/improve).
+Repairs are charged like any run. New fields you ask for are charged as an [improvement](/api-reference/improvements/improve).
 
 Returns `409` while the skill is still answering your previous message. Only the skill's owner or an editor in its workspace can talk to it. Needs `skills:write`.
 

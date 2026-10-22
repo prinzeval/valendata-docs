@@ -63,7 +63,7 @@ Click **Disconnect** on the app in **Integrations** (or in **Vault**), or use [D
 
 ## Limits
 
-- **Credits**: each call to an app costs credits — 0.1 for a read, 0.5 for a write (sending, creating, changing). A call that fails or is refused costs nothing, and a builder's Test step is never charged. Every call is listed under Activity on the Integrations page.
+- **Credits**: each call to an app costs credits — 0.1 for a read, 0.5 for a write (sending, creating, changing). A call that is sent to the app is charged even if the app fails it, and a builder's Test step is charged like any call. Only a call that never went out (it was refused before sending) costs nothing. Every call is listed under Activity on the Integrations page.
 - **Writes per workflow run**: at most 100. A run that reaches the limit stops, so a mistaken loop cannot email a whole list.
 - **Your own account only**: every call uses your own connections. An API key or an assistant never reaches a teammate's apps.
 - **The app's own limits**: each app has its own rate limits and rules. When the app refuses a call, the API answers `502` with the app's reason.

@@ -48,7 +48,7 @@ Two optional fields change this:
 
 | Field | What it does |
 | --- | --- |
-| `source` | `auto` (default): an open API first, then a browser. `api`: an open API only. When none is found, the creation fails and is refunded. `browser`: skip the search and record in a browser. |
+| `source` | `auto` (default): an open API first, then a browser. `api`: an open API only. When none is found, the creation fails, and the credits it used are not given back. `browser`: skip the search and record in a browser. |
 | `api_url` | The API's address when you already know it, such as `https://api.example.com/v1/items?status=open`. Valendata skips the search, matches the answer to your fields, and checks it. It must answer without a key. In the app, open **Have an API link?** |
 
 A creation with a saved login (`login_id`) does not look for an API: its data is behind a sign-in. Sending `login_id` with `source: "api"`, or `api_url` with `source: "browser"`, is refused.
@@ -124,7 +124,7 @@ The call answers at once with a `creation_id`. Read [`GET /v1/skill-creations/{c
 | `validating` | Saved as a skill (`slug` is set). Valendata runs it once more to check it. |
 | `ready` | Passed the check. You can run it. |
 | `needs_fix` | Saved as a **draft** skill (`slug` is set), but the check run did not pass. Fix it with [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve) (MCP: `improve_skill`). Do not create it again. |
-| `failed` | Did not work and nothing was saved. `error` says why and `diagnosis` suggests what to try. |
+| `failed` | Did not work and nothing was saved. `error` says why and `diagnosis` suggests what to try. The credits it used are not given back. |
 | `cancelled` | You [stopped it](/api-reference/skills/cancel-creation) while it was building. Nothing was saved. |
 
 Each check also tells you:

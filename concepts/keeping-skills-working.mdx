@@ -73,13 +73,13 @@ These show in the run's `diagnosis` as `quality_flags` (`repeated_rows`, `pagina
 
 ## Talk to a skill
 
-Each skill has its own chat at the top of its page. Say what is wrong or what you want in plain words, such as "the last run missed the phone numbers" or "also get the price". The skill reads its runs, steps, and versions, then fixes itself when it can: it re-learns a step or a field, changes its browser or proxy, restores a version that worked, or asks you to sign in. Each repair is checked with a short run, and the result is posted to the chat. Repairs are free. New fields you ask for are charged as an [improvement](/guides/improve-a-skill).
+Each skill has its own chat at the top of its page. Say what is wrong or what you want in plain words, such as "the last run missed the phone numbers" or "also get the price". The skill reads its runs, steps, and versions, then fixes itself when it can: it re-learns a step or a field, changes its browser or proxy, restores a version that worked, or asks you to sign in. Each repair is checked with a short run, and the result is posted to the chat. Repairs are charged like any run. New fields you ask for are charged as an [improvement](/guides/improve-a-skill).
 
 From code, use [Talk to a skill](/api-reference/improvements/talk). An AI assistant uses the `talk_to_skill` tool.
 
 ### A skill built on an open API
 
-A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so its repairs work on the API. When one of its runs fails (the API answers "not found", changes shape, or asks for a key) or comes back with fields missing or wrong, the skill starts one free repair on its own:
+A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so its repairs work on the API. When one of its runs fails (the API answers "not found", changes shape, or asks for a key) or comes back with fields missing or wrong, the skill starts one repair on its own, charged like any run:
 
 1. It calls the same API address fresh and maps the fields again on the answer.
 2. If that address is gone, it looks for the site's API again and rebuilds the skill on what it finds.

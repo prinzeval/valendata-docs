@@ -15,7 +15,7 @@ When you run a skill or workflow, Valendata charges credits for what that run us
 Browser time after your run ends is free. Valendata may keep a finished run's browser open for a couple of minutes so your next run starts faster. You are not charged for that time.
 </Note>
 
-If a run fails because of us (our proxy, our cloud browser, a worker restart, an error in our code, or an AI provider outage), every credit it used is refunded automatically, and the run is marked "Failed on our side — refunded". See [Runs](/concepts/runs#why-a-run-failed). Runs that fail because the site is down, blocks the run, asks for a login, or changed its page, or because of bad inputs or a cancel, are charged as usual.
+Every attempt is charged for what it used, whatever the outcome. Credits are not given back when a run fails, returns no rows, or stops at a human check, or when a skill creation, workflow, or repair does not work. This is true even when the failure is on our side (our proxy, our cloud browser, a worker restart, an error in our code, or an AI provider outage). See [Runs](/concepts/runs#why-a-run-failed).
 
 ### AI model usage
 

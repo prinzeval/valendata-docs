@@ -4893,7 +4893,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) `failed` (nothing was saved; `error` says why) or `cancelled` (you stopped it; nothing was saved). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
+        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) `failed` (nothing was saved; `error` says why; the credits it used are not given back) or `cancelled` (you stopped it; nothing was saved). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
       }
     },
     "/v1/skill-creations/{creation_id}/cancel": {
@@ -5955,7 +5955,7 @@
           "Improvements"
         ],
         "summary": "Talk to a skill",
-        "description": "Tell the Skill what is wrong or what you want, in plain words (`this is broken`, `why did the last run fail?`, `also get the price`). Its doctor reads its runs, steps and versions, decides, and fixes it itself when it can: re-learning steps or a field, changing its browser or proxy, restoring a version that worked, or asking you to sign in. Answers within about a minute with your message and its reply; a repair it starts carries on, is checked with a short run, and its result is posted to the chat. Repairs are free; new fields you ask for are charged as an improvement. `409` while it is still answering your previous message. Owner or workspace editor only. Needs `skills:write`.",
+        "description": "Tell the Skill what is wrong or what you want, in plain words (`this is broken`, `why did the last run fail?`, `also get the price`). Its doctor reads its runs, steps and versions, decides, and fixes it itself when it can: re-learning steps or a field, changing its browser or proxy, restoring a version that worked, or asking you to sign in. Answers within about a minute with your message and its reply; a repair it starts carries on, is checked with a short run, and its result is posted to the chat. Repairs are charged like any run; new fields you ask for are charged as an improvement. `409` while it is still answering your previous message. Owner or workspace editor only. Needs `skills:write`.",
         "operationId": "talk_to_skill",
         "security": [
           {
@@ -7475,7 +7475,7 @@
           "Account and usage"
         ],
         "summary": "Get usage",
-        "description": "Credits spent per UTC day and per source between `from` and `to` (default the last 30 days, at most 366). Refunds are taken off; goodwill refunds for old over-charges are reported separately in `goodwill_refunds`. Needs `account:read`.",
+        "description": "Credits spent per UTC day and per source between `from` and `to` (default the last 30 days, at most 366). Past refunds are taken off; credits given back in the past for old over-charges are reported separately in `goodwill_refunds`. Needs `account:read`.",
         "operationId": "get_usage",
         "security": [
           {
@@ -9271,7 +9271,7 @@
         }
       },
       "InternalError": {
-        "description": "Something broke on our side. Retry; runs that fail on our side are refunded.",
+        "description": "Something broke on our side. Retry; credits a run already used are not given back.",
         "headers": {
           "X-RateLimit-Limit": {
             "$ref": "#/components/headers/X-RateLimit-Limit"
@@ -9292,7 +9292,7 @@
               "$ref": "#/components/schemas/Error"
             },
             "example": {
-              "detail": "Something broke on our side. Retry; runs that fail on our side are refunded.",
+              "detail": "Something broke on our side. Retry; credits a run already used are not given back.",
               "code": "internal_error",
               "type": "api_error",
               "request_id": "3f9a1c2b7d4e"
@@ -10443,7 +10443,7 @@
             "type": "string",
             "pattern": "^(auto|api|browser)$",
             "title": "Source",
-            "description": "How the skill reads the site. auto (default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser and no AI per run, the site's exact values, about a second; otherwise record it in a browser. api: the open API or nothing (fails, refunded, when none is found). browser: always record it in a browser.",
+            "description": "How the skill reads the site. auto (default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser and no AI per run, the site's exact values, about a second; otherwise record it in a browser. api: the open API or nothing (fails when none is found; the credits it used are not given back). browser: always record it in a browser.",
             "default": "auto"
           },
           "api_url": {
@@ -18615,7 +18615,7 @@
           "free_repair": {
             "type": "boolean",
             "title": "Free Repair",
-            "description": "A repair the skill's doctor made — free: nothing is charged",
+            "description": "A repair the skill's doctor made. Charged like any run.",
             "default": false
           },
           "created_at": {
@@ -20969,7 +20969,7 @@
           "total": {
             "type": "string",
             "title": "Total",
-            "description": "Net credits spent in the range (refunds taken off), exact to 0.01."
+            "description": "Net credits spent in the range (past refunds taken off), exact to 0.01."
           },
           "by_source": {
             "additionalProperties": {

@@ -60,12 +60,12 @@ Workflow runs also have a `failure_class`:
 
 | `failure_class` | Whose fault | Charged? |
 | --- | --- | --- |
-| `platform` | Ours: our browser, proxy, code, a restart, or an AI provider outage. | No. Every credit is refunded and `refunded` is `true`. |
+| `platform` | Ours: our browser, proxy, code, a restart, or an AI provider outage. | Yes |
 | `site` | The site was down, blocked the run, or wanted a sign-in. | Yes |
 | `recipe` | A step failed. | Yes |
 | `user` | Cancelled, or inputs it could not use. | Yes |
 
-Skill runs follow the same rule: a run that fails on our side is refunded and marked **Failed on our side — refunded**.
+Skill runs follow the same rule: every run is charged for what it used, whatever the cause. A run that fails on our side is marked **Failed on our side**.
 
 ## Who can see a run
 
