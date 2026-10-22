@@ -35,6 +35,7 @@ When an agent starts runs for you while you keep talking, each is tracked as a [
 - **Count** and **time taken**.
 - **Version**: the skill version this run used (`recipe_version`).
 - **Route**: how it ran (`tier_used`): a fast path or the full browser steps. See [Fast path](/concepts/keeping-skills-working#fast-path).
+- **Changes**: on a scheduled run, or one started with `changes_since`, what is new, changed, or removed since the run before. See [Only what's new](/guides/schedule#only-whats-new).
 - **Replay**: in the app, a browser run has a step-by-step replay with screenshots, so you can see where it clicked and typed.
 - **Cost**: `credits_charged` and `cost_usd`. A cloud browser is billed when it closes, so a run can answer before its final cost is known. Until then `cost_final` is `false` and `cost_estimate_credits` holds the expected total. Read the run again for the final number.
 

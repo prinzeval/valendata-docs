@@ -162,6 +162,7 @@
               "api-reference/runs/start-workflow-run",
               "api-reference/runs/list-workflow-runs",
               "api-reference/runs/get",
+              "api-reference/runs/get-changes",
               "api-reference/runs/cancel",
               "api-reference/runs/send-code"
             ]

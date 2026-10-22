@@ -52,11 +52,105 @@ Give the cadence as **one** of:
 - `every`: `hourly`, `daily`, `daily 09:00`, `weekly mon 09:00`, `30 minutes`, `2h`.
 - `cron`: a 5-field cron expression, such as `0 9 * * 1-5`.
 
-`timezone` is an IANA name (default `UTC`). `enabled: false` saves it switched off. Skill schedules also take `max_results` (default 100).
+`timezone` is an IANA name (default `UTC`). `enabled: false` saves it switched off. Skill schedules also take `max_results` (default 100), and `delivery`, `notify_on`, `watch`, and `webhook_url`: see [Only what's new](#only-whats-new).
 
 ## From an AI assistant
 
 Ask it, for example "run austin-dentists every morning at 9". It uses `schedule_skill` or `schedule_workflow`, and `update_schedule` to change one. See [MCP tools](/ai-assistants/mcp-tools).
+
+## Only what's new
+
+A skill schedule can send you only the rows that are new or changed since its last run, tell you only when something changed, and post each run to your own URL. Workflow schedules do not have these settings.
+
+### How runs are compared
+
+Every scheduled skill run is compared with the previous successful run of the same skill, with the same inputs, by the same account.
+
+- **First run**: the starting point. Every row counts as new, and `notify_on: "changes"` does not fire for it.
+- **New**: rows that were not in the previous run.
+- **Changed**: rows in both runs where a compared field has a different value.
+- **Removed**: rows in the previous run that are not in this one. A run cut off by `max_results` may count rows just past that limit as removed.
+
+**How rows are matched.** Each row is known by its key. If the skill has a `row_key`, that is the key. Otherwise each run picks one, in this order:
+
+1. An id field, such as `id`, `sku`, `ticker`, or a name ending in `_id`.
+2. A link field, such as `url`, `link`, or a name ending in `_url`. Image links do not count.
+3. A title, plus a date field when there is one.
+4. Every text field.
+
+A key field must be filled on nearly every row and never repeat. To set the key yourself, send `row_key` (up to 5 fields) to [Update a skill](/api-reference/skills/update), for example `{"row_key": ["url"]}`. Send `[]` to go back to automatic.
+
+**Which fields are compared.** The `watch` list, when you set one. Otherwise every field except the key and time stamps such as `scraped_at`. Values are compared as a person reads them: `123` equals `"123"`, and extra spaces are ignored.
+
+**Watch** takes up to 20 entries:
+
+- `price`: any change to the field.
+- `price:down`: only when the number went down.
+- `price:up`: only when the number went up.
+
+### Settings
+
+| Setting | Values | What it does |
+| --- | --- | --- |
+| `delivery` | `all` (default), `new`, `changes` | The rows each run's result and webhook carry: every row, only new rows, or new and changed rows. |
+| `notify_on` | `every_run` (default), `changes`, `never` | When the webhook goes and you get a notice in the app (and the away email, per your notification settings). |
+| `watch` | A list, such as `["price:down"]` | The fields whose change counts. See above. |
+| `webhook_url` | A public `http` or `https` URL | Gets a signed `POST` when `notify_on` says so. `""` removes it. |
+
+`notify_on: "changes"` means something changed under the `delivery` mode:
+
+- `new`: a new row.
+- `changes`: a new or changed row.
+- `all`: a new, changed, or removed row.
+
+A failed run is always told in the app. Its webhook goes only with `every_run`. With `never`, a run that worked sends no webhook and no notice.
+
+Set these with [Schedule a skill](/api-reference/schedules/create-skill-schedule) or [Update a schedule](/api-reference/schedules/update). The schedule shows them back, plus the skill's `row_key` (`null` means automatic).
+
+**In the app**, the schedule editor has **Send** (every row, only new rows, or new + changed), **Notify me** (every run, or only when something changes), a picker for the fields to watch (any change, only when it goes down, or only when it goes up), and a webhook URL. Run history shows a badge such as **3 new · 1 changed** on each compared run. Open it to see the new, changed, and removed rows, with the changed fields highlighted.
+
+### The webhook
+
+The webhook is signed and retried like a run webhook. Its body is the run, plus `event` (`schedule.rows_changed` or `schedule.run_finished`) and `schedule_id`. See [Schedule webhooks](/api-reference/webhooks/overview#schedule-webhooks).
+
+### See what changed
+
+- [Get a run](/api-reference/runs/get): `changes` holds the counts and a few examples.
+- [Get a run's changes](/api-reference/runs/get-changes): every new, changed, and removed row, with each changed field's old and new value.
+- [List skill runs](/api-reference/runs/list-skill-runs): the counts for each run.
+- From an AI assistant: `get_run` with `changes: true`. See [MCP tools](/ai-assistants/mcp-tools#only-whats-new).
+
+To compare a single run that is not on a schedule, see [Start a skill run](/api-reference/runs/start-skill-run#only-whats-new).
+
+### Example: new Bayse markets
+
+Check every 30 minutes and post only the markets that just opened:
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/bayse-markets-api/schedules \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"every": "30 minutes", "delivery": "new", "notify_on": "changes", "webhook_url": "https://example.com/hooks/valendata"}'
+```
+
+From an AI assistant: "Tell me when a new Bayse market opens. Check bayse-markets-api every 30 minutes and post the new ones to https://example.com/hooks/valendata."
+
+The first run is the starting point and sends nothing. After that, a run with a new market posts `schedule.rows_changed` with only the new markets in `rows`. Runs with nothing new stay quiet.
+
+### Example: Allbirds price drops
+
+Check a skill that lists Allbirds products once a day, and hear only about price drops:
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/allbirds-products/schedules \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"every": "daily 09:00", "delivery": "changes", "notify_on": "changes", "watch": ["price:down"]}'
+```
+
+From an AI assistant: "Tell me when an Allbirds price drops. Check allbirds-products every day at 9 and only count a price going down."
+
+A price that goes up does not count as a change. A new product does, because `changes` sends new rows too. With no `webhook_url`, you get the notice in the app.
 
 ## Before you pick a fast cadence
 

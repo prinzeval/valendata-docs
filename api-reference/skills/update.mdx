@@ -15,6 +15,7 @@ Send only what you want to change. You get back the skill as [Get a skill](/api-
 | `default_max_results` | Rows a run returns when the caller does not say. `0` means all. |
 | `browser_type`, `proxy_config`, `profile_id`, `scrape_mode` | How it runs by default. See [Run settings](/guides/run-a-skill#run-settings). |
 | `data_retention_days` | How long run rows are kept, 1–90. |
+| `row_key` | The fields (up to 5) that tell rows apart when runs are compared, such as `["url"]`. `[]` goes back to choosing them automatically. A field the skill does not return gives `422`. See [Only what's new](/guides/schedule#only-whats-new). |
 | `login_id` | The [saved login](/concepts/logins-and-browser-profiles#saved-logins) it signs in with. `null` or `""` removes it. Needs `logins:write`. |
 | `visibility`, `workspace_id` | `private` (only you) or `workspace` (shared with a team workspace; name it with `workspace_id` if you are in several). |
 

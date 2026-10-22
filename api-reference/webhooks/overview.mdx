@@ -1,9 +1,11 @@
 ---
 title: "About webhooks"
-description: "Get a finished background run pushed to your URL, signed so you can check it came from Valendata."
+description: "Get a finished background run or scheduled run pushed to your URL, signed so you can check it came from Valendata."
 ---
 
 When you start a background run (a [skill run](/api-reference/runs/start-skill-run) or a [workflow run](/api-reference/runs/start-workflow-run)) with a `webhook_url`, Valendata sends the finished run to that URL as a `POST` with a JSON body. The body is the same object [`GET /v1/runs/{run_id}`](/api-reference/runs/get) returns.
+
+A skill schedule with a `webhook_url` sends its runs the same way. See [Schedule webhooks](#schedule-webhooks).
 
 ## Delivery
 
@@ -90,3 +92,44 @@ export function verifyValendata(
 ```
 
 </CodeGroup>
+
+## Schedule webhooks
+
+A [skill schedule](/guides/schedule#only-whats-new) with a `webhook_url` sends a run there when its `notify_on` says so. Delivery, retries, and the signature are the same as above.
+
+The body is the run as [`GET /v1/runs/{run_id}`](/api-reference/runs/get) returns it, plus two fields:
+
+| Field | What it is |
+| --- | --- |
+| `event` | `schedule.rows_changed` when something changed under the schedule's `delivery` mode. `schedule.run_finished` for any other run, such as a first run, a run with nothing new, or a failed run. |
+| `schedule_id` | The schedule that ran it. |
+
+With `delivery` `new` or `changes`, `rows` holds only those rows. `changes` has the counts and a few examples:
+
+```json
+{
+  "event": "schedule.rows_changed",
+  "schedule_id": "sklsch_skl_85c94d62453a",
+  "run_id": "run_ab12cd34ef56",
+  "status": "success",
+  "skill_slug": "bayse-markets-api",
+  "count": 2,
+  "rows": [{"...": "..."}, {"...": "..."}],
+  "changes": {
+    "since_run_id": "run_0f9e8d7c6b5a",
+    "first_run": false,
+    "key_fields": ["url"],
+    "key_automatic": true,
+    "watch": null,
+    "delivery": "new",
+    "rows_total": 50,
+    "new": 2,
+    "changed": 0,
+    "removed": 1,
+    "unchanged": 48,
+    "examples": {"new": ["..."], "changed": [], "removed": ["..."]}
+  }
+}
+```
+
+The other run fields are left out above. For every changed row, call [Get a run's changes](/api-reference/runs/get-changes).

@@ -1,0 +1,17 @@
+---
+title: "Get a run's changes"
+description: "Every row of a compared skill run that is new, changed, or removed since the run it was compared with."
+openapi: "GET /v1/runs/{run_id}/changes"
+---
+
+Works for a compared skill run: a scheduled run, or one started with `changes_since`. Any other run returns `404`.
+
+You get the counts, as in `changes` on [Get a run](/api-reference/runs/get), and the rows themselves:
+
+- `new_rows`: every new row.
+- `changed_rows`: every changed row, as `{"row": {...}, "fields": {"price": {"before": 120, "after": 98}}}`. When the run has a `watch` list, only those fields count.
+- `removed_rows`: rows that were in the earlier run and not in this one, up to 200. `removed_truncated` is `true` when there were more.
+
+`since_run_id` is the run it was compared with. `first_run` is `true` for the first run, where every row is new. Rows are matched on `key_fields`; `key_automatic` says whether they were chosen automatically or come from the skill's `row_key`. How that works is in [Only what's new](/guides/schedule#only-whats-new).
+
+Needs `runs:read`. MCP tool: `get_run` with `changes: true`.

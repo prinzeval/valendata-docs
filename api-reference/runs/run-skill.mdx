@@ -8,6 +8,8 @@ Put the skill's inputs at the top level of the body (or in the query). The run s
 
 The rows are in `data`. The other fields are explained in [Runs](/concepts/runs#what-a-finished-run-holds).
 
+`changes_since`, `delivery`, and `watch` compare the rows with an earlier run's, as on [Start a skill run](/api-reference/runs/start-skill-run#only-whats-new). The answer then has `changes`, and with `delivery` `new` or `changes`, `data` holds only those rows.
+
 You run only your own skills and your workspaces'. A public marketplace skill that is not yours returns `403` with `detail.error` `clone_required` and its `clone_url`, and nothing runs. [Clone it](/api-reference/skills/clone), then run your copy. See [Errors](/api-reference/errors#error-body).
 
 If your account already has its maximum of runs in progress, this returns `429` with `Retry-After` instead of waiting. Use [Start a skill run](/api-reference/runs/start-skill-run) to queue instead.

@@ -3637,7 +3637,7 @@
           "Runs"
         ],
         "summary": "Get a run",
-        "description": "Any run, skill or workflow: its status, and the result once it has finished. Skill runs hold their rows in `rows`; workflow runs hold `outputs` and have `kind: \"workflow\"`. Needs `runs:read` for a skill run, `workflows:read` for a workflow run.",
+        "description": "Any run, skill or workflow: its status, and the result once it has finished. Skill runs hold their rows in `rows`; workflow runs hold `outputs` and have `kind: \"workflow\"`. A compared skill run (a scheduled run, or one started with `changes_since`) also has `changes`: `new`, `changed`, `removed` since `since_run_id`, the `key_fields` rows were matched on, and a few `examples`; with `delivery` `new` or `changes`, `rows` holds only those rows. Needs `runs:read` for a skill run, `workflows:read` for a workflow run.",
         "operationId": "get_run",
         "security": [
           {
@@ -3788,6 +3788,80 @@
             "$ref": "#/components/responses/InternalError"
           }
         }
+      }
+    },
+    "/v1/runs/{run_id}/changes": {
+      "get": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Get a run's changes",
+        "description": "Every row of a compared skill run that is new, changed or gone since `since_run_id`: `new_rows`, `changed_rows` (each with `fields: {name: {before, after}}`; only `watch` fields count when set) and `removed_rows` (up to 200; `removed_truncated` says when there were more). Rows are matched on `key_fields`: the skill's `row_key`, else chosen automatically (an id, a link, a title and date). `404` for a run that was not compared. Needs `runs:read`.",
+        "operationId": "get_run_changes",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunChangesResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "get_run"
       }
     },
     "/v1/runs/{run_id}/otp": {
@@ -4087,7 +4161,7 @@
           "Schedules"
         ],
         "summary": "Update a schedule",
-        "description": "Change `cron` or `every`, `timezone`, `inputs`, `enabled`, or (skill schedules only) `max_results`. Only what you send changes. Needs `skills:write` or `workflows:write`; switching a workflow schedule on also needs `workflows:invoke`.",
+        "description": "Change `cron` or `every`, `timezone`, `inputs`, `enabled`, or (skill schedules only) `max_results`, `delivery`, `notify_on`, `watch` and `webhook_url`. Only what you send changes. Needs `skills:write` or `workflows:write`; switching a workflow schedule on also needs `workflows:invoke`.",
         "operationId": "update_schedule",
         "security": [
           {
@@ -5083,6 +5157,23 @@
               "title": "Category"
             },
             "description": "Only skills in this category (a slug from GET /v1/skills/categories)"
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "exclude",
+                "only",
+                "include"
+              ],
+              "type": "string",
+              "description": "Archived skills (they still run): exclude (the default), only, or include",
+              "default": "exclude",
+              "title": "Archived"
+            },
+            "description": "Archived skills (they still run): exclude (the default), only, or include"
           }
         ],
         "responses": {
@@ -5248,6 +5339,19 @@
               ],
               "title": "Status"
             }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(exclude|only|include)$",
+              "description": "As GET /v1/skills: exclude (the default), only or include",
+              "default": "exclude",
+              "title": "Archived"
+            },
+            "description": "As GET /v1/skills: exclude (the default), only or include"
           }
         ],
         "responses": {
@@ -5509,7 +5613,7 @@
           "Skills"
         ],
         "summary": "Update a skill",
-        "description": "Change a skill's name, description, category (a slug from `GET /v1/skills/categories`; an unknown one is 422), inputs, output fields, run settings, saved login, or sharing. Only what you send changes. Answers with the skill as `GET /v1/skills/{slug}` returns it, plus `changes`, `warnings`, and `login`. Owner or workspace editor; `login_id` and `visibility` are owner only. Needs `skills:write` (and `logins:write` for `login_id`).",
+        "description": "Change a skill's name, description, category (a slug from `GET /v1/skills/categories`; an unknown one is 422), inputs, output fields, run settings, saved login, sharing, or `row_key` (the fields that identify one row when runs are compared; `[]` goes back to automatic). Only what you send changes. Answers with the skill as `GET /v1/skills/{slug}` returns it, plus `changes`, `warnings`, and `login`. Owner or workspace editor; `login_id` and `visibility` are owner only. Needs `skills:write` (and `logins:write` for `login_id`).",
         "operationId": "update_skill",
         "security": [
           {
@@ -6480,7 +6584,7 @@
           "Runs"
         ],
         "summary": "Run a skill and wait",
-        "description": "Run a published Skill and wait for the rows. Put the Skill's inputs at the top level of the JSON body (or in the query string). The body keys `browser_type`, `proxy_config`, `profile_id`, `scrape_mode`, `max_pages`, and `version` are run settings, not inputs. Inputs are checked against `input_schema` before anything runs. If too many of your runs are in progress, this returns 429 with `Retry-After` instead of waiting.",
+        "description": "Run a published Skill and wait for the rows. Put the Skill's inputs at the top level of the JSON body (or in the query string). The body keys `browser_type`, `proxy_config`, `profile_id`, `scrape_mode`, `max_pages`, and `version` are run settings, not inputs. `changes_since` (`last` or a run id), `delivery` and `watch` compare the rows with an earlier run's and add `changes`, as on `POST /v1/skills/{slug}/runs`. Inputs are checked against `input_schema` before anything runs. If too many of your runs are in progress, this returns 429 with `Retry-After` instead of waiting.",
         "operationId": "run_skill",
         "security": [
           {
@@ -6627,7 +6731,7 @@
           "Runs"
         ],
         "summary": "Start a skill run",
-        "description": "Validate the inputs, start the run, and answer at once with a `run_id`. If your account is at its limit of runs in progress, the run queues. Poll `GET /v1/runs/{run_id}` or pass `webhook_url`.",
+        "description": "Validate the inputs, start the run, and answer at once with a `run_id`. If your account is at its limit of runs in progress, the run queues. Poll `GET /v1/runs/{run_id}` or pass `webhook_url`. `changes_since` (`last`: the previous run with the same inputs, or a run id) compares this run's rows with that run's: the result carries `changes`, and `delivery` `new` (only new rows) or `changes` (new and changed rows) trims `rows`; `watch` (e.g. `[\"price:down\"]`) picks the fields whose change counts. A comparing run always runs (`max_age` is ignored).",
         "operationId": "start_skill_run",
         "security": [
           {
@@ -6974,7 +7078,7 @@
           "Schedules"
         ],
         "summary": "Schedule a skill",
-        "description": "Run a skill on a schedule. Give exactly one of `cron` or `every`, a `timezone`, the `inputs` each run uses (checked now), and `max_results` (default 100). `409` if the skill already has a schedule: change it with `PATCH /v1/schedules/{schedule_id}`. Each run spends the owner's credits. Needs `skills:write`.",
+        "description": "Run a skill on a schedule. Give exactly one of `cron` or `every`, a `timezone`, the `inputs` each run uses (checked now), and `max_results` (default 100). Each run is compared with the previous one: `delivery` (`all`, `new`, `changes`) is what its result and webhook carry, `notify_on` (`every_run`, `changes`, `never`) when the `webhook_url` gets a signed POST and you get a notice, and `watch` the fields whose change counts. `409` if the skill already has a schedule: change it with `PATCH /v1/schedules/{schedule_id}`. Each run spends the owner's credits. Needs `skills:write`.",
         "operationId": "schedule_skill",
         "security": [
           {
@@ -10315,6 +10419,13 @@
             "title": "Visibility",
             "default": "private"
           },
+          "browser": {
+            "type": "string",
+            "pattern": "^(auto|cloud|extension)$",
+            "title": "Browser",
+            "description": "Where it records. cloud: our cloud browser. extension: your own Chrome with the Valendata extension — for sites that block cloud browsers (it must be connected). auto (default): the cloud, and your Chrome when the cloud is blocked by the site or busy. A creation with login_id records on the cloud only.",
+            "default": "auto"
+          },
           "login_id": {
             "anyOf": [
               {
@@ -10328,26 +10439,11 @@
             "title": "Login Id",
             "description": "Your saved login (POST /v1/logins, GET /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way. Without one, a start page behind a sign-in ends the creation with needs_user (kind no_login) — unless auto sign-up is on, then an account is made for the site with your Valendata email and bound the same way (needs logins:use)."
           },
-          "browser": {
-            "type": "string",
-            "enum": [
-              "auto",
-              "cloud",
-              "extension"
-            ],
-            "title": "Browser",
-            "description": "Where the recording runs. auto (the default): a Valendata cloud browser, or your own Chrome (the Valendata extension) when the cloud is busy or the site blocks cloud browsers. cloud: a cloud browser only. extension: your own Chrome only; the extension must be connected. A creation with login_id records on the cloud only.",
-            "default": "auto"
-          },
           "source": {
             "type": "string",
-            "enum": [
-              "auto",
-              "api",
-              "browser"
-            ],
+            "pattern": "^(auto|api|browser)$",
             "title": "Source",
-            "description": "How the skill reads the site. auto (the default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser, the site's exact values; otherwise record it in a browser. api: the open API or nothing (the creation fails, refunded, when none is found). browser: always record it in a browser. login_id with api is refused.",
+            "description": "How the skill reads the site. auto (default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser and no AI per run, the site's exact values, about a second; otherwise record it in a browser. api: the open API or nothing (fails, refunded, when none is found). browser: always record it in a browser.",
             "default": "auto"
           },
           "api_url": {
@@ -10361,7 +10457,7 @@
               }
             ],
             "title": "Api Url",
-            "description": "The site's API address when you already know it, e.g. https://api.example.com/v1/items?status=open — skips the search: its JSON is matched to the fields and checked. It must answer without a key; a key is never stored. Refused with source browser."
+            "description": "The site's API address when you already know it, e.g. https://api.example.com/v1/items?status=open — skips the search: its JSON is mapped onto the fields and checked. It must answer without a key; a key is never stored."
           }
         },
         "type": "object",
@@ -10936,34 +11032,26 @@
             "type": "array",
             "title": "Data"
           },
+          "changes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changes"
+          },
           "type_notes": {
             "items": {
-              "type": "object",
-              "properties": {
-                "field": {
-                  "type": "string",
-                  "description": "The output field."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "Its type."
-                },
-                "count": {
-                  "type": "integer",
-                  "description": "How many of its values could not be read as that type."
-                },
-                "examples": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Up to 3 of them, as printed."
-                }
-              }
+              "additionalProperties": true,
+              "type": "object"
             },
             "type": "array",
             "title": "Type Notes",
-            "description": "Values of typed output fields that could not be read as their type. They are kept in the rows as printed; each entry names the field, its type, how many values and up to 3 examples."
+            "default": []
           },
           "count": {
             "type": "integer",
@@ -12078,8 +12166,7 @@
                 "type": "null"
               }
             ],
-            "title": "Required",
-            "description": "Default: true for a step input, false for a request input or a filter."
+            "title": "Required"
           },
           "recorded_value": {
             "anyOf": [
@@ -12092,7 +12179,7 @@
               }
             ],
             "title": "Recorded Value",
-            "description": "A step input: the value the recording typed or opened that this input replaces on each run. It must appear in the recipe."
+            "description": "step: a value in the recipe"
           },
           "acts_as": {
             "anyOf": [
@@ -12109,7 +12196,7 @@
               }
             ],
             "title": "Acts As",
-            "description": "request: sent to the source; filter: keeps rows; step: typed in; default: from where"
+            "description": "request: sent to the source; filter: keeps rows; step: typed in; unset: from where"
           },
           "where": {
             "anyOf": [
@@ -12122,7 +12209,7 @@
               }
             ],
             "title": "Where",
-            "description": "request {\"in\":\"query|path|body\",\"key\"|\"template\"}; filter {\"kind\":\"contains|equals|one_of|min|max|since\",\"fields\":[...]}; step {\"recorded_value\"}"
+            "description": "request {in: query|path|body, key|template}; filter {kind: contains|equals|one_of|min|max|since, fields: [...]}; step {recorded_value}"
           },
           "known_values": {
             "anyOf": [
@@ -12137,8 +12224,7 @@
                 "type": "null"
               }
             ],
-            "title": "Known Values",
-            "description": "Values the source is known to take; shown as the input's examples."
+            "title": "Known Values"
           }
         },
         "type": "object",
@@ -12151,8 +12237,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name",
-            "description": "The input's current name"
+            "title": "Name"
           },
           "rename": {
             "anyOf": [
@@ -12164,8 +12249,7 @@
                 "type": "null"
               }
             ],
-            "title": "Rename",
-            "description": "New name; every use in the recipe is renamed too"
+            "title": "Rename"
           },
           "type": {
             "anyOf": [
@@ -12197,8 +12281,7 @@
             "title": "Description"
           },
           "default": {
-            "title": "Default",
-            "description": "New default; null clears it (the input becomes required)"
+            "title": "Default"
           },
           "required": {
             "anyOf": [
@@ -12239,8 +12322,7 @@
               "type": "string"
             },
             "type": "array",
-            "title": "Remove",
-            "description": "A step input the recipe uses is refused"
+            "title": "Remove"
           }
         },
         "type": "object",
@@ -13091,8 +13173,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "title": "Name",
-            "description": "The output field's current name"
+            "title": "Name"
           },
           "rename": {
             "anyOf": [
@@ -13104,8 +13185,7 @@
                 "type": "null"
               }
             ],
-            "title": "Rename",
-            "description": "New name; its key is renamed in the recipe too"
+            "title": "Rename"
           },
           "description": {
             "anyOf": [
@@ -13145,7 +13225,7 @@
               }
             ],
             "title": "Type",
-            "description": "chance: 0-1 (73% -> 0.73); price: number + <field>_currency; datetime: ISO UTC; percent: 73% -> 73; count: 1.5k -> 1500; duration: seconds. Unreadable values stay as printed."
+            "description": "chance: 73% -> 0.73; price: number + <field>_currency; datetime: ISO UTC; percent: 73% -> 73; count: 1.5k -> 1500; duration: seconds; unreadable: as printed."
           }
         },
         "type": "object",
@@ -13168,8 +13248,7 @@
               "type": "string"
             },
             "type": "array",
-            "title": "Remove",
-            "description": "Fields to stop returning"
+            "title": "Remove"
           }
         },
         "type": "object",
@@ -13590,6 +13669,131 @@
         "type": "object",
         "title": "RunAppToolRequest"
       },
+      "RunChangesResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "skill_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Slug"
+          },
+          "since_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since Run Id"
+          },
+          "first_run": {
+            "type": "boolean",
+            "title": "First Run",
+            "default": false
+          },
+          "key_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Fields"
+          },
+          "key_automatic": {
+            "type": "boolean",
+            "title": "Key Automatic",
+            "default": true
+          },
+          "watch": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watch"
+          },
+          "delivery": {
+            "type": "string",
+            "title": "Delivery",
+            "default": "all"
+          },
+          "rows_total": {
+            "type": "integer",
+            "title": "Rows Total",
+            "default": 0
+          },
+          "new": {
+            "type": "integer",
+            "title": "New",
+            "default": 0
+          },
+          "changed": {
+            "type": "integer",
+            "title": "Changed",
+            "default": 0
+          },
+          "removed": {
+            "type": "integer",
+            "title": "Removed",
+            "default": 0
+          },
+          "unchanged": {
+            "type": "integer",
+            "title": "Unchanged",
+            "default": 0
+          },
+          "new_rows": {
+            "items": {},
+            "type": "array",
+            "title": "New Rows"
+          },
+          "changed_rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Changed Rows"
+          },
+          "removed_rows": {
+            "items": {},
+            "type": "array",
+            "title": "Removed Rows"
+          },
+          "removed_truncated": {
+            "type": "boolean",
+            "title": "Removed Truncated",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status"
+        ],
+        "title": "RunChangesResponse",
+        "description": "GET /v1/runs/{run_id}/changes: every row that is new, changed or gone since the run it\nwas compared with. Rows are matched on ``key_fields``; a changed row carries\n``fields: {name: {before, after}}`` (only ``watch`` fields count, when set)."
+      },
       "RunCode": {
         "properties": {
           "code": {
@@ -13757,32 +13961,11 @@
           },
           "type_notes": {
             "items": {
-              "type": "object",
-              "properties": {
-                "field": {
-                  "type": "string",
-                  "description": "The output field."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "Its type."
-                },
-                "count": {
-                  "type": "integer",
-                  "description": "How many of its values could not be read as that type."
-                },
-                "examples": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "description": "Up to 3 of them, as printed."
-                }
-              }
+              "additionalProperties": true,
+              "type": "object"
             },
             "type": "array",
-            "title": "Type Notes",
-            "description": "Values of typed output fields that could not be read as their type. They are kept in the rows as printed; each entry names the field, its type, how many values and up to 3 examples."
+            "title": "Type Notes"
           },
           "triage_kind": {
             "anyOf": [
@@ -13917,6 +14100,18 @@
               }
             ],
             "title": "Why Failed"
+          },
+          "changes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changes"
           }
         },
         "type": "object",
@@ -14057,6 +14252,67 @@
       },
       "SchedulePatchBody": {
         "properties": {
+          "delivery": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "new",
+                  "changes"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery",
+            "description": "Rows each run's result carries: all (default), new, or changes (new + changed)"
+          },
+          "notify_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "every_run",
+                  "changes",
+                  "never"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify On",
+            "description": "When to send the webhook and tell you: every_run (default), changes, never"
+          },
+          "watch": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watch",
+            "description": "Fields whose change counts, e.g. ['price:down']; [] = every field"
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "https URL for a signed POST per notify_on; '' removes"
+          },
           "cron": {
             "anyOf": [
               {
@@ -14129,7 +14385,7 @@
         },
         "type": "object",
         "title": "SchedulePatchBody",
-        "description": "PATCH /v1/schedules/{id}: only what is sent changes. ``max_results`` is for a skill's\nschedule (rows per run); a workflow schedule refuses it."
+        "description": "PATCH /v1/schedules/{id}: only what is sent changes. ``max_results`` and the \"only\nwhat's new\" settings (delivery, notify_on, watch, webhook_url) are a skill schedule's; a\nworkflow schedule refuses them."
       },
       "ScheduleView": {
         "properties": {
@@ -14880,8 +15136,7 @@
                 "type": "null"
               }
             ],
-            "title": "Output Types",
-            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+            "title": "Output Types"
           },
           "sample_output": {
             "anyOf": [
@@ -15383,8 +15638,7 @@
               {
                 "type": "null"
               }
-            ],
-            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+            ]
           },
           "price": {
             "anyOf": [
@@ -15495,6 +15749,17 @@
               }
             ],
             "title": "Fast Path Endpoint"
+          },
+          "fast_path_detail_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Detail Endpoint"
           },
           "tiers": {
             "additionalProperties": {
@@ -15671,8 +15936,7 @@
                 "type": "null"
               }
             ],
-            "title": "Output Types",
-            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+            "title": "Output Types"
           },
           "sample_output": {
             "anyOf": [
@@ -16174,8 +16438,7 @@
               {
                 "type": "null"
               }
-            ],
-            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+            ]
           },
           "price": {
             "anyOf": [
@@ -16287,6 +16550,17 @@
             ],
             "title": "Fast Path Endpoint"
           },
+          "fast_path_detail_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Detail Endpoint"
+          },
           "tiers": {
             "additionalProperties": {
               "additionalProperties": true,
@@ -16335,7 +16609,7 @@
           "status": {
             "type": "string",
             "title": "Status",
-            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
+            "description": "queued (waiting for a free browser; queue_position says how many are ahead) | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
           },
           "status_url": {
             "type": "string",
@@ -16374,35 +16648,6 @@
             ],
             "title": "Progress",
             "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
-          },
-          "browser": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "cloud",
-                  "extension"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Browser",
-            "description": "Where it records: cloud (a Valendata cloud browser) or extension (your own Chrome). null until it starts."
-          },
-          "queue_position": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Queue Position",
-            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it. null once it starts, and when it is not waiting."
           },
           "skill_id": {
             "anyOf": [
@@ -16502,6 +16747,66 @@
             "title": "Credits Charged",
             "description": "Credits spent on this creation so far, exact to 0.01.",
             "default": 0
+          },
+          "browser": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser",
+            "description": "The browser it records on: cloud (our cloud browser) or extension (your own Chrome). Null until it starts, and for a skill built on the site's API."
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "How the saved skill reads the site: api (the site's public API — no browser, exact values, about a second per run) or browser (a browser recording). Null until a skill is saved."
+          },
+          "api_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Endpoint",
+            "description": "For source api: the API endpoint it reads (host + path)."
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note",
+            "description": "For source browser: why it was not built on an open API (what the search for one found)."
+          },
+          "queue_position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Position",
+            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it — 0 means it is next. Null otherwise."
           },
           "sample_rows": {
             "anyOf": [
@@ -16648,7 +16953,7 @@
           "status": {
             "type": "string",
             "title": "Status",
-            "description": "queued | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
+            "description": "queued (waiting for a free browser; queue_position says how many are ahead) | recording | validating (in progress) | ready (run run_url) | needs_fix (the recording was saved as a draft skill but its test replay did not pass — fix it with POST /v1/skills/{slug}/improve) | failed (nothing was saved; error says why) | cancelled (stopped by you while it recorded; nothing was saved)."
           },
           "status_url": {
             "type": "string",
@@ -16687,75 +16992,6 @@
             ],
             "title": "Progress",
             "description": "The latest progress line in plain words, e.g. 'Step 4: type the search and press Enter'. Changes every few seconds while the creation runs."
-          },
-          "browser": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "cloud",
-                  "extension"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Browser",
-            "description": "Where it records: cloud (a Valendata cloud browser) or extension (your own Chrome). null until it starts, and for a skill built on the site's open API."
-          },
-          "queue_position": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Queue Position",
-            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it. null once it starts, and when it is not waiting."
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "api",
-                  "browser"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source",
-            "description": "How the saved skill reads the site: api (the site's open API — no browser, exact values) or browser (a browser recording). null until a skill is saved."
-          },
-          "api_endpoint": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Api Endpoint",
-            "description": "For source api: the API endpoint it reads, host and path, e.g. gamma-api.polymarket.com/markets."
-          },
-          "source_note": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source Note",
-            "description": "For source browser: why it was not built on an open API (what the search for one found)."
           },
           "skill_id": {
             "anyOf": [
@@ -16855,6 +17091,66 @@
             "title": "Credits Charged",
             "description": "Credits spent on this creation so far, exact to 0.01.",
             "default": 0
+          },
+          "browser": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser",
+            "description": "The browser it records on: cloud (our cloud browser) or extension (your own Chrome). Null until it starts, and for a skill built on the site's API."
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "How the saved skill reads the site: api (the site's public API — no browser, exact values, about a second per run) or browser (a browser recording). Null until a skill is saved."
+          },
+          "api_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Endpoint",
+            "description": "For source api: the API endpoint it reads (host + path)."
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note",
+            "description": "For source browser: why it was not built on an open API (what the search for one found)."
+          },
+          "queue_position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Position",
+            "description": "While it waits for a free browser (status queued): how many of your creations are ahead of it — 0 means it is next. Null otherwise."
           },
           "sample_rows": {
             "anyOf": [
@@ -17123,8 +17419,7 @@
                 "type": "null"
               }
             ],
-            "title": "Output Types",
-            "description": "Each typed output field and its type: string, number, integer, boolean, date, datetime, url, price, chance, percent, count, duration, array or object. null on a skill made before types: its fields come back as they always have until a field is retyped."
+            "title": "Output Types"
           },
           "sample_output": {
             "anyOf": [
@@ -17626,8 +17921,7 @@
               {
                 "type": "null"
               }
-            ],
-            "description": "Every input the skill can take, worked out on its own when it is created or changed, each `on` or off. Shown to the skill's owner and workspace only; null for anyone else."
+            ]
           },
           "price": {
             "anyOf": [
@@ -17739,6 +18033,17 @@
             ],
             "title": "Fast Path Endpoint"
           },
+          "fast_path_detail_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fast Path Detail Endpoint"
+          },
           "tiers": {
             "additionalProperties": {
               "additionalProperties": true,
@@ -17770,6 +18075,21 @@
             },
             "type": "array",
             "title": "Warnings"
+          },
+          "row_key": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Key",
+            "description": "Fields rows are matched on; null = automatic"
           }
         },
         "type": "object",
@@ -18417,7 +18737,8 @@
             "type": "string",
             "enum": [
               "active",
-              "draft"
+              "draft",
+              "archived"
             ],
             "title": "Status"
           },
@@ -18651,6 +18972,18 @@
             ],
             "title": "Name"
           },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug",
+            "description": "New slug; the old one still works"
+          },
           "description": {
             "anyOf": [
               {
@@ -18707,7 +19040,7 @@
               }
             ],
             "title": "Default Max Results",
-            "description": "Rows a run returns when the caller does not say; 0 = all"
+            "description": "Default rows per run; 0 = all"
           },
           "browser_type": {
             "anyOf": [
@@ -18719,7 +19052,7 @@
               }
             ],
             "title": "Browser Type",
-            "description": "'remote' | 'extension' | 'none'; '' clears it"
+            "description": "remote | extension | none; '' clears it"
           },
           "proxy_config": {
             "anyOf": [
@@ -18731,7 +19064,7 @@
               }
             ],
             "title": "Proxy Config",
-            "description": "'identity', 'residential', 'residential:<cc>', a country code, 'random' or 'none'; null, '' or 'automatic' = automatic"
+            "description": "identity | residential[:<cc>] | <cc> | random | none; '' = automatic"
           },
           "profile_id": {
             "anyOf": [
@@ -18743,7 +19076,7 @@
               }
             ],
             "title": "Profile Id",
-            "description": "The owner's browser profile id; '' removes it"
+            "description": "Owner's browser profile; '' removes it"
           },
           "scrape_mode": {
             "anyOf": [
@@ -18755,7 +19088,7 @@
               }
             ],
             "title": "Scrape Mode",
-            "description": "'deep' | 'flash'; '' clears it"
+            "description": "deep | flash; '' clears it"
           },
           "data_retention_days": {
             "anyOf": [
@@ -18780,7 +19113,7 @@
               }
             ],
             "title": "Engine Auto Upgrade",
-            "description": "Allow automatic engine upgrades (default true)"
+            "description": "Automatic engine upgrades (default true)"
           },
           "login_id": {
             "anyOf": [
@@ -18792,7 +19125,7 @@
               }
             ],
             "title": "Login Id",
-            "description": "The owner's saved login; null or '' removes it (needs the logins:write scope)"
+            "description": "Owner's saved login; '' removes it (logins:write)"
           },
           "visibility": {
             "anyOf": [
@@ -18808,7 +19141,7 @@
               }
             ],
             "title": "Visibility",
-            "description": "private: only you. workspace: shared with a team workspace (owner only)"
+            "description": "workspace: shared with a team (owner only)"
           },
           "workspace_id": {
             "anyOf": [
@@ -18820,7 +19153,34 @@
               }
             ],
             "title": "Workspace Id",
-            "description": "With visibility=workspace: which team workspace (needed when you are in several)"
+            "description": "With visibility=workspace, if in several"
+          },
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived",
+            "description": "true archives (still runs); false restores"
+          },
+          "row_key": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Key",
+            "description": "Fields that identify a row; [] = auto"
           }
         },
         "type": "object",
@@ -19220,6 +19580,18 @@
           "run_url": {
             "type": "string",
             "title": "Run Url"
+          },
+          "changes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changes"
           }
         },
         "type": "object",
@@ -19348,6 +19720,52 @@
               }
             ],
             "title": "Last Run At"
+          },
+          "delivery": {
+            "type": "string",
+            "title": "Delivery",
+            "description": "Rows each run's result carries: all | new | changes",
+            "default": "all"
+          },
+          "notify_on": {
+            "type": "string",
+            "title": "Notify On",
+            "description": "When the webhook / notice goes: every_run | changes | never",
+            "default": "every_run"
+          },
+          "watch": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Watch",
+            "description": "Fields whose change counts ([] = every field)"
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url"
+          },
+          "row_key": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Key",
+            "description": "Fields rows are matched on; null = automatic"
           }
         },
         "type": "object",
@@ -19366,6 +19784,67 @@
       },
       "SkillScheduleCreate": {
         "properties": {
+          "delivery": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "new",
+                  "changes"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery",
+            "description": "Rows each run's result carries: all (default), new, or changes (new + changed)"
+          },
+          "notify_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "every_run",
+                  "changes",
+                  "never"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify On",
+            "description": "When to send the webhook and tell you: every_run (default), changes, never"
+          },
+          "watch": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watch",
+            "description": "Fields whose change counts, e.g. ['price:down']; [] = every field"
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "https URL for a signed POST per notify_on; '' removes"
+          },
           "cron": {
             "anyOf": [
               {
@@ -19903,6 +20382,45 @@
             ],
             "title": "Version",
             "description": "Recipe version to replay (GET /v1/skills/{slug}/versions). Omit for the pinned or live one."
+          },
+          "changes_since": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changes Since",
+            "description": "'last' or a run id: compare this run's rows with that run's (the previous run with the same inputs, for 'last'). The result carries changes {new, changed, removed}."
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery",
+            "description": "With changes_since: all (default) | new | changes (new + changed rows only)."
+          },
+          "watch": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watch",
+            "description": "With changes_since: fields whose change counts, e.g. ['price:down']. Default every field."
           },
           "max_age": {
             "anyOf": [

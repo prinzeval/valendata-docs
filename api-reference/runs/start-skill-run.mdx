@@ -11,3 +11,17 @@ A public marketplace skill that is not yours returns `403` `clone_required` and 
 The rows are not in this response. Read [Get a run](/api-reference/runs/get) until `status` is no longer `queued` or `running`, or set `webhook_url` to have the finished run sent to you. See [Webhooks](/api-reference/webhooks/overview). Send an `Idempotency-Key` to make retries safe.
 
 Send `max_age` to accept an earlier answer with the same inputs. If one is used, this returns `202` with `status: "success"` and `cached: true`, and the run is already finished when you read it. No webhook is sent for it. See [Cached answers](/api-reference/runs/run-skill#cached-answers).
+
+## Only what's new
+
+Compare this run's rows with an earlier run's:
+
+- `changes_since`: `last` (the previous successful run of this skill with the same inputs) or the id of a run of the same skill.
+- `delivery`: `all` (default), `new` (only new rows), or `changes` (new and changed rows).
+- `watch`: the fields whose change counts, such as `["price:down"]`.
+
+`delivery` or `watch` without `changes_since` returns `422`. A comparing run always runs: `max_age` is ignored.
+
+The finished run carries `changes`: the counts of new, changed, removed, and unchanged rows, the `key_fields` rows were matched on, and a few examples. With `delivery` `new` or `changes`, `rows` holds only those rows and `count` is their number. `changes.rows_total` is the full count. For every changed row, call [Get a run's changes](/api-reference/runs/get-changes).
+
+How rows are matched and which fields are compared is in [Only what's new](/guides/schedule#only-whats-new).

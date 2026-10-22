@@ -29,7 +29,7 @@ The assistant only sees the tools its connection's scopes allow. A default assis
 | `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
 | `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
 
-`get_skill` lists the skill's [available inputs](/concepts/skills#available-inputs) in its text, each with how it acts and whether it is on, for example `Available inputs: department (filter, off), q (request, on).` To turn one on, the assistant sends that entry from `available_inputs` in `update_skill`'s `inputs.add`; to turn it off, its name in `inputs.remove`. `update_skill` also changes an output field's type with `outputs.update`. See [Update a skill](/api-reference/skills/update#inputs).
+`get_skill` lists the skill's [available inputs](/concepts/skills#available-inputs) in its text, each with how it acts and whether it is on, for example `Available inputs: department (filter, off), q (request, on).` To turn one on, the assistant sends that entry from `available_inputs` in `update_skill`'s `inputs.add`; to turn it off, its name in `inputs.remove`. `update_skill` also changes an output field's type with `outputs.update`, and sets `row_key`, the fields that tell rows apart when runs are compared (see [Only what's new](/guides/schedule#only-whats-new)). See [Update a skill](/api-reference/skills/update#inputs).
 
 Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
 
@@ -42,12 +42,12 @@ Every skill you can run is its own tool, named `skill_` plus its slug. A skill w
 Each tool has:
 
 - **A description**: what the skill does, a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one), and what a run usually costs, for example "About 6 credits (\$0.06) per run." See [Price](/api-reference/skills/get#price).
-- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `max_age`, `detail`, and `fields` (see [Run results](#run-results)).
+- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `max_age`, `detail`, `fields`, `changes_since`, `delivery`, and `watch` (see [Run results](#run-results)).
 - **An output schema**: the row shape, so the assistant can rely on field names.
 
 Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill), with the wait described in [Run results](#run-results). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
 
-`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `max_age`, `detail`, `fields`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
+`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `max_age`, `detail`, `fields`, `changes_since`, `delivery`, `watch`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
 
 `run_skill` does not run a public marketplace skill you have not cloned. It answers `not_found` with `'<slug>' is a public marketplace skill you have not cloned. Clone it first with clone_skill(slug="<slug>"), then run the copy's slug.` and `next_step` set to `clone_skill(slug="<slug>")`.
 
@@ -99,7 +99,7 @@ Your skills grouped by website, each one an endpoint you call by name. What they
 | --- | --- | --- | --- |
 | `list_skill_runs` | `skill`, optional `status`, `since`, `limit`, `cursor` | `runs:read` | [List skill runs](/api-reference/runs/list-skill-runs) |
 | `list_workflow_runs` | `slug`, optional `status`, `source`, `since`, `until`, `limit`, `cursor` | `workflows:read` | [List workflow runs](/api-reference/runs/list-workflow-runs) |
-| `get_run` | `run_id` (skill or workflow run), optional `offset`, `limit`, `fields`, `detail` | `runs:read` (skill run) or `workflows:read` (workflow run) | [Get a run](/api-reference/runs/get) |
+| `get_run` | `run_id` (skill or workflow run), optional `offset`, `limit`, `fields`, `detail`, `changes` | `runs:read` (skill run) or `workflows:read` (workflow run) | [Get a run](/api-reference/runs/get) |
 | `cancel_run` | `run_id` | `skills:invoke` or `workflows:invoke` | [Cancel a run](/api-reference/runs/cancel) |
 
 `get_run_status` and `list_recent_runs` are gone. Use `get_run` for any run, and `list_skill_runs` or `list_workflow_runs` to list them.
@@ -123,6 +123,12 @@ All four run tools take an optional `idempotency_key` (1–255 characters). Call
 ### Reuse a recent answer: `max_age`
 
 Skill tools and `run_skill` take an optional `max_age` (seconds, 0–86400). When you ran the same skill with the same inputs within that time, the run is answered at once from that run's rows, for a share of the price. Leave it out to always run. See [Cached answers](/api-reference/runs/run-skill#cached-answers).
+
+### Only what's new
+
+Skill tools and `run_skill` take `changes_since` (`last` or a run id), `delivery` (`all`, `new`, or `changes`), and `watch` (such as `["price:down"]`), as on [Start a skill run](/api-reference/runs/start-skill-run#only-whats-new). The answer and `get_run` then carry `changes`, and `get_run`'s text says, for example, "Changes: 3 new, 1 changed, 0 removed since run_x." `get_run` with `changes: true` returns every new, changed, and removed row, as [Get a run's changes](/api-reference/runs/get-changes) does.
+
+For a schedule, `schedule_skill` and `update_schedule` take `delivery`, `notify_on`, `watch`, and `webhook_url`. Ask in plain words, such as "tell me when a new Bayse market opens". See [Only what's new](/guides/schedule#only-whats-new).
 
 ### What a skill run answers
 
@@ -178,9 +184,9 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_schedules` | optional `kind` (`skill` or `workflow`), `workflow` | `skills:read` / `workflows:read` | [List schedules](/api-reference/schedules/list) |
-| `schedule_skill` | `skill`, `cron` or `every`, optional `timezone`, `inputs`, `max_results`, `enabled` | `skills:write` | [Schedule a skill](/api-reference/schedules/create-skill-schedule) |
+| `schedule_skill` | `skill`, `cron` or `every`, optional `timezone`, `inputs`, `max_results`, `enabled`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` | [Schedule a skill](/api-reference/schedules/create-skill-schedule) |
 | `schedule_workflow` | `slug`, `cron` or `every`, optional `timezone`, `inputs`, `enabled` | `workflows:write` (+ `workflows:invoke` to switch on) | [Schedule a workflow](/api-reference/schedules/create-workflow-schedule) |
-| `update_schedule` | `schedule_id`, optional `cron`, `every`, `timezone`, `inputs`, `enabled` | `skills:write` / `workflows:write` | [Update a schedule](/api-reference/schedules/update) |
+| `update_schedule` | `schedule_id`, optional `cron`, `every`, `timezone`, `inputs`, `enabled`, and for a skill schedule `max_results`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` / `workflows:write` | [Update a schedule](/api-reference/schedules/update) |
 | `delete_schedule` | `schedule_id` | `skills:write` / `workflows:write` | [Delete a schedule](/api-reference/schedules/delete) |
 
 ## Workflows

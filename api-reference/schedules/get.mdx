@@ -4,4 +4,6 @@ description: "One schedule, skill or workflow."
 openapi: "GET /v1/schedules/{schedule_id}"
 ---
 
+A skill schedule also shows `delivery`, `notify_on`, `watch`, `webhook_url`, and the skill's `row_key` (`null` means automatic). See [Only what's new](/guides/schedule#only-whats-new).
+
 Needs `skills:read` for a skill schedule (`sklsch_…`), `workflows:read` for a workflow schedule (`wfsch_…`).

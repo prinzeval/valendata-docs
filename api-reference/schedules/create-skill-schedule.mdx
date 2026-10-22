@@ -11,6 +11,15 @@ Give exactly one of:
 
 Also: `timezone` (an IANA name, default `UTC`), `inputs` for every run (checked now), `max_results` (rows per run, default 100, `0` for all), and `enabled` (default `true`).
 
+Each run is compared with the previous one. These choose what it sends and when it tells you:
+
+- `delivery`: `all` (default), `new`, or `changes` (new and changed rows).
+- `notify_on`: `every_run` (default), `changes`, or `never`.
+- `watch`: up to 20 fields whose change counts, such as `["price:down"]`.
+- `webhook_url`: a public `http` or `https` URL that gets a signed `POST`.
+
+What each one does, with examples, is in [Only what's new](/guides/schedule#only-whats-new). The schedule you get back shows them, plus the skill's `row_key` (`null` means automatic).
+
 A skill has one schedule. If it already has one you get `409` with its id: change it with [Update a schedule](/api-reference/schedules/update). Each scheduled run spends the owner's credits.
 
 Owner or workspace editor. Needs `skills:write`. MCP tool: `schedule_skill`.

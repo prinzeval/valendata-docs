@@ -27,6 +27,7 @@ No `{/* reconcile */}` markers remain. Re-check a row here when its route change
 | api-reference/runs/start-workflow-run.mdx | POST /v1/workflows/{slug}/runs | workflows/api/router.py |
 | api-reference/runs/list-workflow-runs.mdx | GET /v1/workflows/{slug}/runs (status, source, since, until, limit 25, cursor) | workflows/api/run_list.py |
 | api-reference/runs/get.mdx | GET /v1/runs/{run_id} (skill `run_…` or workflow) | async_runs/router.py, run_dispatch.py |
+| api-reference/runs/get-changes.mdx, guides/schedule.mdx#only-whats-new | GET /v1/runs/{run_id}/changes (runs:read; 404 when not compared); `changes` on GET /v1/runs/{run_id}, GET /v1/skills/{slug}/runs, POST /v1/skills/{slug}/run(s) (`changes_since`, `delivery`, `watch`); schedule `delivery`, `notify_on`, `watch`, `webhook_url`, `row_key`; PATCH /v1/skills/{slug} `row_key`; schedule webhook `event`, `schedule_id` | published_skills/changes/* (options.py, identity.py, notify.py, view.py), async_runs/router.py, async_runs/schemas.py, manage/edit.py, manage/schedules/store.py, api/v1_schedules.py, mcp/change_args.py, mcp/schedule_args.py, mcp/run_schedule_tools.py |
 | api-reference/runs/cancel.mdx | POST /v1/runs/{run_id}/cancel | manage/router.py, run_dispatch.py |
 | api-reference/runs/send-code.mdx | POST /v1/runs/{run_id}/otp | logins/router.py |
 | api-reference/versions/*.mdx | /v1/skills/{slug}/versions…, /pin | recipe_versions/router.py |
