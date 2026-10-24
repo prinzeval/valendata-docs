@@ -1,0 +1,141 @@
+---
+title: "Switch from Apify in one line"
+description: "Point apify-client, n8n or Make at Valendata by changing the base URL and the token. Popular actors run on Valendata skills and answer with the same field names."
+---
+
+Valendata answers Apify's REST API (v2) under `https://api.valendata.com/apify`. Code that uses `apify-client`, and HTTP calls from n8n or Make, keep working when you change two things:
+
+- the **base URL**, to `https://api.valendata.com/apify`;
+- the **token**, to a Valendata [API key](/account/api-keys) (`vd_sk_...`).
+
+An actor is a Valendata [skill](/concepts/skills): yours by its slug, or one of the [popular Apify actors](#actors-that-run-on-valendata) below, which take Apify's input and return Apify's field names. A run is a Valendata [run](/concepts/runs), and its dataset is that run's rows.
+
+## Python
+
+```python
+from apify_client import ApifyClient
+
+client = ApifyClient(token="vd_sk_...", api_url="https://api.valendata.com/apify")
+
+run = client.actor("compass/crawler-google-places").call(run_input={
+    "searchStringsArray": ["dentist"],
+    "locationQuery": "Austin, TX",
+    "maxCrawledPlacesPerSearch": 5,
+})
+for place in client.dataset(run.default_dataset_id).list_items().items:
+    print(place["title"], place["totalScore"], place["phone"])
+```
+
+`apify-client` adds `/v2` to `api_url` itself.
+
+## JavaScript
+
+```javascript
+import { ApifyClient } from "apify-client";
+
+const client = new ApifyClient({
+  token: "vd_sk_...",
+  baseUrl: "https://api.valendata.com/apify",
+});
+
+const run = await client.actor("compass/crawler-google-places").call({
+  searchStringsArray: ["dentist"],
+  locationQuery: "Austin, TX",
+  maxCrawledPlacesPerSearch: 5,
+});
+const { items } = await client.dataset(run.defaultDatasetId).listItems();
+```
+
+## n8n, Make and plain HTTP
+
+Use an HTTP Request step. The most common call runs an actor and answers with its items in one request:
+
+```bash
+curl -X POST "https://api.valendata.com/apify/v2/acts/compass~crawler-google-places/run-sync-get-dataset-items?token=vd_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"searchStringsArray": ["dentist"], "locationQuery": "Austin, TX", "maxCrawledPlacesPerSearch": 5}'
+```
+
+The token works as `?token=` or as `Authorization: Bearer vd_sk_...`. Write the actor as `username~name` in a URL; a `/` there would split the path.
+
+## Run one of your own skills
+
+Use the skill's slug as the actor id. The run input is the skill's inputs, by their names.
+
+```python
+run = client.actor("my-skill-slug").call(run_input={"city": "Austin"}, max_items=50)
+```
+
+`GET /apify/v2/acts` lists the actors you can run: the ones below, then your skills.
+
+## Actors that run on Valendata
+
+| Apify actor | Runs on | Input it reads | Fields it returns |
+| --- | --- | --- | --- |
+| `compass/crawler-google-places` (Google Maps Scraper) | A Google Maps skill | `searchStringsArray` (one term), `locationQuery`, `maxCrawledPlacesPerSearch` | `title`, `totalScore`, `reviewsCount`, `address`, `street`, `phone`, `phoneUnformatted`, `url`, `placeId`, `cid`, `fid`, `location` (`lat`, `lng`), `searchString`, `rank`, `scrapedAt` |
+| `junglee/amazon-crawler` (Amazon Product Scraper) | An Amazon search skill | `categoryOrProductUrls` (Amazon search URLs), `maxItemsPerStartUrl` | `title`, `url`, `asin`, `price` (`value`, `currency`), `stars` |
+| `vdrmota/contact-info-scraper` (Contact Details Scraper) | Valendata's contact finder | `startUrls` | `url`, `domain`, `emails`, `phones`, `linkedIns`, `twitters`, `instagrams`, `facebooks`, `youtubes`, `tiktoks` and the other profile lists |
+| `apify/website-content-crawler` | The [universal web API](/api-reference/web-api) crawl | `startUrls`, `maxCrawlPages`, `maxCrawlDepth`, `includeUrlGlobs`, `excludeUrlGlobs`, `saveHtml` | `url`, `crawl`, `metadata` (`title`, `description`, `languageCode`), `text`, `markdown` |
+| `apify/google-search-scraper` | The universal web API search | `queries` (one per line), `resultsPerPage` | `searchQuery`, `organicResults` (`title`, `url`, `displayedUrl`, `description`, `position`) |
+
+Fields an actor returns on Apify that the Valendata skill does not read, such as a place's `website` or `categoryName`, are present and `null`. Nothing is guessed.
+
+Some inputs are not supported yet, and the run is refused with a `400` that says what to send instead:
+
+- Google Maps: one search term per run (start one run per term), and no Maps URLs or place ids as input.
+- Amazon: search URLs or search words, not product pages.
+
+A website crawl without `maxCrawlPages` reads at most 100 pages.
+
+Any other actor answers `404` until it is on Valendata. Bring it over with [`POST /v1/import/apify`](#import-an-actor), or [create a skill](/guides/create-a-skill) that does the same.
+
+## Endpoints
+
+All paths are under `https://api.valendata.com/apify`. Answers use Apify's shapes: objects inside `{"data": ...}`, and errors as `{"error": {"type", "message"}}`.
+
+| Endpoint | What it does |
+| --- | --- |
+| `POST /v2/acts/{actorId}/runs` | Start a run. `waitForFinish` waits up to 60 seconds. |
+| `POST /v2/acts/{actorId}/run-sync-get-dataset-items` | Run and answer with the items. |
+| `POST /v2/acts/{actorId}/run-sync` | Run and answer with the `OUTPUT` record (the items). |
+| `GET /v2/actor-runs/{runId}` | The run. `waitForFinish` waits up to 60 seconds. |
+| `POST /v2/actor-runs/{runId}/abort` | Stop the run. |
+| `GET /v2/actor-runs/{runId}/dataset/items` | The run's items. |
+| `GET /v2/actor-runs/{runId}/log` | A short log of the run. |
+| `GET /v2/datasets/{datasetId}` and `/items` | The dataset id is the run id. |
+| `GET /v2/key-value-stores/{storeId}/records/{key}` | `INPUT` and `OUTPUT` of a run. The store id is the run id. |
+| `GET /v2/acts`, `GET /v2/acts/{actorId}` | The actors you can run. |
+| `GET /v2/users/me` | Who the key belongs to. |
+
+`/v2/actors/...` answers the same as `/v2/acts/...`.
+
+Items accept `format` (`json`, `jsonl`, `csv`, `xlsx`), `offset`, `limit`, `desc`, `fields`, `omit`, `clean`, `skipEmpty`, `skipHidden`, `flatten`, `attachment`, `bom`, `delimiter` and `skipHeaderRow`. Paging is in the `X-Apify-Pagination-*` headers.
+
+The run-sync calls wait up to 15 minutes. A run still going then answers `408`; it keeps running, and you can read it later by its id. A run that failed answers `400` with the reason.
+
+Run statuses are Apify's: `READY`, `RUNNING`, `SUCCEEDED`, `FAILED`, `ABORTING`, `ABORTED`. A run that returned some rows with a note counts as `SUCCEEDED`.
+
+## Cost
+
+Each run costs what the skill or service behind it costs on Valendata, and `usageTotalUsd` is that amount in dollars (credits × $0.01). See [credits](/concepts/credits).
+
+`maxTotalChargeUsd` caps a run: Valendata turns it into a row limit from what a row has cost on that skill's recent runs. A cap below a run's least price is refused with `402` before anything runs. A run is refused with `402` when your balance cannot pay to start it.
+
+`memory`, `timeout` and `build` are accepted and shown on the run, but they do not change how a skill runs.
+
+## Webhooks
+
+Ad-hoc webhooks work as on Apify: pass `webhooks` (base64-encoded JSON) when you start a run. Valendata sends `ACTOR.RUN.CREATED`, `ACTOR.RUN.SUCCEEDED`, `ACTOR.RUN.FAILED`, `ACTOR.RUN.ABORTED` and `ACTOR.RUN.TIMED_OUT`, with Apify's default body (`userId`, `createdAt`, `eventType`, `eventData`, `resource`) or your `payloadTemplate`. Each delivery is signed with `X-Valendata-Signature`, like every [Valendata webhook](/api-reference/runs/start-skill-run).
+
+## Import an actor
+
+`POST /v1/import/apify` takes the actor's apify.com URL or id, and the input you use today:
+
+```bash
+curl -X POST https://api.valendata.com/v1/import/apify \
+  -H "Authorization: Bearer vd_sk_..." -H "Content-Type: application/json" \
+  -d '{"actor_url_or_id": "https://apify.com/epctex/realtor-scraper"}'
+```
+
+- If the actor already runs on Valendata, the answer has `kind: "alias"` and the equivalent calls, with your input translated. Nothing is created.
+- Otherwise a skill is created from the actor's public description, with its output fields as the new skill's columns. The answer has `kind: "creation"` and a `status_url` to poll, as with [creating a skill](/guides/create-a-skill), and it costs the same. Pass `start_url` when the input names no page.

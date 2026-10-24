@@ -139,6 +139,7 @@ A `429` because too many runs are in progress has a `Retry-After` header, and `d
 | `method_not_allowed` | `405` | Wrong method for this route. |
 | `conflict` | `409` | The current state does not allow it. |
 | `app_not_connected` | `409` | The connected app is not connected, or its connection expired. `detail.connect_url` connects it. |
+| `cloud_browser_paused` | `409` | The run needs the cloud browser, which is paused right now. Nothing was charged. Send `browser_type` `extension` to run it in your own Chrome. |
 | `idempotency_key_in_use` | `409` | The first request with this key is still running. |
 | `idempotent_replay_unavailable` | `409` | The first request with this key succeeded, but its answer was too large to keep. `detail` names what it started. |
 | `validation_error` | `422` | A field or input is invalid. |

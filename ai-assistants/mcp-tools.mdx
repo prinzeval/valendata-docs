@@ -195,10 +195,11 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 | --- | --- | --- | --- |
 | `list_workflows` | optional `q`, `limit`, `cursor` | `workflows:read` | [List workflows](/api-reference/workflows/list) |
 | `get_workflow` | `slug`, optional `include_graph` (default `true`). A public workflow that is not yours never includes its steps. | `workflows:read` | [Get a workflow](/api-reference/workflows/get) |
-| `clone_workflow` | `slug` | `workflows:invoke` or `workflows:write` | [Clone a workflow](/api-reference/workflows/clone) |
+| `clone_workflow` | `slug`, optional `inputs`, `schedule`, `destinations`, `preview` (default `false`) | `workflows:invoke` or `workflows:write` (a `schedule` needs `workflows:write`) | [Clone a workflow](/api-reference/workflows/clone) |
 | `create_workflow` | `name`, optional `description`, `inputs`, `steps`, `connections`, `workspace_id` | `workflows:write` | [Create a workflow](/api-reference/workflows/create) |
 | `update_workflow` | `slug`, optional `name`, `description`, `inputs`, `steps`, `connections` | `workflows:write` | [Update a workflow](/api-reference/workflows/update) |
 | `delete_workflow` | `slug` | `workflows:write` | [Delete a workflow](/api-reference/workflows/delete) |
+| `get_workflow_webhook` | `slug`, optional `create`, `deliveries` (0–20, default 5) | `workflows:read` (`create` and the full URL need `workflows:write`; `create` also `workflows:invoke`) | [Start a workflow from a webhook](/guides/start-from-a-webhook) |
 
 `workflows:write` is on API keys. For an assistant it is opt-in: tick "Create, edit and delete your workflows and schedules" under **Optional extra access** on the consent screen.
 

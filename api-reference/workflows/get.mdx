@@ -19,6 +19,7 @@ You can also read a public marketplace workflow that is not yours. It has `yours
 | `public_view` | Its `steps` in plain words, its `trigger`, a `sample_output` of what it returns, and what it `needs` from you. |
 | `price` | What a run usually costs, as above. |
 | `clone_url` | The route to [clone it](/api-reference/workflows/clone). |
+| `listing` | When its publisher wrote a listing: its `promise`, what it `replaces`, the `apps` it delivers to, `est_credits_per_run`, a `risk` note and its default `schedule_label`. Otherwise `null`. Use it to [set up the copy](/api-reference/workflows/clone#set-it-up-in-the-same-call). |
 
 It never shows the graph: `steps` and `connections` stay `null`, even with `include_graph=true`. The owner's saved input defaults are left out.
 

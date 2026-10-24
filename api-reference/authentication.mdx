@@ -37,6 +37,7 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 | `workflows:invoke` | Run a workflow, stop your workflow runs, and switch a workflow schedule on. | Yes | On the consent screen |
 | `workflows:write` | Create, update, and delete workflows and their schedules. | No | Opt-in: "Create, edit and delete your workflows and schedules" under **Optional extra access** |
 | `account:read` | Read your credit balance, plan, and usage. | No | Opt-in: "See your credits balance and usage" under **Optional extra access** |
+| `web:read` | Use the [universal web API](/api-reference/web-api): scrape any public page, crawl or map a site, search the web, and extract data from pages (`/v2/*` and `/v1/*`, Firecrawl-compatible). | Yes | On the consent screen |
 | `apps:read` | See the apps you can connect and the ones you did, get a connect link, list an app's tools, and run its `read` tools (your emails, events, files). See [Connected apps](/concepts/connected-apps). | No | Opt-in: "Read your connected apps" under **Optional extra access** |
 | `apps:write` | Run an app's `write` tools (send an email, post a message, delete a file) and disconnect an app. | No | Opt-in: "Act in your connected apps" under **Optional extra access** |
 | `followups:read` | List and read [follow-ups](/concepts/follow-ups) and what they found (a code, a link, a file). | No | Opt-in: "Read your follow-ups" under **Optional extra access** |

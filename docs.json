@@ -64,6 +64,8 @@
               "guides/improve-a-skill",
               "guides/build-a-workflow",
               "guides/schedule",
+              "guides/start-from-a-webhook",
+              "guides/switch-from-apify",
               "guides/use-a-saved-login",
               "guides/export-data",
               "guides/use-the-marketplace",
@@ -102,6 +104,13 @@
               "api-reference/authentication",
               "api-reference/errors",
               "api-reference/pagination-and-idempotency"
+            ]
+          },
+          {
+            "group": "Universal web API",
+            "icon": "earth-americas",
+            "pages": [
+              "api-reference/web-api"
             ]
           },
           {

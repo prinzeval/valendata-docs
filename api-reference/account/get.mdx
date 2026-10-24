@@ -8,5 +8,6 @@ openapi: "GET /v1/account"
 - `plan`: `name`, `status`, `renews`, `period_ends_at`, and `monthly_allowance`.
 - `auto_recharge`: `enabled`, `threshold`, `amount`.
 - `workspaces`: each with `id`, `name`, your `role`, and `personal`.
+- `cloud_browser`: `state` (`available` or `paused`), `reason`, and `since`. See [Where a skill runs](/concepts/skills#where-a-skill-runs).
 
 Needs `account:read`. MCP tool: `get_account`. What credits buy is on [Credits](/concepts/credits).

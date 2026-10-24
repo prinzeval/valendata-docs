@@ -1,0 +1,127 @@
+---
+title: "Start a workflow from Zapier, Make, n8n or any webhook"
+description: "Give a workflow a secret URL. Anything that can send a POST, such as Zapier, Make, n8n, a website form, Stripe, Typeform or GitHub, starts a run."
+---
+
+A workflow's **webhook** is a secret URL. Each POST to it starts one [run](/concepts/runs) of the workflow, with what was sent as its inputs. Each run uses [credits](/concepts/credits) like any other run.
+
+## In the app
+
+<Steps>
+  <Step title="Open the workflow">
+    Open it in the builder and save it. A webhook belongs to a saved workflow.
+  </Step>
+  <Step title="Open Triggers">
+    Press **⌘K** (or **Ctrl+K**), choose the **Triggers** tab, then **Webhook**.
+  </Step>
+  <Step title="Create the URL">
+    Click **Create webhook URL**. Copy the URL, or copy the example `curl` call under it and run it to try.
+  </Step>
+</Steps>
+
+The same panel shows **Recent deliveries**: when each POST arrived, the run it started and how that run went, or why nothing started. It also has **Turn off** (the URL answers `404` and starts nothing), **New URL**, **New secret** and **Remove**.
+
+## What to send
+
+Send `POST https://api.valendata.com/hooks/w/<token>` with any of these bodies:
+
+| Content-Type | How it is read |
+| --- | --- |
+| `application/json` | An object's keys are its fields. An array arrives whole. |
+| `application/x-www-form-urlencoded`, `multipart/form-data` | Each form field. A field sent several times becomes a list. An uploaded file is described by name, type and size; the file itself is not kept. |
+| Anything else, such as `text/plain` | The text, as the field `text`. |
+
+Query-string parameters count as fields too. The body wins on a clash.
+
+**Fields fill inputs by name.** A field named like one of the workflow's [inputs](/guides/build-a-workflow) fills it. Case, spaces, dashes and underscores are ignored, so `Email`, `e-mail` and `email` all fill `email`. Values are converted to the input's type: `"5"` fills an integer input.
+
+**Everything sent also arrives as `payload`.** To read a field that no input names, add an optional input named `payload` of type `object` (`array` if the sender posts a JSON array). Steps then read `{{inputs.payload.<field>}}`.
+
+```bash
+curl -X POST 'https://api.valendata.com/hooks/w/wh_your_token' \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "ada@example.com", "plan": "pro"}'
+```
+
+## The answer
+
+| Answer | Meaning |
+| --- | --- |
+| `202` `{"run_id", "status", "status_url"}` | The run started. Read it with [`GET /v1/runs/{run_id}`](/api-reference/runs/get). |
+| `200` and the finished run | You added `?wait=true` and the run ended within 30 seconds. `outputs` holds its result. `?wait=10` waits 10 seconds. |
+| `401` | A signature was missing or wrong. See [Signing](#signing). |
+| `402` | The account cannot pay for a run. |
+| `404` | No webhook at this URL, or it is turned off. |
+| `413` | The body is larger than 1 MB. |
+| `422` | The inputs do not fit the workflow. `detail.errors` says what is wrong and `detail.allowed_inputs` lists what it takes. |
+| `429` | More than 60 requests in a minute. Wait for `Retry-After` seconds. |
+
+`?wait=true` suits a tool that needs the result in the same step, such as a Zapier step. When the run takes longer than the wait, you get the `202` answer and the run keeps going.
+
+**Retries start nothing new.** Send an `Idempotency-Key` header. A POST with a key the webhook has seen before answers with the run it already started, and `idempotent_replay` is `true`. The `Webhook-Id` and `X-GitHub-Delivery` headers that some senders put on every retry work the same way.
+
+## Signing
+
+Anyone who has the URL can start runs. Keep it private. To also prove that a POST came from you, switch on **Require a signature** in the panel, or send `require_signature: true` from the API. Each POST must then carry:
+
+```
+X-Valendata-Signature: sha256=<hex HMAC-SHA256 of the raw body, keyed with the signing secret>
+```
+
+```bash
+BODY='{"email":"ada@example.com"}'
+SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$VALENDATA_WEBHOOK_SECRET" | sed 's/^.* //')
+curl -X POST 'https://api.valendata.com/hooks/w/wh_your_token' \
+  -H 'Content-Type: application/json' \
+  -H "X-Valendata-Signature: sha256=$SIG" \
+  -d "$BODY"
+```
+
+A signature is checked whenever one is sent, even when signing is not required. After **New secret**, the previous secret is still accepted for 24 hours, so you can update the sender. After **New URL**, the old URL stops working at once.
+
+## Connect a tool
+
+<AccordionGroup>
+  <Accordion title="Zapier">
+    Add the **Webhooks by Zapier** action, choose **POST**, paste the URL, and set **Payload Type** to `json` or `form`. Map your Zap's fields into **Data**, using the workflow's input names as keys. Add `?wait=true` to the URL to use the run's `outputs` in later steps.
+  </Accordion>
+  <Accordion title="Make">
+    Add the **HTTP › Make a request** module. Set the method to `POST`, paste the URL, choose a JSON body, and name its keys after the workflow's inputs.
+  </Accordion>
+  <Accordion title="n8n">
+    Add an **HTTP Request** node. Set the method to `POST`, paste the URL, and send the body as JSON with the workflow's input names as keys.
+  </Accordion>
+  <Accordion title="A website form">
+    Set the form's `action` to the URL and its `method` to `post`. Name the fields after the workflow's inputs. From JavaScript, send the body as form data or plain text. A JSON `fetch` from a browser on another site is blocked by the browser's cross-origin rules.
+  </Accordion>
+  <Accordion title="GitHub">
+    In the repository's **Settings › Webhooks**, paste the URL, choose `application/json`, and paste the webhook's signing secret into **Secret**. GitHub's `X-Hub-Signature-256` header is checked like `X-Valendata-Signature`, and `X-GitHub-Delivery` stops a redelivery from starting a second run.
+  </Accordion>
+  <Accordion title="Stripe, Typeform and others">
+    Paste the URL as the endpoint. These services sign deliveries with their own schemes, which this webhook does not check, so leave **Require a signature** off and keep the URL private. The event arrives whole as `payload`.
+  </Accordion>
+</AccordionGroup>
+
+## From the API
+
+A workflow has **one** webhook. Creating a second returns `409`.
+
+| Do this | Call |
+| --- | --- |
+| Create it | `POST /v1/workflows/{slug}/webhook` |
+| Read it | `GET /v1/workflows/{slug}/webhook` |
+| Turn it off or on, or require a signature | `PATCH /v1/workflows/{slug}/webhook` with `enabled` or `require_signature` |
+| Get a new URL or signing secret | `POST /v1/workflows/{slug}/webhook/rotate` with `{"rotate": "url"}` or `{"rotate": "secret"}` |
+| See recent deliveries | `GET /v1/workflows/{slug}/webhook/deliveries` |
+| Remove it | `DELETE /v1/workflows/{slug}/webhook` |
+
+```bash
+curl -X POST https://api.valendata.com/v1/workflows/new-signups/webhook \
+  -H "Authorization: Bearer $VALENDATA_API_KEY"
+```
+
+Reading needs `workflows:read`. The full `url` and `signing_secret` are only shown to someone who may change the workflow; others see `url_preview`. Changing needs `workflows:write`, and turning the webhook on also needs `workflows:invoke`. Deliveries are kept for 30 days.
+
+## From an AI assistant
+
+Ask it, for example "give my new-signups workflow a webhook URL". It uses `get_workflow_webhook`, with `create` to make one. See [MCP tools](/ai-assistants/mcp-tools).

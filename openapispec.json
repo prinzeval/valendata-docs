@@ -45,6 +45,10 @@
       "description": "Run skills and workflows, read any run, and cancel one."
     },
     {
+      "name": "Batches",
+      "description": "Run a skill over a list of inputs (up to 10,000), follow its progress, and get every row as JSON or CSV."
+    },
+    {
       "name": "Skill versions",
       "description": "List, compare, restore, and pin a skill's versions."
     },
@@ -86,7 +90,7 @@
     },
     {
       "name": "Webhooks",
-      "description": "The secret that signs webhook deliveries."
+      "description": "A workflow's inbound webhook URL, and the secret that signs run-finished deliveries."
     }
   ],
   "paths": {
@@ -1385,6 +1389,608 @@
         "x-mcp-tool": "read_from_app, act_in_app"
       }
     },
+    "/v1/batches": {
+      "get": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "List batches",
+        "description": "Your batches, newest first, each with its progress. `skill` keeps one skill's (its slug); `open=true` keeps the ones still `queued` or `running`. Page with `limit` (1–100) and `cursor`. Needs `runs:read`.",
+        "operationId": "list_batches",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skill",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only lists of this skill (its slug).",
+              "title": "Skill"
+            },
+            "description": "Only lists of this skill (its slug)."
+          },
+          {
+            "name": "open",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only lists still queued or running.",
+              "default": false,
+              "title": "Open"
+            },
+            "description": "Only lists still queued or running."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchList"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/batches/{batch_id}": {
+      "get": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Get a batch",
+        "description": "One batch: `status` (`queued`, `running`, then `completed`, `cancelled`, `out_of_credits` or `failed`), `counts` of its inputs by status, `done` of `total`, `rows` collected, `credits_used` so far against `estimated_credits`, and `stop_reason` when it stopped early. `rows_url` and `csv_url` have the rows. Only your own; anyone else gets 404. Needs `runs:read`.",
+        "operationId": "get_batch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/batches/{batch_id}/cancel": {
+      "post": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Cancel a batch",
+        "description": "Stop the batch: no more inputs start (they become `not_started`) and the running ones are stopped. Rows already collected are kept and the runs that ran keep their charge. The answer is the batch as it is now; `cancel_requested: true` while running inputs stop. One that already ended is left as it is. Needs `skills:invoke`.",
+        "operationId": "cancel_batch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/batches/{batch_id}/items": {
+      "get": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "List a batch's inputs",
+        "description": "Each input in list order: `index` (its position in the list you sent), `inputs`, `status` (`pending`, `running`, `success`, `partial`, `failed`, `cancelled`, `not_started`), `rows`, `error`, and `run_id` (`GET /v1/runs/{run_id}` has that run). `status` keeps one status — e.g. `failed` to see what went wrong. Page with `limit` (1–100) and `cursor`. Needs `runs:read`.",
+        "operationId": "list_batch_items",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "running",
+                    "success",
+                    "partial",
+                    "failed",
+                    "cancelled",
+                    "not_started"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only inputs with this status.",
+              "title": "Status"
+            },
+            "description": "Only inputs with this status."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page, 1–100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchItemList"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/batches/{batch_id}/rows": {
+      "get": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Get a batch's rows",
+        "description": "Every row collected so far as one result set, in list order. Each row has `_input_index` (the position of the input it came from) and `_input` (that input) before the skill's own fields. Page with `limit` (1–1,000, default 100) and `cursor`; `total_rows` counts them all. While the batch runs, later pages fill as inputs finish. Needs `runs:read`.",
+        "operationId": "get_batch_rows",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Rows per page, 1–1000.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Rows per page, 1–1000."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchRows"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "get_batch"
+      }
+    },
+    "/v1/batches/{batch_id}/rows.csv": {
+      "get": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Download a batch's rows as CSV",
+        "description": "Every row of the batch as one CSV file: `_input_index`, `_input` (the input's value when the skill takes one input, else the inputs as JSON), then the skill's fields. Needs `runs:read`.",
+        "operationId": "get_batch_rows_csv",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every row, as CSV.",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/v1/followups": {
       "post": {
         "tags": [
@@ -1921,6 +2527,98 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/import/apify": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Import an Apify actor",
+        "description": "Bring an Apify actor to Valendata. `actor_url_or_id` is its apify.com URL or id (`compass/crawler-google-places`); `input` is the run input you use today. When Valendata already answers the actor (`kind: alias`) you get the equivalent calls — `apify_compatible_call` (same input, under `/apify/v2`) and `valendata_call` (inputs translated) — and nothing is created. When you already have a skill for it, `kind: skill`. Otherwise a skill creation starts from the actor's public description, with its output fields as the new skill's columns (`kind: creation`; poll `status_url`; charged like `POST /v1/skills`). Pass `start_url` when the input names no page. Needs `skills:read` for an alias, `skills:write` to create.",
+        "operationId": "import_apify_actor",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApifyImportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApifyImportResult"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
           }
         }
       }
@@ -4902,7 +5600,7 @@
           "Skills"
         ],
         "summary": "Cancel a skill creation",
-        "description": "Stop a creation while it is `queued` or `recording`: the recording ends after the step it is on, its browser is closed and nothing is saved. Answers with the creation, now `cancelled`, and a `message`. Credits it already used are not refunded. Cancelling again answers the same. `409` once it has ended or its recording is already saved as a skill (`validating`). Only the account that started it. Needs `skills:write`.",
+        "description": "Stop a creation while it is `queued` or `recording`: the recording ends after the step it is on, its browser is closed and nothing is saved. Answers with the creation, now `cancelled`, and a `message`. Credits it already used are not given back. Cancelling again answers the same. `409` once it has ended or its recording is already saved as a skill (`validating`). Only the account that started it. Needs `skills:write`.",
         "operationId": "cancel_skill_creation",
         "security": [
           {
@@ -5290,6 +5988,91 @@
           },
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/skills/archived/delete-unused": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "summary": "Delete unused archived skills",
+        "description": "Delete every archived skill you own that nothing uses. A skill a workflow step, its schedule, an API key limited to it, or the marketplace still uses is kept: `kept` lists each with `used_by` (what uses it, in words). `deleted` lists the ones deleted. Live and draft skills, and other people's skills, are never touched. Their runs (your billing history) are kept. Cannot be undone. Pass `dry_run=true` to see what would be deleted and kept without deleting anything. A key limited to some skills only touches those. Needs `skills:write`.",
+        "operationId": "delete_unused_archived_skills",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only say what would be deleted and what kept",
+              "default": false,
+              "title": "Dry Run"
+            },
+            "description": "Only say what would be deleted and what kept"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchivedCleanup"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -5790,6 +6573,200 @@
         }
       }
     },
+    "/v1/skills/{slug}/batches": {
+      "post": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Start a batch",
+        "description": "Run the skill once per input — `inputs` is a list of 1 to 10,000 objects of its input names — in the background, `concurrency` at a time (capped at your account's limit for the skill; default half of it). Every input is checked first: one bad input refuses the list (`422`, each problem named by its position) and nothing starts. Answers `202` with the batch; poll `GET /v1/batches/{batch_id}`, or pass `webhook_url` to get the finished batch as a signed POST. `max_results_per_input` bounds each run's rows. Each input is an ordinary run, charged like one. `402` when you cannot pay for one run, or when your balance covers under half the estimate (`detail.affordable_inputs`) — set `allow_partial` to run as many as your credits allow; when the credits run out mid-list it ends `out_of_credits` and the rest are `not_started`. `409` when 5 of your lists are already running. Send an `Idempotency-Key` to make a retry safe. Needs `skills:invoke`.",
+        "operationId": "start_skill_batch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-mcp-tool": "run_skill_batch"
+      }
+    },
+    "/v1/skills/{slug}/batches/estimate": {
+      "post": {
+        "tags": [
+          "Batches"
+        ],
+        "summary": "Estimate a batch",
+        "description": "Send the same body as `POST /v1/skills/{slug}/batches`: every input is checked and the answer says what the list would cost — `credits_per_input` (the skill's typical recent run, else its base price), `estimated_credits`, your `balance`, about how many inputs it covers (`affordable_inputs`), and the `concurrency` it would run with. Nothing starts and nothing is charged. Needs `skills:invoke`.",
+        "operationId": "estimate_skill_batch",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchEstimate"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/v1/skills/{slug}/clone": {
       "post": {
         "tags": [
@@ -5955,7 +6932,7 @@
           "Improvements"
         ],
         "summary": "Talk to a skill",
-        "description": "Tell the Skill what is wrong or what you want, in plain words (`this is broken`, `why did the last run fail?`, `also get the price`). Its doctor reads its runs, steps and versions, decides, and fixes it itself when it can: re-learning steps or a field, changing its browser or proxy, restoring a version that worked, or asking you to sign in. Answers within about a minute with your message and its reply; a repair it starts carries on, is checked with a short run, and its result is posted to the chat. Repairs are charged like any run; new fields you ask for are charged as an improvement. `409` while it is still answering your previous message. Owner or workspace editor only. Needs `skills:write`.",
+        "description": "Tell the Skill what is wrong or what you want, in plain words (`this is broken`, `why did the last run fail?`, `also get the price`). Its doctor reads its runs, steps and versions, decides, and fixes it itself when it can: re-learning steps or a field, changing its browser or proxy, restoring a version that worked, or asking you to sign in. Answers within about a minute with your message and its reply; a repair it starts carries on, is checked with a short run, and its result is posted to the chat. Its repairs and test runs are charged like any improvement or run. `409` while it is still answering your previous message. Owner or workspace editor only. Needs `skills:write`.",
         "operationId": "talk_to_skill",
         "security": [
           {
@@ -7475,7 +8452,7 @@
           "Account and usage"
         ],
         "summary": "Get usage",
-        "description": "Credits spent per UTC day and per source between `from` and `to` (default the last 30 days, at most 366). Past refunds are taken off; credits given back in the past for old over-charges are reported separately in `goodwill_refunds`. Needs `account:read`.",
+        "description": "Credits spent per UTC day and per source between `from` and `to` (default the last 30 days, at most 366). Runs are never refunded; refunds from before 2026-10-23 are taken off the days they were paid, and credits given back in the past for old over-charges are reported separately in `goodwill_refunds`. Needs `account:read`.",
         "operationId": "get_usage",
         "security": [
           {
@@ -8236,13 +9213,359 @@
         }
       }
     },
+    "/v1/workflows/{slug}/app-trigger": {
+      "get": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Get a workflow's app event",
+        "operationId": "get_workflow_app_trigger",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTriggerAnswer"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "The app event the workflow starts on (`app_trigger`: the app, the event, its `config`, on or off, when the last event came and the last error), or `null` when it has none, and `events_ready` (`false`: this server does not receive app events yet). Needs `workflows:read`.",
+        "x-mcp-tool": "get_workflow"
+      },
+      "put": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Start a workflow on an app event",
+        "operationId": "set_workflow_app_trigger",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTriggerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTriggerView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        },
+        "description": "Start the workflow each time something happens in one of your connected apps: `app` (e.g. `gmail`), `trigger` (the event, e.g. `GMAIL_NEW_GMAIL_MESSAGE`; an app's events and their settings are listed in the app) and its `config`. It replaces any app event the workflow had. Each event starts a run that is charged like any run. `409` with code `app_not_connected` when the app is not connected (`detail.connect_url` connects it); `422` for a wrong event or setting. Only the workflow's owner can set it (the event comes from the owner's account). Needs `workflows:write` and `workflows:invoke`.",
+        "x-mcp-tool": "update_workflow"
+      },
+      "patch": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Pause or resume a workflow's app event",
+        "operationId": "update_workflow_app_trigger",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTriggerPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTriggerView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        },
+        "description": "`enabled: false` pauses the app event (no runs start), `true` resumes it with its saved settings. `404` when the workflow has no app event. Needs `workflows:write`, plus `workflows:invoke` to resume.",
+        "x-mcp-tool": "update_workflow"
+      },
+      "delete": {
+        "tags": [
+          "Workflows"
+        ],
+        "summary": "Remove a workflow's app event",
+        "operationId": "delete_workflow_app_trigger",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedAppTrigger"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Stop starting the workflow on its app event. The workflow, its runs and the app connection stay. `404` when it has none. Needs `workflows:write`.",
+        "x-mcp-tool": "update_workflow"
+      }
+    },
     "/v1/workflows/{slug}/clone": {
       "post": {
         "tags": [
           "Workflows"
         ],
         "summary": "Clone a workflow",
-        "description": "Copy a public marketplace workflow (or one shared into your workspace) into your own workflows, so you can run it. Free. The copy is a private draft and keeps its lineage. The skills and sub-workflows it runs that are not yours come along as copies of your own, so the author's later changes never reach it; `copied` lists them, and the steps that need your own login or credential. Answers with the copy as `GET /v1/workflows/{slug}` shows it, plus `cloned_from` and `copied`. Needs `workflows:invoke` or `workflows:write`.",
+        "description": "Copy a public marketplace workflow (or one shared into your workspace) into your own workflows, so you can run it. Free. The copy is a private draft and keeps its lineage. The skills and sub-workflows it runs that are not yours come along as copies of your own, so the author's later changes never reach it; `copied` lists them, and the steps that need your own login or credential. Answers with the copy as `GET /v1/workflows/{slug}` shows it, plus `cloned_from` and `copied`. Send a body to set the copy up in the same call, as the Marketplace's Use this workflow does: `inputs` (answers that become its input defaults), `schedule` (`frequency`, `timezone`; omit for none), `destinations` (the app ids of its app steps to keep, e.g. `[\"slack\"]`; the others are taken out; omit for the ones on by default) and `preview` (`true` starts a small run of the copy now, capped rows, charged like any run; default `false`). Every check runs before anything is made: `422` for a wrong answer (`detail.fields`), `409` with code `app_not_connected` when a kept app is not connected (`detail.needs_connect` has each app's link), `402` when the account cannot pay for the preview. A set-up copy also answers `schedule`, `preview_run` (follow it at its `status_url`), `estimated_credits` and `message`. Needs `workflows:invoke` or `workflows:write`; a schedule needs `workflows:write`.",
         "operationId": "clone_workflow",
         "security": [
           {
@@ -8267,6 +9590,23 @@
             "$ref": "#/components/parameters/IdempotencyKey"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CloneWorkflowRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Your copy of the workflow.",
@@ -8300,6 +9640,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
@@ -8931,6 +10274,548 @@
           }
         }
       }
+    },
+    "/v1/workflows/{slug}/webhook": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Get a workflow's webhook",
+        "operationId": "get_workflow_webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "The workflow's inbound webhook: the `url` anything can POST to (Zapier, Make, n8n, a form, Stripe, GitHub) to start it, the `signing_secret`, whether a signature is required, on or off, and the inputs a field of the same name fills. `url` and `signing_secret` are shown only to someone who may change the workflow (a key also needs `workflows:write`); `url_preview` always. `404` when it has none. Needs `workflows:read`."
+      },
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Create a workflow webhook",
+        "operationId": "create_workflow_webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateWebhookRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Give the workflow a secret URL: a POST to it (JSON, form or plain text) starts a run with the fields mapped to its inputs by name and everything sent as the input `payload`; the answer is `202` with the `run_id`, or the finished run with `?wait=true` (up to 30 s). `require_signature` refuses any POST without `X-Valendata-Signature: sha256=<HMAC-SHA256 of the raw body>`. Each run spends your credits like any run. `409` if it already has one. Needs `workflows:write` and `workflows:invoke`.",
+        "x-mcp-tool": "get_workflow_webhook"
+      },
+      "patch": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Update a workflow webhook",
+        "operationId": "update_workflow_webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Turn the webhook off or on (`enabled`; off, its URL answers `404`) or require a signature (`require_signature`). Only what you send changes. Needs `workflows:write`, plus `workflows:invoke` to turn it on."
+      },
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Delete a workflow webhook",
+        "operationId": "delete_workflow_webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Workflow Webhook Api V1 Workflows  Slug  Webhook Delete"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "Remove the webhook: its URL stops working and its delivery log is deleted. The workflow and its runs stay. Needs `workflows:write`."
+      }
+    },
+    "/v1/workflows/{slug}/webhook/deliveries": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List a webhook's deliveries",
+        "operationId": "list_workflow_webhook_deliveries",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Items per page, 1–100."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryList"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "The latest requests that reached the webhook, newest first (kept 30 days); page with `limit` (1–100, default 20) and `cursor`: when, the `outcome` (`started`, `duplicate`, `refused`, `failed`), the status answered, the run it started and that run's status now, or why none started, and the field names sent (never the values). Needs `workflows:read`."
+      }
+    },
+    "/v1/workflows/{slug}/webhook/rotate": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Rotate a workflow webhook",
+        "operationId": "rotate_workflow_webhook",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookView"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "description": "`rotate: url` gives the webhook a new URL; the old one stops working at once (use it when the URL leaked). `rotate: secret` gives it a new signing secret; the old one is still accepted for 24 hours so you can update the sender. Needs `workflows:write`."
+      }
     }
   },
   "components": {
@@ -9164,7 +11049,7 @@
         }
       },
       "Conflict": {
-        "description": "A conflict with the current state, or a request with this Idempotency-Key is still running.",
+        "description": "A conflict with the current state, a request with this Idempotency-Key is still running, or the cloud browser is paused (`cloud_browser_paused`: run it with browser_type extension).",
         "headers": {
           "X-RateLimit-Limit": {
             "$ref": "#/components/headers/X-RateLimit-Limit"
@@ -9188,7 +11073,7 @@
               "$ref": "#/components/schemas/Error"
             },
             "example": {
-              "detail": "A conflict with the current state, or a request with this Idempotency-Key is still running.",
+              "detail": "A conflict with the current state, a request with this Idempotency-Key is still running, or the cloud browser is paused (`cloud_browser_paused`: run it with browser_type extension).",
               "code": "conflict",
               "type": "conflict_error",
               "request_id": "3f9a1c2b7d4e"
@@ -9394,6 +11279,16 @@
             },
             "type": "array",
             "title": "Workspaces"
+          },
+          "cloud_browser": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudBrowser"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -9473,6 +11368,258 @@
         ],
         "title": "AnyScheduleList"
       },
+      "ApiCall": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method",
+          "path"
+        ],
+        "title": "ApiCall"
+      },
+      "ApiDetailNote": {
+        "properties": {
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint",
+            "description": "The call made once per row, as host + path template"
+          },
+          "found_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found By",
+            "description": "convention | record_link | docs"
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields",
+            "description": "The fields read from that call"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "What it found, or why no such call holds the fields"
+          }
+        },
+        "type": "object",
+        "title": "ApiDetailNote",
+        "description": "add_fields on an API skill, for fields its list's records do not hold: the API's call for one\nrecord it learned (list + detail), or why there is none."
+      },
+      "ApifyImportRequest": {
+        "properties": {
+          "actor_url_or_id": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Actor Url Or Id",
+            "description": "The actor's apify.com URL, or its id (compass/crawler-google-places)."
+          },
+          "input": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input",
+            "description": "The actor's run input you use today."
+          },
+          "start_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Url",
+            "description": "The page a new skill starts on, when the input names none."
+          }
+        },
+        "type": "object",
+        "required": [
+          "actor_url_or_id"
+        ],
+        "title": "ApifyImportRequest"
+      },
+      "ApifyImportResult": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "alias",
+              "skill",
+              "creation"
+            ],
+            "title": "Kind",
+            "description": "alias: it already runs here; skill: you have a skill for it; creation: one is being made"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "apify_compatible_call": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiCall"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "valendata_call": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiCall"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "output_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Fields"
+          },
+          "skill_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Slug"
+          },
+          "creation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creation Id"
+          },
+          "status_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Url"
+          },
+          "start_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "actor_id",
+          "message"
+        ],
+        "title": "ApifyImportResult"
+      },
       "AppDetail": {
         "properties": {
           "slug": {
@@ -9548,6 +11695,24 @@
           "has_more"
         ],
         "title": "AppList"
+      },
+      "AppRef": {
+        "properties": {
+          "app": {
+            "type": "string",
+            "title": "App"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "app",
+          "name"
+        ],
+        "title": "AppRef"
       },
       "AppSummary": {
         "properties": {
@@ -9761,6 +11926,200 @@
           "kind"
         ],
         "title": "AppToolResult"
+      },
+      "AppTriggerAnswer": {
+        "properties": {
+          "app_trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AppTriggerView"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The app event it starts on; null when none."
+          },
+          "events_ready": {
+            "type": "boolean",
+            "title": "Events Ready",
+            "description": "Whether this server receives app events (false: none arrive yet)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "app_trigger",
+          "events_ready"
+        ],
+        "title": "AppTriggerAnswer"
+      },
+      "AppTriggerIn": {
+        "properties": {
+          "app": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "App",
+            "description": "The app's id, e.g. gmail."
+          },
+          "trigger": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Trigger",
+            "description": "The event's id, e.g. GMAIL_NEW_GMAIL_MESSAGE."
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config",
+            "description": "The event's settings."
+          }
+        },
+        "type": "object",
+        "required": [
+          "app",
+          "trigger"
+        ],
+        "title": "AppTriggerIn"
+      },
+      "AppTriggerPatch": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "AppTriggerPatch"
+      },
+      "AppTriggerView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          },
+          "app": {
+            "type": "string",
+            "title": "App",
+            "description": "The app's id, e.g. gmail."
+          },
+          "trigger": {
+            "type": "string",
+            "title": "Trigger",
+            "description": "The event's id, e.g. GMAIL_NEW_GMAIL_MESSAGE."
+          },
+          "trigger_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger Name"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Config",
+            "description": "The event's settings."
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "last_event_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "workflow_id",
+          "app",
+          "trigger",
+          "enabled"
+        ],
+        "title": "AppTriggerView"
+      },
+      "ArchivedCleanup": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "description": "True: nothing was deleted — `deleted` is what would be",
+            "default": false
+          },
+          "deleted": {
+            "items": {
+              "$ref": "#/components/schemas/RemovedSkill"
+            },
+            "type": "array",
+            "title": "Deleted",
+            "description": "Deleted for good (their runs are kept)"
+          },
+          "kept": {
+            "items": {
+              "$ref": "#/components/schemas/KeptSkill"
+            },
+            "type": "array",
+            "title": "Kept",
+            "description": "Archived skills still in use — left as they were"
+          }
+        },
+        "type": "object",
+        "title": "ArchivedCleanup",
+        "description": "What \"delete my archived skills that nothing uses\" did."
       },
       "AskSiteRequest": {
         "properties": {
@@ -10037,6 +12396,486 @@
         "type": "object",
         "title": "AvailableInputs"
       },
+      "Batch": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "cancelled",
+              "out_of_credits",
+              "failed"
+            ],
+            "title": "Status",
+            "description": "`queued`, `running`, then `completed` (every input ended), `cancelled`, `out_of_credits` (the rest were not started) or `failed`."
+          },
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "skill_slug": {
+            "type": "string",
+            "title": "Skill Slug"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": ""
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Inputs in the list."
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done",
+            "description": "Inputs that ended, whichever way."
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "description": "Rows collected so far, across every input."
+          },
+          "counts": {
+            "$ref": "#/components/schemas/BatchCounts",
+            "description": "Inputs by status."
+          },
+          "credits_used": {
+            "type": "number",
+            "title": "Credits Used",
+            "description": "Credits charged so far by the list's runs."
+          },
+          "estimated_credits": {
+            "type": "number",
+            "title": "Estimated Credits",
+            "description": "The estimate when it started."
+          },
+          "credits_per_input": {
+            "type": "number",
+            "title": "Credits Per Input",
+            "description": "The per-input price the estimate used."
+          },
+          "concurrency": {
+            "type": "integer",
+            "title": "Concurrency",
+            "description": "How many inputs run at once."
+          },
+          "max_results_per_input": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Results Per Input"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason",
+            "description": "Why it stopped early, in plain words."
+          },
+          "cancel_requested": {
+            "type": "boolean",
+            "title": "Cancel Requested",
+            "default": false
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "poll_url": {
+            "type": "string",
+            "title": "Poll Url"
+          },
+          "rows_url": {
+            "type": "string",
+            "title": "Rows Url"
+          },
+          "csv_url": {
+            "type": "string",
+            "title": "Csv Url"
+          },
+          "idempotent_replay": {
+            "type": "boolean",
+            "title": "Idempotent Replay",
+            "description": "An Idempotency-Key matched a batch you already started; this is that batch.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "status",
+          "skill_id",
+          "skill_slug",
+          "total",
+          "done",
+          "rows",
+          "counts",
+          "credits_used",
+          "estimated_credits",
+          "credits_per_input",
+          "concurrency",
+          "poll_url",
+          "rows_url",
+          "csv_url"
+        ],
+        "title": "Batch"
+      },
+      "BatchCounts": {
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "title": "Pending",
+            "default": 0
+          },
+          "running": {
+            "type": "integer",
+            "title": "Running",
+            "default": 0
+          },
+          "success": {
+            "type": "integer",
+            "title": "Success",
+            "default": 0
+          },
+          "partial": {
+            "type": "integer",
+            "title": "Partial",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "default": 0
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled",
+            "default": 0
+          },
+          "not_started": {
+            "type": "integer",
+            "title": "Not Started",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "BatchCounts"
+      },
+      "BatchEstimate": {
+        "properties": {
+          "inputs": {
+            "type": "integer",
+            "title": "Inputs",
+            "description": "How many inputs the list has."
+          },
+          "credits_per_input": {
+            "type": "number",
+            "title": "Credits Per Input",
+            "description": "Credits one input's run usually costs (the skill's typical recent run, else its base price)."
+          },
+          "estimated_credits": {
+            "type": "number",
+            "title": "Estimated Credits",
+            "description": "credits_per_input × inputs. Real runs can cost more or less."
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "typical_of_recent_runs",
+              "base_price"
+            ],
+            "title": "Basis",
+            "description": "Where credits_per_input comes from."
+          },
+          "balance": {
+            "type": "number",
+            "title": "Balance",
+            "description": "The credits of whoever pays for this skill's runs, now."
+          },
+          "affordable_inputs": {
+            "type": "integer",
+            "title": "Affordable Inputs",
+            "description": "About how many inputs the balance covers."
+          },
+          "affordable": {
+            "type": "boolean",
+            "title": "Affordable",
+            "description": "The balance covers the whole estimate."
+          },
+          "concurrency": {
+            "type": "integer",
+            "title": "Concurrency",
+            "description": "How many inputs would run at once."
+          },
+          "max_concurrency": {
+            "type": "integer",
+            "title": "Max Concurrency",
+            "description": "The most this skill may run at once on your account."
+          }
+        },
+        "type": "object",
+        "required": [
+          "inputs",
+          "credits_per_input",
+          "estimated_credits",
+          "basis",
+          "balance",
+          "affordable_inputs",
+          "affordable",
+          "concurrency",
+          "max_concurrency"
+        ],
+        "title": "BatchEstimate"
+      },
+      "BatchItem": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "description": "Its position in the list sent (0-based)."
+          },
+          "inputs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Inputs"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "success",
+              "partial",
+              "failed",
+              "cancelled",
+              "not_started"
+            ],
+            "title": "Status"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "Its run: GET /v1/runs/{run_id}."
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows",
+            "default": 0
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "inputs",
+          "status"
+        ],
+        "title": "BatchItem"
+      },
+      "BatchItemList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BatchItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "has_more"
+        ],
+        "title": "BatchItemList"
+      },
+      "BatchList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "batches": {
+            "items": {
+              "$ref": "#/components/schemas/Batch"
+            },
+            "type": "array",
+            "title": "Batches"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "batches",
+          "has_more"
+        ],
+        "title": "BatchList"
+      },
+      "BatchRows": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows",
+            "description": "Each row with `_input_index` and `_input` (the input it came from) before the skill's own fields."
+          },
+          "total_rows": {
+            "type": "integer",
+            "title": "Total Rows",
+            "description": "Rows in the whole batch so far."
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "total_rows",
+          "has_more"
+        ],
+        "title": "BatchRows"
+      },
       "CancelRunResponse": {
         "properties": {
           "run_id": {
@@ -10120,6 +12959,83 @@
           "count"
         ],
         "title": "CategoryCount"
+      },
+      "CloneWorkflowRequest": {
+        "properties": {
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs",
+            "description": "Answers to the workflow's inputs, by name: they become the copy's defaults (every run and the schedule use them)."
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StartSchedule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Run the copy on this schedule. Omit for none."
+          },
+          "destinations": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destinations",
+            "description": "The app ids of the workflow's app steps to keep (e.g. [\"slack\"]); the others are taken out. Each kept app must be connected, else 409 app_not_connected with its connect link. Omit for the ones on by default."
+          },
+          "preview": {
+            "type": "boolean",
+            "title": "Preview",
+            "description": "Start a small preview run of the copy now (capped rows). Charged like any run.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CloneWorkflowRequest",
+        "description": "POST /v1/workflows/{slug}/clone, optionally set up in the same call (app/workflows/setup):\nanswers as the copy's input defaults, a schedule, the destination apps to keep, and a small\npreview run. Send nothing for a plain copy."
+      },
+      "CloudBrowser": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "available | paused. While paused, a run that needs the cloud browser is refused (409 cloud_browser_paused, nothing charged): run it in your own Chrome with the Valendata extension (browser_type extension). Skills on a site's open API or a direct fetch run as usual."
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "since": {
+            "type": "string",
+            "title": "Since",
+            "description": "When it last changed (ISO 8601, UTC)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "reason",
+          "since"
+        ],
+        "title": "CloudBrowser"
       },
       "ConnectedApp": {
         "properties": {
@@ -10443,7 +13359,7 @@
             "type": "string",
             "pattern": "^(auto|api|browser)$",
             "title": "Source",
-            "description": "How the skill reads the site. auto (default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser and no AI per run, the site's exact values, about a second; otherwise record it in a browser. api: the open API or nothing (fails when none is found; the credits it used are not given back). browser: always record it in a browser.",
+            "description": "How the skill reads the site. auto (default): first look for the site's open API (its docs, and the data calls its own page makes) and, when one answers with the fields, build the skill on it — no browser and no AI per run, the site's exact values, about a second; otherwise record it in a browser. api: the open API or nothing (fails when none is found; credits used are kept). browser: always record it in a browser.",
             "default": "auto"
           },
           "api_url": {
@@ -10467,6 +13383,23 @@
         ],
         "title": "CreateSkillRequest",
         "description": "What the caller wants the skill to do, and where it starts."
+      },
+      "CreateWebhookRequest": {
+        "properties": {
+          "require_signature": {
+            "type": "boolean",
+            "title": "Require Signature",
+            "description": "Refuse deliveries without a valid signature.",
+            "default": false
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "CreateWebhookRequest"
       },
       "CreateWorkflowRequest": {
         "properties": {
@@ -10605,6 +13538,29 @@
         ],
         "title": "DeleteWorkflowResponse"
       },
+      "DeletedAppTrigger": {
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "title": "Deleted"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deleted",
+          "id",
+          "workflow_id"
+        ],
+        "title": "DeletedAppTrigger"
+      },
       "DeletedSchedule": {
         "properties": {
           "deleted": {
@@ -10649,6 +13605,156 @@
           "kind"
         ],
         "title": "DeletedSchedule"
+      },
+      "DeliveryList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryView"
+            },
+            "type": "array",
+            "title": "Deliveries"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "deliveries",
+          "has_more"
+        ],
+        "title": "DeliveryList"
+      },
+      "DeliveryView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          },
+          "outcome": {
+            "type": "string",
+            "title": "Outcome",
+            "description": "started | duplicate | refused | failed"
+          },
+          "http_status": {
+            "type": "integer",
+            "title": "Http Status"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "run_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Status",
+            "description": "The run's status now, when one started."
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "body_bytes": {
+            "type": "integer",
+            "title": "Body Bytes",
+            "default": 0
+          },
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fields",
+            "description": "The top-level field names sent (never values)."
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          },
+          "user_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "outcome",
+          "http_status"
+        ],
+        "title": "DeliveryView"
       },
       "Diagnosis": {
         "properties": {
@@ -10718,7 +13824,7 @@
           },
           "field_fill": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__diagnosis__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Field Fill",
@@ -11523,19 +14629,27 @@
             "title": "Filled",
             "default": 0
           },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill"
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "Followup": {
         "properties": {
@@ -12118,6 +15232,17 @@
             "title": "Browser Offer",
             "description": "The skill can be rebuilt by recording it in a browser — only on the owner's yes (say \"record it in a browser\" in its chat)",
             "default": false
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiDetailNote"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "List + detail: the API's call for one record looked for when the list's records do not hold a new field"
           }
         },
         "type": "object",
@@ -12179,7 +15304,7 @@
               }
             ],
             "title": "Recorded Value",
-            "description": "step: a value in the recipe"
+            "description": "step: the recipe's value"
           },
           "acts_as": {
             "anyOf": [
@@ -12196,7 +15321,7 @@
               }
             ],
             "title": "Acts As",
-            "description": "request: sent to the source; filter: keeps rows; step: typed in; unset: from where"
+            "description": "request: sent to source; filter: keeps rows; step: typed; unset: from where"
           },
           "where": {
             "anyOf": [
@@ -12209,7 +15334,7 @@
               }
             ],
             "title": "Where",
-            "description": "request {in: query|path|body, key|template}; filter {kind: contains|equals|one_of|min|max|since, fields: [...]}; step {recorded_value}"
+            "description": "request {in:query|path|body, key|template}; filter {kind:contains|equals|one_of|min|max|since, fields:[...]}; step {recorded_value}"
           },
           "known_values": {
             "anyOf": [
@@ -12545,6 +15670,123 @@
           "has_more"
         ],
         "title": "JobList"
+      },
+      "KeptSkill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "used_by": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Used By",
+            "description": "What still uses it, in words: \"workflow 'Daily leads'\", \"its schedule (daily 09:00)\", \"API key 'Zapier'\""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "used_by"
+        ],
+        "title": "KeptSkill"
+      },
+      "ListingCard": {
+        "properties": {
+          "listed": {
+            "type": "boolean",
+            "title": "Listed",
+            "description": "The publisher wrote a listing: it opens on its setup",
+            "default": false
+          },
+          "promise": {
+            "type": "string",
+            "title": "Promise",
+            "default": ""
+          },
+          "category_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Label"
+          },
+          "replaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Replaces",
+            "description": "The tools and chores it replaces"
+          },
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/AppRef"
+            },
+            "type": "array",
+            "title": "Apps",
+            "description": "The apps it delivers to"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Risk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "est_credits_per_run": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Est Credits Per Run",
+            "description": "Credits a run usually costs"
+          },
+          "cost_basis": {
+            "type": "string",
+            "title": "Cost Basis",
+            "description": "recent_runs | publisher_estimate | base_price",
+            "default": "base_price"
+          },
+          "schedule_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule Label",
+            "description": "When it runs by default, e.g. Every Monday at 09:00"
+          }
+        },
+        "type": "object",
+        "title": "ListingCard",
+        "description": "What a marketplace card shows of a workflow: read from the workflow (apps, cost,\nschedule), plus what its publisher wrote when there is a listing (promise, replaces, risk)."
       },
       "LoginCreate": {
         "properties": {
@@ -13225,7 +16467,7 @@
               }
             ],
             "title": "Type",
-            "description": "chance: 73% -> 0.73; price: number + <field>_currency; datetime: ISO UTC; percent: 73% -> 73; count: 1.5k -> 1500; duration: seconds; unreadable: as printed."
+            "description": "chance 73%=0.73; price: number + <field>_currency; datetime ISO UTC; percent 73%=73; count 1.5k=1500; duration in s; unreadable: as printed"
           }
         },
         "type": "object",
@@ -13359,6 +16601,46 @@
           "monthly_allowance"
         ],
         "title": "Plan"
+      },
+      "PreviewRun": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "preview_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview Rows",
+            "description": "The most rows the preview makes; null when it could not be capped"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "status_url": {
+            "type": "string",
+            "title": "Status Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status",
+          "url",
+          "status_url"
+        ],
+        "title": "PreviewRun"
       },
       "ProofRun": {
         "properties": {
@@ -13607,6 +16889,29 @@
         ],
         "title": "RecipeVersionOut"
       },
+      "RemovedSkill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "title": "RemovedSkill"
+      },
       "RenameEndpoint": {
         "properties": {
           "name": {
@@ -13656,6 +16961,45 @@
           "changed"
         ],
         "title": "RestoreResponse"
+      },
+      "Risk": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Level"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "level"
+        ],
+        "title": "Risk"
+      },
+      "RotateWebhookRequest": {
+        "properties": {
+          "rotate": {
+            "type": "string",
+            "enum": [
+              "url",
+              "secret"
+            ],
+            "title": "Rotate",
+            "description": "url: a new URL now (the old one stops at once). secret: a new signing secret (the old one is still accepted for 24 hours).",
+            "default": "url"
+          }
+        },
+        "type": "object",
+        "title": "RotateWebhookRequest"
       },
       "RunAppToolRequest": {
         "properties": {
@@ -15484,7 +18828,7 @@
           "engine_auto_upgrade": {
             "type": "boolean",
             "title": "Engine Auto Upgrade",
-            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "description": "Let an older skill move to the newer, faster engine once a short check run (charged like any run) proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
             "default": true
           },
           "creator_id": {
@@ -16284,7 +19628,7 @@
           "engine_auto_upgrade": {
             "type": "boolean",
             "title": "Engine Auto Upgrade",
-            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "description": "Let an older skill move to the newer, faster engine once a short check run (charged like any run) proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
             "default": true
           },
           "creator_id": {
@@ -17264,7 +20608,7 @@
           },
           "workflows_detached": {
             "items": {
-              "$ref": "#/components/schemas/WorkflowRef"
+              "$ref": "#/components/schemas/app__published_skills__manage__schemas__WorkflowRef"
             },
             "type": "array",
             "title": "Workflows Detached",
@@ -17767,7 +21111,7 @@
           "engine_auto_upgrade": {
             "type": "boolean",
             "title": "Engine Auto Upgrade",
-            "description": "Let an older skill move to the newer, faster engine once a free check run proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
+            "description": "Let an older skill move to the newer, faster engine once a short check run (charged like any run) proves it returns at least as much as before (a new recipe version; switch back any time in Versions). false keeps it on the engine it runs on. Default true.",
             "default": true
           },
           "creator_id": {
@@ -18519,14 +21863,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -18615,7 +21959,7 @@
           "free_repair": {
             "type": "boolean",
             "title": "Free Repair",
-            "description": "A repair the skill's doctor made. Charged like any run.",
+            "description": "A repair the skill's doctor started on its own after a failed run. Its browser time and test runs are charged like any run; only its own model calls are not charged.",
             "default": false
           },
           "created_at": {
@@ -19040,7 +22384,7 @@
               }
             ],
             "title": "Default Max Results",
-            "description": "Default rows per run; 0 = all"
+            "description": "Default rows/run; 0: all"
           },
           "browser_type": {
             "anyOf": [
@@ -19052,7 +22396,7 @@
               }
             ],
             "title": "Browser Type",
-            "description": "remote | extension | none; '' clears it"
+            "description": "remote|extension|none; '' clears it"
           },
           "proxy_config": {
             "anyOf": [
@@ -19064,7 +22408,7 @@
               }
             ],
             "title": "Proxy Config",
-            "description": "identity | residential[:<cc>] | <cc> | random | none; '' = automatic"
+            "description": "identity|residential[:<cc>]|<cc>|random|none; '' = auto"
           },
           "profile_id": {
             "anyOf": [
@@ -19076,7 +22420,7 @@
               }
             ],
             "title": "Profile Id",
-            "description": "Owner's browser profile; '' removes it"
+            "description": "Owner's browser profile; '' removes"
           },
           "scrape_mode": {
             "anyOf": [
@@ -19088,7 +22432,7 @@
               }
             ],
             "title": "Scrape Mode",
-            "description": "deep | flash; '' clears it"
+            "description": "deep|flash; '' clears it"
           },
           "data_retention_days": {
             "anyOf": [
@@ -19113,7 +22457,7 @@
               }
             ],
             "title": "Engine Auto Upgrade",
-            "description": "Automatic engine upgrades (default true)"
+            "description": "Auto engine upgrades (default true)"
           },
           "login_id": {
             "anyOf": [
@@ -19125,7 +22469,7 @@
               }
             ],
             "title": "Login Id",
-            "description": "Owner's saved login; '' removes it (logins:write)"
+            "description": "Owner's login; '' removes (logins:write)"
           },
           "visibility": {
             "anyOf": [
@@ -19141,7 +22485,7 @@
               }
             ],
             "title": "Visibility",
-            "description": "workspace: shared with a team (owner only)"
+            "description": "workspace: share with a team (owner)"
           },
           "workspace_id": {
             "anyOf": [
@@ -19153,7 +22497,7 @@
               }
             ],
             "title": "Workspace Id",
-            "description": "With visibility=workspace, if in several"
+            "description": "For visibility=workspace, if in several"
           },
           "archived": {
             "anyOf": [
@@ -19180,7 +22524,7 @@
               }
             ],
             "title": "Row Key",
-            "description": "Fields that identify a row; [] = auto"
+            "description": "Row key fields; []: auto"
           }
         },
         "type": "object",
@@ -20152,6 +23496,83 @@
         "title": "SkillVisibility",
         "description": "Skill visibility settings."
       },
+      "StartBatch": {
+        "properties": {
+          "inputs": {
+            "items": {},
+            "type": "array",
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Inputs",
+            "description": "The list: one object of the skill's inputs per run, e.g. [{\"query\": \"shoes\"}, {\"query\": \"hats\"}]. 1 to 10,000. Every one is checked before anything starts."
+          },
+          "max_results_per_input": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Results Per Input",
+            "description": "At most this many rows from each input's run. Omit for the skill's saved default."
+          },
+          "concurrency": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concurrency",
+            "description": "How many inputs run at once. Capped at your account's limit for this skill; default half of it, so your other runs are not kept waiting."
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "https URL that receives the finished batch as a signed POST (X-Valendata-Signature), the same object GET /v1/batches/{batch_id} returns."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "A short name for the list."
+          },
+          "allow_partial": {
+            "type": "boolean",
+            "title": "Allow Partial",
+            "description": "Start even when your balance covers under half the estimate: inputs run until the credits run out, then the rest are `not_started`.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "inputs"
+        ],
+        "title": "StartBatch",
+        "description": "Body of POST /v1/skills/{slug}/batches (and of its /estimate)."
+      },
       "StartItem": {
         "properties": {
           "kind": {
@@ -20479,6 +23900,32 @@
         ],
         "title": "StartRunResponse"
       },
+      "StartSchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "title": "Frequency",
+            "description": "manual, daily:HH:MM, weekly:<mon..sun>:HH:MM, interval:<minutes> or cron:<expr>."
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone",
+            "description": "IANA timezone, e.g. Europe/London. Default UTC."
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency"
+        ],
+        "title": "StartSchedule"
+      },
       "StartWorkflowRunResponse": {
         "properties": {
           "run_id": {
@@ -20542,6 +23989,40 @@
           "jobs"
         ],
         "title": "StartedJobs"
+      },
+      "StartedSchedule": {
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "title": "Frequency"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "frequency",
+          "label",
+          "timezone"
+        ],
+        "title": "StartedSchedule"
       },
       "TierHealth": {
         "properties": {
@@ -20845,6 +24326,35 @@
         ],
         "title": "UpdateTakenOut"
       },
+      "UpdateWebhookRequest": {
+        "properties": {
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "require_signature": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Require Signature"
+          }
+        },
+        "type": "object",
+        "title": "UpdateWebhookRequest",
+        "description": "Only what is sent changes."
+      },
       "UpdateWorkflowRequest": {
         "properties": {
           "name": {
@@ -20990,7 +24500,7 @@
           "goodwill_refunds": {
             "type": "string",
             "title": "Goodwill Refunds",
-            "description": "Credits given back in the range for old over-charges (not counted as usage).",
+            "description": "Credits given back in the range for old over-charges (not counted as usage). History only: none have been given since 2026-10-23.",
             "default": "0.00"
           }
         },
@@ -21122,6 +24632,149 @@
           "signature_header"
         ],
         "title": "WebhookSecretResponse"
+      },
+      "WebhookView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workflow_id": {
+            "type": "string",
+            "title": "Workflow Id"
+          },
+          "workflow_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Slug"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "The full URL to POST to. Only for someone who may change the workflow; null otherwise (see url_preview)."
+          },
+          "url_preview": {
+            "type": "string",
+            "title": "Url Preview",
+            "description": "The URL with its secret part hidden."
+          },
+          "signing_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signing Secret",
+            "description": "HMAC-SHA256 key for X-Valendata-Signature. Only for someone who may change the workflow."
+          },
+          "require_signature": {
+            "type": "boolean",
+            "title": "Require Signature",
+            "description": "On: a delivery without a valid signature is refused (401)."
+          },
+          "previous_secret_valid_until": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Secret Valid Until",
+            "description": "After a secret rotation the old secret is still accepted until then."
+          },
+          "rate_limit_per_minute": {
+            "type": "integer",
+            "title": "Rate Limit Per Minute"
+          },
+          "max_body_bytes": {
+            "type": "integer",
+            "title": "Max Body Bytes",
+            "default": 1048576
+          },
+          "max_wait_seconds": {
+            "type": "integer",
+            "title": "Max Wait Seconds",
+            "default": 30
+          },
+          "inputs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inputs",
+            "description": "The workflow's inputs a field of the same name fills; everything sent also arrives as the input `payload`."
+          },
+          "created_by": {
+            "type": "string",
+            "title": "Created By"
+          },
+          "last_delivery_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Delivery At"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "workflow_id",
+          "enabled",
+          "url_preview",
+          "require_signature",
+          "rate_limit_per_minute",
+          "created_by"
+        ],
+        "title": "WebhookView"
       },
       "WhereRequest": {
         "properties": {
@@ -21397,6 +25050,17 @@
             "title": "Clone Url",
             "description": "Clone a public workflow here first, then run your copy"
           },
+          "listing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCard"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A marketplace listing's promise, the apps it delivers to, cost per run, risk and default schedule (public workflows whose publisher wrote one): clone it with inputs, schedule and destinations to set it up"
+          },
           "cloned_from": {
             "type": "string",
             "title": "Cloned From",
@@ -21407,6 +25071,52 @@
             "type": "object",
             "title": "Copied",
             "description": "What came with it: skills_copied and workflows_copied (the author's skills and sub-workflows it runs, now copies of your own), needs_login and needs_credentials (steps that need your own account connected)."
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StartedSchedule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The copy's schedule, when one was asked"
+          },
+          "preview_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreviewRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The preview run, when one was asked: follow it at status_url"
+          },
+          "estimated_credits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Credits",
+            "description": "What the preview run should cost"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message",
+            "description": "What was set up, in one plain paragraph"
           }
         },
         "type": "object",
@@ -21603,6 +25313,17 @@
             ],
             "title": "Clone Url",
             "description": "Clone a public workflow here first, then run your copy"
+          },
+          "listing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingCard"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A marketplace listing's promise, the apps it delivers to, cost per run, risk and default schedule (public workflows whose publisher wrote one): clone it with inputs, schedule and destinations to set it up"
           }
         },
         "type": "object",
@@ -21652,35 +25373,6 @@
           "has_more"
         ],
         "title": "WorkflowList"
-      },
-      "WorkflowRef": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "slug": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Slug"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "WorkflowRef"
       },
       "WorkflowRunList": {
         "properties": {
@@ -21801,6 +25493,7 @@
           "credits_refunded": {
             "type": "number",
             "title": "Credits Refunded",
+            "description": "Credits refunded for this run. Only runs from before 2026-10-23 can have a value: runs are no longer refunded.",
             "default": 0
           },
           "failure_class": {
@@ -22012,34 +25705,55 @@
         "title": "WrongValue",
         "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
       },
-      "app__published_skills__diagnosis__schemas__FieldFill": {
+      "app__published_skills__improvements__schemas__FieldFill": {
         "properties": {
           "filled": {
             "type": "integer",
             "title": "Filled",
             "default": 0
           },
-          "not_listed": {
-            "type": "integer",
-            "title": "Not Listed",
-            "description": "Blank because the site does not list it on that result.",
-            "default": 0
-          },
-          "failed": {
-            "type": "integer",
-            "title": "Failed",
-            "description": "Blank because the read failed (or could not be told apart).",
-            "default": 0
-          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill",
-        "description": "One field over the run's rows (field_fill.py)."
+        "title": "FieldFill"
+      },
+      "app__published_skills__manage__schemas__WorkflowRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "WorkflowRef"
       },
       "Error": {
         "type": "object",
@@ -22064,7 +25778,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Stable machine-readable code. Known values: `bad_request`, `invalid_json`, `invalid_cursor`, `invalid_idempotency_key`, `unauthorized`, `payment_required`, `permission_denied`, `not_found`, `method_not_allowed`, `conflict`, `app_not_connected`, `idempotency_key_in_use`, `idempotent_replay_unavailable`, `payload_too_large`, `unsupported_media_type`, `validation_error`, `idempotency_key_reused`, `rate_limited`, `internal_error`, `upstream_error`, `service_unavailable`.",
+            "description": "Stable machine-readable code. Known values: `bad_request`, `invalid_json`, `invalid_cursor`, `invalid_idempotency_key`, `unauthorized`, `payment_required`, `permission_denied`, `not_found`, `method_not_allowed`, `conflict`, `app_not_connected`, `idempotency_key_in_use`, `idempotent_replay_unavailable`, `payload_too_large`, `unsupported_media_type`, `validation_error`, `idempotency_key_reused`, `rate_limited`, `internal_error`, `upstream_error`, `service_unavailable`, `cloud_browser_paused`.",
             "example": "not_found"
           },
           "type": {

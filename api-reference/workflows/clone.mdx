@@ -12,6 +12,19 @@ The skills and sub-workflows it runs come along as copies of your own, so the au
 
 The answer is the copy as [Get a workflow](/api-reference/workflows/get) shows it, plus `cloned_from`, the slug of the original, and `copied`: the skills and sub-workflows copied with it, and the steps that need your own login (`needs_login`) or saved credential (`needs_credentials`). The copy has its own `slug`. Run it with that slug, for example with [Run a workflow and wait](/api-reference/runs/run-workflow).
 
+## Set it up in the same call
+
+Send a body to set the copy up, as **Use this workflow** does in the Marketplace. Every field is optional; send none for a plain copy.
+
+- `inputs`: answers to the workflow's inputs, by name. They become the copy's defaults, so every run and its schedule use them.
+- `schedule`: `frequency` (`daily:09:00`, `weekly:mon:09:00`, `interval:60` or `cron:0 7 * * 1-5`) and `timezone` (for example `Europe/London`). Leave it out for no schedule.
+- `destinations`: the app ids of the workflow's app steps to keep, for example `["slack"]`. The other app steps are taken out. Leave it out to keep the ones on by default. [Get a workflow](/api-reference/workflows/get#a-public-workflow) lists them in `listing.apps`.
+- `preview`: `true` starts a small run of the copy now, with fewer rows. It is charged like any run. Default `false`.
+
+Every check runs before anything is made. A wrong answer is `422`, with each problem in `detail.fields`. A kept app you have not connected is `409` with code `app_not_connected`: `detail.needs_connect` has the link that connects each one. An account that cannot pay for the preview is `402`.
+
+A set-up copy also answers `schedule`, `preview_run` (follow it at its `status_url`), `estimated_credits` and `message`, one plain paragraph saying what was set up.
+
 A workflow you may not see answers `404`.
 
-Needs `workflows:invoke` or `workflows:write`. A key with neither gets `403`. MCP tool: `clone_workflow`.
+Needs `workflows:invoke` or `workflows:write`. A key with neither gets `403`. A `schedule` also needs `workflows:write`. MCP tool: `clone_workflow`.

@@ -1,0 +1,264 @@
+---
+title: "Universal web API (Firecrawl-compatible)"
+description: "Scrape, crawl, map, search, and extract any public page with the same calls and answers as Firecrawl. Point a Firecrawl SDK at Valendata and keep your code."
+---
+
+Valendata answers Firecrawl's API paths. If your code or agent already uses Firecrawl, change the API key and the base URL. Nothing else.
+
+- Base URL: `https://api.valendata.com`
+- `/v2/*` matches Firecrawl SDK v4 and later. Use this one.
+- `/v1/*` matches older integrations (LangChain, LlamaIndex, n8n) and gives their v1 answer shapes.
+
+## Before you start
+
+Send your key as `Authorization: Bearer vd_sk_...` (what Firecrawl SDKs send with their `api_key`) or as `x-api-key`. See [Authentication and scopes](/api-reference/authentication).
+
+The key needs the `web:read` scope. New keys made in **Settings → API Keys** have it on by default.
+
+Fields Valendata does not know are ignored, so the extra fields SDKs send (such as `origin`) do no harm.
+
+## Switch from Firecrawl
+
+<CodeGroup>
+
+```python Python
+from firecrawl import Firecrawl
+
+app = Firecrawl(api_key="vd_sk_...", api_url="https://api.valendata.com")
+doc = app.scrape("https://example.com", formats=["markdown", "links"])
+```
+
+```js JavaScript
+import Firecrawl from '@mendable/firecrawl-js';
+
+const app = new Firecrawl({ apiKey: 'vd_sk_...', apiUrl: 'https://api.valendata.com' });
+const doc = await app.scrape('https://example.com', { formats: ['markdown'] });
+```
+
+```bash curl
+curl -X POST https://api.valendata.com/v2/scrape \
+  -H "Authorization: Bearer vd_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","formats":["markdown"]}'
+```
+
+</CodeGroup>
+
+## How a page is fetched
+
+Valendata tries a plain HTTP fetch first. It uses the cloud browser only when:
+
+- the site refuses the plain fetch (`403`, `429`, `451`, or a bot wall),
+- the page needs JavaScript to show its content, or
+- you asked for `actions`, a screenshot, `waitFor`, or `mobile`.
+
+PDFs are turned into text. `metadata.tier` says how the page was fetched:
+
+| `tier` | Meaning |
+| --- | --- |
+| `fetch` | Plain HTTP. |
+| `fetch_browser` | Fetched from inside a cloud browser that passed the site's bot check. |
+| `browser` | Fully rendered in the cloud browser. |
+| `cache` | Served from cache. |
+
+## Scrape a page
+
+`POST /v2/scrape` with `url` and `formats`. The answer is `{success, data}`, where `data` holds `markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`, `actions`, `metadata`, and `warning` (only the ones you asked for, plus `metadata`).
+
+### Formats
+
+| Format | What you get |
+| --- | --- |
+| `markdown` | The page as Markdown. |
+| `html` | Cleaned HTML. |
+| `rawHtml` | The HTML as the site sent it. |
+| `links` | Every link on the page. |
+| `images` | Every image on the page. |
+| `screenshot` | A screenshot. Send `"screenshot"`, or `{"type": "screenshot", "fullPage": true}` for the whole page. |
+| `summary` | A short summary written by an AI model. |
+| `{"type": "json", "schema": ..., "prompt": ...}` | Data in the shape of your schema, read by an AI model. On `/v1`, send `"json"` and put `schema`, `prompt`, and `systemPrompt` in `jsonOptions`. |
+
+These formats are not supported yet and return a clear `400`: `branding`, `changeTracking`, `attributes`, `question`, `highlights`, `audio`, `video`, `product`, `menu`, `rawBase64`.
+
+### Options
+
+| Option | What it does |
+| --- | --- |
+| `onlyMainContent` | Drop headers, footers, and menus. Default `true`. |
+| `includeTags`, `excludeTags` | CSS selectors to keep or drop. |
+| `waitFor` | Wait this many milliseconds before reading the page. Max `60000`. |
+| `timeout` | Give up after this many milliseconds, `1000` to `300000`. Default `60000` (`30000` on `/v1`). |
+| `headers` | Extra headers to send to the site. |
+| `mobile` | Load the page as a phone. |
+| `location` | `{country, languages}` for the request. |
+| `maxAge` | Use a cached copy younger than this many milliseconds. Default 2 days on `/v2`, `0` on `/v1`. |
+| `storeInCache` | Whether to save this result to the cache. |
+| `proxy` | `auto`, `basic`, `enhanced`, or `stealth`. `enhanced` and `stealth` use the cloud browser. |
+| `blockAds` | Block ads. |
+| `removeBase64Images` | Drop images embedded in the page as base64. |
+| `actions` | Steps to do on the page before reading it. See below. |
+
+### Actions
+
+Actions run in the cloud browser, in order:
+
+| Action | Fields |
+| --- | --- |
+| `wait` | `milliseconds` or `selector` |
+| `click` | `selector`, optional `all` |
+| `write` | `text` |
+| `press` | `key` |
+| `scroll` | `direction` (`up` or `down`), optional `selector` |
+| `screenshot` | optional `fullPage`, `quality`, `viewport` |
+| `scrape` | none: read the page at this point |
+| `executeJavascript` | `script` |
+
+The `pdf` action is not supported yet and returns `400`.
+
+### Metadata
+
+`metadata` has `title`, `description`, `language`, `keywords`, the `og*` fields, `favicon`, `sourceURL`, `url`, `statusCode`, `contentType`, `scrapeId`, `proxyUsed`, `cacheState` (`hit` or `miss`), `cachedAt`, `creditsUsed`, `numPages` (PDFs only), `error`, and Valendata's `tier`.
+
+## Scrape many pages
+
+`POST /v2/batch/scrape` takes `urls` (up to 1,000), optional `maxConcurrency`, `ignoreInvalidURLs` (default `true`), `webhook`, and any scrape option at the top level of the body. It answers at once with `{success, id, url, invalidURLs}`.
+
+| Call | What it does |
+| --- | --- |
+| `GET /v2/batch/scrape/{id}` | Status and results. Same shape as a crawl's status. |
+| `DELETE /v2/batch/scrape/{id}` | Cancel it. |
+| `GET /v2/batch/scrape/{id}/errors` | The pages that failed. |
+
+## Crawl a site
+
+`POST /v2/crawl` starts at `url` and follows links. It answers at once with `{success, id, url}`.
+
+| Field | What it does |
+| --- | --- |
+| `limit` | Most pages to read. |
+| `includePaths`, `excludePaths` | Regular expressions matched on the path. Set `regexOnFullURL` to match the whole URL. |
+| `maxDiscoveryDepth` | How many links away from the start page to go. On `/v1`, `maxDepth` is the path depth. |
+| `sitemap` | `include`, `skip`, or `only`. On `/v1`, `ignoreSitemap`. |
+| `crawlEntireDomain` | Also follow links outside the start path. On `/v1`, `allowBackwardLinks`. |
+| `allowSubdomains`, `allowExternalLinks` | Follow links to subdomains or other sites. |
+| `ignoreQueryParameters` | Treat URLs that differ only in their query as the same page. |
+| `ignoreRobotsTxt` | Skip the site's `robots.txt`. |
+| `delay` | Seconds to wait between pages. |
+| `maxConcurrency` | Pages read at once. Max `4`. |
+| `scrapeOptions` | Scrape options for every page. |
+| `webhook` | See [Webhooks](#webhooks). |
+
+`GET /v2/crawl/{id}` answers with `status` (`scraping`, `completed`, `failed`, or `cancelled`), `total`, `completed`, `creditsUsed`, `expiresAt`, `createdAt`, `completedAt`, `next`, and `data` (the pages). Results come in parts of about 10 MB. `next` is the full URL of the next part. Results are kept for 24 hours.
+
+| Call | What it does |
+| --- | --- |
+| `DELETE /v2/crawl/{id}` | Cancel it. `409` if it already finished. |
+| `GET /v2/crawl/{id}/errors` | `{errors: [{id, timestamp, url, error}], robotsBlocked: [...]}` |
+| `GET /v2/crawl/active` | Your crawls still running. |
+
+Good to know:
+
+- `robots.txt` is followed by default, including its `Crawl-delay`.
+- One crawl reads at most 10,000 pages (100 on the free plan).
+- When your account runs out of credits, the crawl stops early. It ends as `completed`, with a warning.
+- A crawl picks up where it left off after a server restart, without charging again for pages already read.
+
+## Map a site
+
+`POST /v2/map` lists a site's URLs from its sitemaps and the links on its front page. It reads no page content.
+
+| Field | What it does |
+| --- | --- |
+| `url` | The site. |
+| `search` | Only URLs that match these words. |
+| `limit` | Most URLs to return. Default `5000`, max `30000`. |
+| `sitemap` | `include`, `skip`, or `only`. |
+| `includeSubdomains` | Default `true`. |
+| `ignoreQueryParameters` | Default `true`. |
+
+On `/v2` the answer is `{success, links: [{url, title?, description?}]}`. On `/v1`, `links` is a list of strings.
+
+## Search the web
+
+`POST /v2/search` takes `query`, optional `limit` (default `5`, max `20`), `includeDomains`, `excludeDomains`, and `scrapeOptions` to also scrape each result.
+
+On `/v2` the answer is `{success, data: {web: [{url, title, description, markdown?, ...}]}, creditsUsed}`. On `/v1`, `data` is the list itself.
+
+`tbs`, `location`, `country`, and the `images` and `news` sources are accepted but not used yet. The answer's `warning` names any that were ignored.
+
+## Extract data
+
+`POST /v2/extract` reads pages and gives back one answer, in the shape you asked for, merged across all of them.
+
+| Field | What it does |
+| --- | --- |
+| `urls` | Up to 20. `https://site.com/*` reads up to 10 pages of that site. |
+| `prompt` | What to find, in plain words. |
+| `schema` | The JSON shape of the answer. |
+| `systemPrompt` | Extra instructions for the AI model. |
+| `showSources` | Say which pages each answer came from. |
+| `scrapeOptions` | Scrape options for every page. |
+| `webhook` | See [Webhooks](#webhooks). |
+
+It answers at once with `{success, id}`. `GET /v2/extract/{id}` answers with `{success, status, data, expiresAt, creditsUsed, sources?}`, where `status` is `processing`, `completed`, `failed`, or `cancelled`. `enableWebSearch` is not used yet.
+
+## Credit balance
+
+`GET /v2/team/credit-usage` answers with `{success, data: {remainingCredits, planCredits, billingPeriodStart, billingPeriodEnd}}`. It needs `web:read` or `account:read`.
+
+## Webhooks
+
+Crawls, batch scrapes, and extracts take a `webhook`: a URL, or `{url, headers, metadata, events}`. `events` can hold `started`, `page`, `completed`, and `failed`.
+
+Each delivery is a `POST` with `{success, type, id, data, metadata, error}`, where `type` is for example `crawl.page`. It is signed with `X-Valendata-Timestamp` and `X-Valendata-Signature`, like every Valendata webhook. See [Verify the signature](/api-reference/webhooks/overview#verify-the-signature). The URL must be a public address.
+
+## Pricing
+
+1 credit is \$0.01. Every call is charged, even when the site answers badly. A call refused before anything is sent is free. See [Credits](/concepts/credits).
+
+| What | Credits | Cost |
+| --- | --- | --- |
+| A page fetched with plain HTTP | 0.1 | \$0.001 |
+| A page that needed the cloud browser | 0.5 | \$0.005 |
+| A page from the cache | 0.1 | \$0.001 |
+| `json` or `summary`, per page | +0.3, plus the AI model's tokens | +\$0.003, plus tokens |
+| A search | 0.2, plus the page price for each result you scrape | \$0.002, plus pages |
+| A map | 0.1 | \$0.001 |
+
+## What it never does
+
+- It never signs in. Pages come back as a stranger sees them. For data behind a login, use a [skill with a saved login](/guides/use-a-saved-login).
+- The cloud browser never uses your saved browser profile.
+- It never fetches private or internal addresses, or cloud metadata endpoints. Those are refused with `400`.
+
+## Errors
+
+Errors look like Firecrawl's, `{success: false, error, code}`, plus Valendata's `detail`, `type`, and `request_id`. See [Errors and limits](/api-reference/errors) for the shared fields.
+
+| Status | When |
+| --- | --- |
+| `400` | Bad body, a format or action that is not supported, or an address that may not be fetched. |
+| `401` | Missing or bad key. |
+| `402` | `insufficient_credits`. Comes with `current_balance` and `required`. |
+| `403` | The key lacks `web:read`. |
+| `404` | No such job. |
+| `408` | `SCRAPE_TIMEOUT`: the page took longer than `timeout`. |
+| `409` | The job already finished. |
+| `429` | Too many at once: at most 10 web requests and 5 background jobs (crawls, batches, extracts) per account. Wait `Retry-After` seconds. |
+| `502` | The site could not be fetched (`SCRAPE_FAILED`, `SCRAPE_DNS_RESOLUTION_ERROR`). |
+
+## MCP tools
+
+The Valendata MCP server has `scrape_url`, `crawl_site`, `get_crawl`, `map_site`, `search_web`, `extract_data`, and `get_extract`. It also has the same tools under Firecrawl's MCP names: `firecrawl_scrape`, `firecrawl_search`, `firecrawl_map`, `firecrawl_crawl`, and `firecrawl_check_crawl_status`. Agents set up for Firecrawl keep working. All need `web:read`. See [Connect your AI assistant](/ai-assistants/connect).
+
+## What's different from Firecrawl
+
+| Feature | Status |
+| --- | --- |
+| Scrape, batch scrape, crawl, map | Supported |
+| Extract | Supported, one AI model pass over the pages |
+| Search | Partial: `tbs`, location, and the `images` and `news` sources are not used yet |
+| `pdf` action | Not yet |
+| Change tracking | Not yet |
+| Agent, interact, monitor | Not yet |
+| Parse, deep research, `llmstxt` | Not yet |

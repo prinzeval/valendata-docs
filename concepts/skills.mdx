@@ -124,6 +124,8 @@ A skill runs in a browser, on your behalf:
 - **A Valendata cloud browser.** Works when your computer is off. Used for schedules and API calls by default.
 - **Your own browser**, through the Valendata extension. Uses the sites you are already signed in to.
 
+Sometimes the cloud browser is paused. While it is, a run that needs it is refused before it starts, and nothing is charged. In the app, **Remote** is greyed out and the run uses **Extension** instead. Over the API and MCP, the answer is `409` with code `cloud_browser_paused`: send `browser_type` `extension` to run it in your own Chrome. Skills built on a site's open API, or on a fast path, run as usual. [Get your account](/api-reference/account/get) shows whether it is paused, in `cloud_browser`.
+
 If a site needs a sign-in, the skill can use a [saved login or browser profile](/concepts/logins-and-browser-profiles). Some skills also learn a **fast path** that reads the same rows without a browser. See [Keeping skills working](/concepts/keeping-skills-working#fast-path).
 
 ## Ways to use a skill
