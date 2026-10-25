@@ -93,6 +93,31 @@ Your skills grouped by website, each one an endpoint you call by name. What they
 
 `call_site_api` runs the skill behind that endpoint, the same as `run_skill`, and answers the same way. See [Run results](#run-results).
 
+## Web pages
+
+Read any public page, site or search without a skill. Arguments use Firecrawl's names, and each tool also answers to Firecrawl's own MCP tool name, so an assistant set up for Firecrawl keeps working. Every call spends credits like the [Web API](/api-reference/web-api).
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `scrape_url` (also `firecrawl_scrape`) | `url`, optional `formats` (`markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`), `onlyMainContent`, `waitFor`, `mobile`, `maxAge`, `jsonOptions` (`{schema, prompt}` for `json`) | `web:read` | `POST /v2/scrape` |
+| `search_web` (also `firecrawl_search`) | `query`, optional `limit` (1–20, default 5), `scrapeOptions` (`formats`, `onlyMainContent`) | `web:read` | `POST /v2/search` |
+| `map_site` (also `firecrawl_map`) | `url`, optional `search`, `limit` (default 200), `includeSubdomains` | `web:read` | `POST /v2/map` |
+| `crawl_site` (also `firecrawl_crawl`) | `url`, optional `limit` (1–100, default 10), `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `scrapeOptions` | `web:read` | `POST /v2/crawl` |
+| `get_crawl` (also `firecrawl_check_crawl_status`) | `id`, optional `skip` (pages already read) | `web:read` | `GET /v2/crawl/{id}` |
+| `extract_data` | `urls` (`site/*` for a whole site), `prompt`, optional `schema` | `web:read` | `POST /v2/extract` |
+| `get_extract` | `id` | `web:read` | `GET /v2/extract/{id}` |
+
+Over HTTP a JSON format is `{"type": "json", "schema": …}` inside `formats`. For the tool, send `"json"` in `formats` and the schema in `jsonOptions`. They read pages as a logged-out visitor; for data behind a login, use a skill with a saved login.
+
+## Many inputs at once
+
+| Tool | Arguments | Scope | Same as |
+| --- | --- | --- | --- |
+| `run_skill_batch` | `skill`, `inputs` (one input set per item), optional `max_results_per_input`, `concurrency`, `label`, `allow_partial` | `skills:invoke` | `POST /v1/skills/{slug}/batches` |
+| `get_batch` | `batch_id` | `runs:read` | `GET /v1/batches/{batch_id}` |
+
+The price of a batch is shown before it starts (`POST /v1/skills/{slug}/batches/estimate`), and every item is charged like a single run.
+
 ## Runs
 
 | Tool | Arguments | Scope | Same as |
