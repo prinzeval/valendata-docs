@@ -1,0 +1,11 @@
+---
+title: "Get the sign-up email default"
+description: "Which email new site accounts are registered with, or whether each new site asks."
+openapi: "GET /v1/account/signup-email"
+---
+
+- `signup_email`: `valendata` (the address Valendata provides), `own` (your connected Gmail / Outlook), or `null` — the question card asks, once per site.
+- `auto_create_accounts`: the choice counts only while **Create accounts automatically** is on; `effective` is the choice used without asking, or `null`.
+- `options`: the emails on offer right now, each with the `label` the card shows; `connect_url` when no Gmail / Outlook is connected.
+
+Needs `account:read`. MCP tool: `get_signup_email`. See [When a site needs an account that does not exist yet](/concepts/logins-and-browser-profiles#when-a-site-needs-an-account-that-does-not-exist-yet).

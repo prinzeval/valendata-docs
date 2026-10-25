@@ -11,7 +11,7 @@ For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For
 
 The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 28 tools, plus one tool per skill and per workflow:
 
-`search_skills`, `search_workflows`, `site_status`, `request_site`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`, `list_skill_runs`, `list_site_apis`, `call_site_api`, `list_logins`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
+`search_skills`, `search_workflows`, `site_status`, `request_site`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`, `list_skill_runs`, `list_site_apis`, `call_site_api`, `list_logins`, `get_question`, `answer_questions`, `get_signup_email`, `set_signup_email`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
 
 `update_skill`, `delete_skill`, and `schedule_skill` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills`, `search_workflows`, and `site_status` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
@@ -349,6 +349,10 @@ A run that started and then failed is not a tool error: its answer has `status: 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_logins` | optional `limit`, `cursor` | `skills:invoke` (OAuth), or `logins:use` or `logins:write` | [List logins](/api-reference/logins/list) |
+| `get_question` | `card_id` (a run's or creation's `needs_user.card_id`) | `logins:use` or `logins:write` | [Get a question card](/api-reference/logins/get-question) |
+| `answer_questions` | `card_id`, `answers` (by question id, the option's label as shown, e.g. `{"signup_email": "Valendata email (…)"}`; add `"signup_email_always": "Always use this for new sites"` to remember it), optional `skipped` | `logins:use` or `logins:write` | [Answer a question card](/api-reference/logins/answer-question) |
+| `get_signup_email` | none | `account:read` | [Get the sign-up email default](/api-reference/account/get-signup-email) |
+| `set_signup_email` | `choice` (`valendata`, `own`, or `null` to ask each new site) — ask the user first | `logins:write` | [Set the sign-up email default](/api-reference/account/set-signup-email) |
 
 It lists your saved website logins, masked: the site, a hint of the username, the label, and whether it has an authenticator seed. Never a password or a code. Pass an item's `id` as `create_skill`'s `login_id` to record a skill behind that site's sign-in.
 

@@ -233,7 +233,9 @@
               "api-reference/logins/create",
               "api-reference/logins/get",
               "api-reference/logins/update",
-              "api-reference/logins/delete"
+              "api-reference/logins/delete",
+              "api-reference/logins/get-question",
+              "api-reference/logins/answer-question"
             ]
           },
           {
@@ -284,7 +286,9 @@
             "icon": "user",
             "pages": [
               "api-reference/account/get",
-              "api-reference/account/usage"
+              "api-reference/account/usage",
+              "api-reference/account/get-signup-email",
+              "api-reference/account/set-signup-email"
             ]
           },
           {

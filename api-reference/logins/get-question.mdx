@@ -1,0 +1,7 @@
+---
+title: "Get a question card"
+description: "A question a run or a skill creation asked you — which email to register a site account with."
+openapi: "GET /v1/questions/{card_id}"
+---
+
+A run or a creation that stops with `needs_user.kind = "choose_signup_email"` carries the card's id (`needs_user.card_id`). This reads the card: its questions, their options as they stand, and the answer once given. A question an agent asked in a chat is answered in the app, not here (`403`). Needs `logins:use` or `logins:write`. See [When a site needs an account that does not exist yet](/concepts/logins-and-browser-profiles#when-a-site-needs-an-account-that-does-not-exist-yet).

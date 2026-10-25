@@ -1,0 +1,11 @@
+---
+title: "Set the sign-up email default"
+description: "Pick the email new site accounts are registered with, or go back to asking each time."
+openapi: "PUT /v1/account/signup-email"
+---
+
+```json
+{"choice": "valendata"}
+```
+
+`valendata` or `own` also turns **Create accounts automatically** on — the same as answering a question card with *Always use this for new sites*. `null` asks on each new site again (the toggle is left as it is). The same setting as **Persona → Permissions → Email for new accounts** in the app. Needs `logins:write`. MCP tool: `set_signup_email`.

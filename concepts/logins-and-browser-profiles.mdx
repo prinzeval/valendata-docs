@@ -44,7 +44,7 @@ A login is a setting on a skill, not a tool. No AI assistant can ask Valendata t
 | What the site asks | What happens |
 | --- | --- |
 | A code from an authenticator app | Add the authenticator seed (`totp_secret`) to the login. The run works out the current code. |
-| A code sent by email | If the site account uses your Valendata email, the run reads the code from your inbox. Otherwise it stops with `otp_email`. |
+| A code sent by email | If the site account uses your Valendata email, the run reads the code from your inbox; if it uses your connected Gmail or Outlook, the run reads it there. Any other address stops with `otp_email`. |
 | A code sent by text or a phone app | The run waits up to 3 minutes for you to enter it, in the app or with [Send a sign-in code](/api-reference/runs/send-code). No code in time gives `otp_sms`. |
 
 ### When a run cannot sign in
@@ -65,6 +65,7 @@ The run fails with `triage_kind: "login_failed"` (or `"logged_out"` when there i
 
 | `needs_user.kind` | What to do |
 | --- | --- |
+| `choose_signup_email` | The site needs an account and none is saved: say which email to register it with (see below). |
 | `no_login` | Save the site's login and pick it on the skill, or this caller may not use it. |
 | `bad_password` | Fix the username or password in the **Vault**. |
 | `otp_email` | Use your Valendata email on the site account, or sign in once on the skill's browser profile. |
@@ -72,6 +73,29 @@ The run fails with `triage_kind: "login_failed"` (or `"logged_out"` when there i
 | `captcha` | Sign in once on the skill's browser profile, then run it again. |
 
 You also get an inbox note with a link to the **Vault**. Valendata never asks for your password in a chat.
+
+### When a site needs an account that does not exist yet
+
+A skill, a workflow step, a chat agent or a run that meets a sign-in on a site with no saved login never guesses. It asks you once, per site: **"Which email should I use for this site — your own Gmail (connected app) or the email Valendata provides?"** The question is a card in the app (the skill page, the creation progress, the chat, the workflow panel), and over the API it is the run's or creation's `needs_user`:
+
+```json
+{
+  "needs_user": {
+    "kind": "choose_signup_email",
+    "site": "glassdoor.com",
+    "card_id": "0b7c…",
+    "question": "Which email should I use for glassdoor.com — your own Gmail (connected app) or the email Valendata provides?",
+    "options": [
+      {"value": "own", "label": "My Gmail (ada@gmail.com)", "address": "ada@gmail.com", "app": "gmail"},
+      {"value": "valendata", "label": "Valendata email (ada@mail.valendata.com)", "address": "ada@mail.valendata.com"}
+    ]
+  }
+}
+```
+
+Your own address is offered only while a Gmail or Outlook is connected (otherwise `connect_url` says where to connect one). Answer the card in the app, or with [Answer a question card](/api-reference/logins/answer-question) (MCP: `answer_questions`), passing the option's label as shown. The moment you answer, the site's login is saved to your **Vault** (your chosen address and a generated password, marked *created by Valendata*); run or create again and the run registers the account with it, reads the emailed code or link from that address's inbox, and signs in. Every later run signs in with that saved login.
+
+Tick **Always use this for new sites** and no site asks again: the choice is kept on your persona under **Create accounts automatically** (Persona → Permissions → *Email for new accounts*), where you can change it or go back to *Ask me each time* — or over the API with [Get](/api-reference/account/get-signup-email) / [Set the sign-up email default](/api-reference/account/set-signup-email) (MCP: `get_signup_email`, `set_signup_email`). A run with nobody watching (a schedule, the API, MCP) uses that saved choice; without one it stops with the same question.
 
 ## Cost
 

@@ -1,0 +1,13 @@
+---
+title: "Answer a question card"
+description: "Say which email a site account is registered with; the login is saved to your Vault at once."
+openapi: "POST /v1/questions/{card_id}/answer"
+---
+
+`answers` maps each question id to the option's label exactly as the card shows it:
+
+```json
+{"answers": {"signup_email": "Valendata email (ada@mail.valendata.com)", "signup_email_always": "Always use this for new sites"}}
+```
+
+Kept once; a second call returns the card as it stands. The choice is acted on at once — the site's login is saved to your Vault with that address and a generated password — so run the skill, or create it, again afterwards. A card that expired answers `410`; a label the card does not offer, `422`. Needs `logins:use` or `logins:write`. MCP: `answer_questions`.

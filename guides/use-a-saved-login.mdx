@@ -58,4 +58,4 @@ API keys need `logins:write` to save logins and pick them, and `logins:use` to r
 
 If a site texts a code, the run waits up to 3 minutes. Enter it in the run panel, or send it with [`POST /v1/runs/{run_id}/otp`](/api-reference/runs/send-code).
 
-If a run cannot sign in, its `needs_user` says what to do. See [When a run cannot sign in](/concepts/logins-and-browser-profiles#when-a-run-cannot-sign-in).
+If a run cannot sign in, its `needs_user` says what to do. See [When a run cannot sign in](/concepts/logins-and-browser-profiles#when-a-run-cannot-sign-in). A site with no saved login asks which email to register an account with — see [When a site needs an account that does not exist yet](/concepts/logins-and-browser-profiles#when-a-site-needs-an-account-that-does-not-exist-yet).
