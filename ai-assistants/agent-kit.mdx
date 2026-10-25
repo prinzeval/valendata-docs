@@ -16,25 +16,25 @@ You sign in to Valendata in the browser the first time the agent connects. There
 <Tabs>
   <Tab title="Claude Code">
     ```bash
-    claude plugin marketplace add valendata/agent-kit && claude plugin install valendata@valendata
+    claude plugin marketplace add prinzeval/valendata && claude plugin install valendata@valendata
     ```
 
-    Or, inside Claude Code: `/plugin marketplace add valendata/agent-kit`, then `/plugin install valendata@valendata`.
+    Or, inside Claude Code: `/plugin marketplace add prinzeval/valendata`, then `/plugin install valendata@valendata`.
 
     Then run `/mcp`, pick `plugin:valendata:valendata` and choose **Authenticate**. Sign in to Valendata and approve access.
   </Tab>
   <Tab title="Codex">
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/valendata/agent-kit/main/scripts/install.sh | sh -s -- codex && codex mcp login valendata
+    curl -fsSL https://raw.githubusercontent.com/prinzeval/valendata/main/scripts/install.sh | sh -s -- codex && codex mcp login valendata
     ```
 
     This adds `[mcp_servers.valendata]` to `~/.codex/config.toml`, puts the skill in `~/.agents/skills/valendata`, and opens the Valendata sign-in in the browser.
 
-    The kit is also a Codex plugin marketplace: run `codex plugin marketplace add valendata/agent-kit`, then install **Valendata** from the plugin directory.
+    The kit is also a Codex plugin marketplace: run `codex plugin marketplace add prinzeval/valendata`, then install **Valendata** from the plugin directory.
   </Tab>
   <Tab title="Cursor">
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/valendata/agent-kit/main/scripts/install.sh | sh -s -- cursor
+    curl -fsSL https://raw.githubusercontent.com/prinzeval/valendata/main/scripts/install.sh | sh -s -- cursor
     ```
 
     This adds `valendata` to `~/.cursor/mcp.json` and puts the skill in `~/.cursor/skills/valendata`. Then open **Cursor Settings → Tools & MCP** and click **Connect** next to `valendata`.
@@ -45,7 +45,7 @@ You sign in to Valendata in the browser the first time the agent connects. There
     The skill alone, for any agent that reads Agent Skills:
 
     ```bash
-    npx skills add valendata/agent-kit
+    npx skills add prinzeval/valendata
     ```
 
     Then connect the MCP server as shown in [Connect your AI assistant](/ai-assistants/connect).
@@ -64,7 +64,7 @@ If the agent cannot open the browser sign-in, make an [API key](/account/api-key
 
 ```bash
 export VALENDATA_API_KEY="vd_sk_YOUR_API_KEY"
-curl -fsSL https://raw.githubusercontent.com/valendata/agent-kit/main/scripts/install.sh | sh -s -- codex --api-key-env VALENDATA_API_KEY
+curl -fsSL https://raw.githubusercontent.com/prinzeval/valendata/main/scripts/install.sh | sh -s -- codex --api-key-env VALENDATA_API_KEY
 ```
 
 Use `claude` or `cursor` in place of `codex` for the other agents. The config gets the variable's name, never the key itself.
