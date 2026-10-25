@@ -35,9 +35,9 @@ Over OAuth, `skills:invoke` lets an assistant run skills and also create and imp
 
 `create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. A `queued` creation may be waiting for a free browser; nothing is charged while it waits. When the site has an [open API](/guides/create-a-skill#open-apis-first), the skill is built on it with no browser, and the result's `source` is `api`. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
 
-### One tool per skill: `skill_<slug>`
+### A tool for each of your most used skills: `skill_<slug>`
 
-Every skill you can run is its own tool, named `skill_` plus its slug. A skill with the slug `austin-dentists` becomes `skill_austin-dentists`. The list holds skills you own and skills shared into your workspaces. A marketplace skill appears here once you clone it.
+Your 20 most used skills (the most recently run first, then the most run) are each their own tool, named `skill_` plus its slug. Every other skill runs with `run_skill` by slug: find it with `search_skills` or `list_skills`. This keeps the assistant's tool list short however many skills you have, so it does not fill the assistant's memory before it starts. A call to any skill's own tool still works, listed or not. A skill with the slug `austin-dentists` becomes `skill_austin-dentists`. The list holds skills you own and skills shared into your workspaces. A marketplace skill appears here once you clone it.
 
 Each tool has:
 
