@@ -52,6 +52,22 @@ You sign in to Valendata in the browser the first time the agent connects. There
   </Tab>
 </Tabs>
 
+## Use it from the terminal (CLI)
+
+Agents that can run commands — Claude Code, Codex, Cursor — do best with the `valendata` CLI: short commands, JSON output, and no tool list loaded into the agent's context. People can use it too.
+
+```bash
+export VALENDATA_API_KEY="vd_sk_..."      # Settings → API Keys, or: npx valendata login
+npx valendata search "google maps dentists"
+npx valendata clone google-maps-places-scraper
+npx valendata run google-maps-places-scraper search_query=dentist "location=Austin, TX" --max 10 --fields title,phone,website
+npx valendata scrape https://news.ycombinator.com
+```
+
+Skill inputs are `key=value` words. `run` starts the run in the background, waits, and prints the rows as JSON (`--csv` for a spreadsheet, `--fields` to keep only some columns, `--no-wait` to get the run id back). Other commands: `info`, `runs`, `cancel`, `skills`, `map`, `web-search`, `crawl`, `workflows`, `workflow`, `whoami`. `npx valendata help` lists them all, and the [CLI README](https://github.com/prinzeval/valendata/tree/main/cli) explains each one. Every run spends credits like any other run.
+
+The skill in this kit tells agents to use the CLI when they can run commands, and the MCP tools in chat apps.
+
 ## What the agent can do
 
 The tools the agent sees follow what you ticked when you signed in. By default it can search the marketplace, read and run your skills and workflows, create and fix skills, and read runs. Editing, deleting and scheduling, your account and credits, and your connected apps are extra permissions you tick yourself. See [Sign-in and permissions](/ai-assistants/connect#sign-in-and-permissions), [MCP tools](/ai-assistants/mcp-tools) and [Limits and side effects](/ai-assistants/limits-and-side-effects).
