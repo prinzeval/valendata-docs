@@ -45,7 +45,7 @@ This order matters. Repairing a skill never fixes a site that is down, a sign-in
 
 Only `element_changed` and `extraction_drift` failures are repaired. Valendata tries the cheapest fix first:
 
-1. **Code fix.** Valendata saved a fingerprint of each element when the skill was created. It looks for the element on the new page that best matches that fingerprint. This does not use an AI model, and it adds almost no time to the run. If it succeeds, the result reports `heal_kind: "fp"`.
+1. **Quick fix.** Valendata first finds the changed element on the new page by itself. This does not use an AI model, and it adds almost no time to the run. If it succeeds, the result reports `heal_kind: "fp"`.
 2. **AI repair.** If the code fix cannot find a confident match, an AI agent works out the step on the changed page. If it succeeds, the result reports `heal_kind: "ai"`. Only one repair runs on a skill at a time, and each skill has a small daily limit on AI repairs. A skill that needs rescuing many times a day is flagged as broken, not hidden.
 
 ### Every repair is proven
@@ -95,20 +95,16 @@ A recorded click on a consent button, such as "Accept all", is optional. If the 
 
 ## Fast path
 
-Many websites load their data from their own backend after the page opens. When a skill runs in a cloud browser, Valendata watches for a request that clearly carries the data the skill returns. If it finds one, it tests that request alongside normal runs. Only after the results keep agreeing does it become the skill's **fast path**, saved as a new version.
+A skill can learn a faster way to read the same data than a full browser run. A faster way is used only after it gives the same rows as normal runs, and it is saved as a new version: the skill's **fast path**.
 
-Other websites send the rows inside the page itself. For these, Valendata checks whether the list page can be downloaded with a plain web request, without a browser. Its address must follow the skill's inputs. The skill's own way of reading rows must also give the same rows as the browser run. This tries the page markup first, then any data block in the page. If it works, it is tested alongside normal runs in the same way, then saved as a new version.
+From then on, each run tries the quickest proven route first and falls back in the same call if it has to:
 
-From then on, each run tries the quickest route first and falls back in the same call if it has to:
-
-1. **Direct HTTP** (`fetch_direct`): no browser.
-2. **In-browser fetch** (`fetch_browser`): the same request, made from a browser.
-3. **Page download** (`html_direct`): the list page's HTML, downloaded without a browser and read the same way the browser run reads it.
+1. **Direct** (`fetch_direct`): no browser.
+2. **From a browser** (`fetch_browser`): the same route, made from a browser.
+3. **Page read** (`html_direct`): a lighter read without a browser.
 4. **Browser replay** (`replay`): the full recorded steps.
 
-The page download goes through the same proxy the skill's browser would use, with an ordinary browser's request headers. It never sends your cookies. It is skipped when the skill's browser profile is signed in to the site. A sign-in page, a consent page, or a bot check is treated as a failure, and the run uses the browser instead. A page download costs no browser time.
-
-Sites that build their rows with JavaScript, such as Google Maps, have no page download. Sites that block plain web requests keep using the browser.
+A faster route never sends your cookies, and costs no browser time. Some sites have no faster route; their skills keep using the browser.
 
 A fast path that keeps failing is paused, and runs use the browser until the fast path is proven again. Each result reports `tier_used` and `tier_timings`. `GET /v1/skills/{slug}/health` shows how each route has done over the last 20 attempts.
 

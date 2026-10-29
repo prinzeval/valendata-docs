@@ -16,7 +16,7 @@
 - The product is **Valendata** (capital V, one word). Never "ValenData" or "Valendata AI".
 - A **skill** is a saved task that returns rows. A **workflow** chains steps. A **run** is one execution.
 - Pricing facts: new accounts get 100 free credits, no card; $1 = 100 credits. Plans are monthly subscriptions (Starter $10/mo = 1,000 credits a month, Growth $45/mo = 5,000, Pro $80/mo = 10,000; cancel any time, access to the end of the paid month). Top-ups are one-time, any amount, and top-up credits never expire. Never write "one-time packs", "no subscription", or "credits never expire" about plan credits.
-- Check every fact against `valendata-be/app` before writing it. `_reconcile.md` lists the source for each API page.
+- Check every fact against `valendata-be/app` before writing it.
 
 ## Style preferences
 
