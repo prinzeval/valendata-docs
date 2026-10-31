@@ -8,7 +8,7 @@ Skill run ids start with `run_`. Anything else is looked up as a workflow run.
 
 While the run is going, `status` is `queued`, `pending`, or `running`. Once it ends:
 
-- A **skill run** has its rows in `rows`, plus `count`, cost, version, and the trust fields.
+- A **skill run** has its rows in `rows`, plus `count`, cost, version, the trust fields, and `read_way`: [how it got its data](/concepts/runs#how-a-run-got-its-data).
 - A **workflow run** has `kind: "workflow"`, `outputs`, a per-step summary in `steps`, cost, and `failure_class`.
 
 A compared skill run (a scheduled run, or one started with `changes_since`) also has `changes`: `since_run_id`, `first_run`, `key_fields`, `key_automatic`, `watch`, `delivery`, `rows_total`, the `new`, `changed`, `removed`, and `unchanged` counts, and a few `examples` of each. With `delivery` `new` or `changes`, `rows` holds only those rows. Any other run has `changes: null`. For every changed row, call [Get a run's changes](/api-reference/runs/get-changes). See [Only what's new](/guides/schedule#only-whats-new).

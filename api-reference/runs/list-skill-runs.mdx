@@ -6,6 +6,6 @@ openapi: "GET /v1/skills/{slug}/runs"
 
 Filter with `status` (comma-separated: `queued`, `running`, `success`, `partial`, `failed`, `cancelled`) and `since`. Page with `limit` (1–100, default 50) and `cursor`.
 
-Each item has `run_id`, `status`, start and finish times, `rows`, `credits`, `failure_class`, `tier_used`, `recipe_version`, `error`, `run_url`, and `changes`. `changes` is `null`, or for a compared run `since_run_id`, `first_run`, `delivery`, `rows_total`, and the `new`, `changed`, `removed`, and `unchanged` counts. See [Only what's new](/guides/schedule#only-whats-new). For the rows themselves, call [Get a run](/api-reference/runs/get).
+Each item has `run_id`, `status`, start and finish times, `rows`, `credits`, `failure_class`, `tier_used`, `read_way`, `recipe_version`, `error`, `run_url`, and `changes`. `read_way` says how the run got its data; see [How a run got its data](/concepts/runs#how-a-run-got-its-data). `changes` is `null`, or for a compared run `since_run_id`, `first_run`, `delivery`, `rows_total`, and the `new`, `changed`, `removed`, and `unchanged` counts. See [Only what's new](/guides/schedule#only-whats-new). For the rows themselves, call [Get a run](/api-reference/runs/get).
 
 The skill's owner and workspace see every run. Anyone else sees only their own runs of it. Needs `runs:read`. MCP tool: `list_skill_runs`.

@@ -14351,6 +14351,16 @@
             "title": "Tier Timings",
             "default": []
           },
+          "read_way": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadWay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "draft_run": {
             "type": "boolean",
             "title": "Draft Run",
@@ -17391,6 +17401,16 @@
             "type": "array",
             "title": "Tier Timings"
           },
+          "read_way": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadWay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "draft_run": {
             "type": "boolean",
             "title": "Draft Run",
@@ -19104,6 +19124,16 @@
               }
             ],
             "title": "Fast Path Detail Endpoint"
+          },
+          "reads_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadsBy"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "tiers": {
             "additionalProperties": {
@@ -22899,6 +22929,16 @@
             ],
             "title": "Tier Used"
           },
+          "read_way": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReadWay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "recipe_version": {
             "anyOf": [
               {
@@ -25813,6 +25853,126 @@
             "description": "Every validation problem, on a 422 from request validation."
           }
         }
+      },
+      "ReadWay": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "open_api",
+              "feed",
+              "page_data",
+              "hidden_request",
+              "page_read",
+              "browser"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "where": {
+            "type": "string",
+            "enum": [
+              "none",
+              "extension",
+              "cloud"
+            ],
+            "title": "Where"
+          },
+          "where_label": {
+            "type": "string",
+            "title": "Where Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "label",
+          "where",
+          "where_label"
+        ],
+        "title": "ReadWay",
+        "description": "How a run got its data, and whether a browser was used and whose. See https://docs.valendata.com/concepts/runs#how-a-run-got-its-data"
+      },
+      "SkillReadWay": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "open_api",
+              "feed",
+              "page_data",
+              "hidden_request",
+              "page_read",
+              "browser"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "where": {
+            "type": "string",
+            "enum": [
+              "none",
+              "extension",
+              "cloud"
+            ],
+            "title": "Where"
+          },
+          "where_label": {
+            "type": "string",
+            "title": "Where Label"
+          },
+          "typical_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Typical Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "label",
+          "where",
+          "where_label"
+        ],
+        "title": "SkillReadWay",
+        "description": "One way a skill reads its data, with how long a run that way usually takes."
+      },
+      "ReadsBy": {
+        "properties": {
+          "main": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillReadWay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "backups": {
+            "items": {
+              "$ref": "#/components/schemas/SkillReadWay"
+            },
+            "type": "array",
+            "title": "Backups",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "ReadsBy",
+        "description": "How a skill reads its data: the way it tries first, and the ways it falls back to, in order."
       }
     }
   }

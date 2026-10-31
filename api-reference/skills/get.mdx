@@ -1,6 +1,6 @@
 ---
 title: "Get a skill"
-description: "A skill and its contract: inputs, output fields, track record, versions, and fast path."
+description: "A skill and its contract: inputs, output fields, track record, versions, fast path, and how it reads its data."
 openapi: "GET /v1/skills/{slug}"
 ---
 
@@ -19,6 +19,7 @@ The fields you will use most:
 | `recipe_version`, `pinned_recipe_version` | The live [version](/concepts/keeping-skills-working#versions), and the pinned one (or `null`). |
 | `fast_path` | A short description of the skill's [fast path](/concepts/keeping-skills-working#fast-path), or `null`. A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) reads like `reads the site's public API (gamma-api.polymarket.com/markets), no browser, ~0.8s`. One that makes a second call per row adds `list + detail (one more call per row: gamma-api.polymarket.com/markets/{id})`. |
 | `fast_path_detail_endpoint` | For a skill built on an open API that makes one more call per row for fields its list does not carry ([list plus detail](/guides/create-a-skill#list-plus-detail)): that call, as host and path, such as `boards-api.greenhouse.io/v1/boards/figma/jobs/{id}`. Otherwise `null`. |
+| `reads_by` | How the skill reads its data. `main` is the way it tries first, and `backups` the ways it falls back to, in order. Each has `kind`, `label`, `where`, `where_label`, and `typical_seconds` (how long a run that way usually takes, or `null`). The names are in [How a run got its data](/concepts/runs#how-a-run-got-its-data). |
 | `api_endpoint`, `runs_endpoint`, `versions_endpoint` | The routes to run it and see its versions. |
 | `site_domain`, `endpoint_name` | The website it works on and its name there, for calling it through its [Site API](/concepts/site-apis). |
 

@@ -34,10 +34,46 @@ When an agent starts runs for you while you keep talking, each is tracked as a [
 - **Rows**: the data, one object per row, with the skill's output fields. Each value has its field's [type](/concepts/skills#output-field-types).
 - **Count** and **time taken**.
 - **Version**: the skill version this run used (`recipe_version`).
-- **Route**: how it ran (`tier_used`): a fast path or the full browser steps. See [Fast path](/concepts/keeping-skills-working#fast-path).
+- **How it got its data**: `read_way`. See [How a run got its data](#how-a-run-got-its-data).
 - **Changes**: on a scheduled run, or one started with `changes_since`, what is new, changed, or removed since the run before. See [Only what's new](/guides/schedule#only-whats-new).
 - **Replay**: in the app, a browser run has a step-by-step replay with screenshots, so you can see where it clicked and typed.
 - **Cost**: `credits_charged` and `cost_usd`. A cloud browser is billed when it closes, so a run can answer before its final cost is known. Until then `cost_final` is `false` and `cost_estimate_credits` holds the expected total. Read the run again for the final number.
+
+## How a run got its data
+
+Every skill run says how it got its data in `read_way`, with one set of names:
+
+```json
+"read_way": {
+  "kind": "open_api",
+  "label": "Open API",
+  "where": "none",
+  "where_label": "no browser"
+}
+```
+
+`kind` is the way, and `label` is its name in plain words:
+
+| `kind` | `label` | What it means |
+| --- | --- | --- |
+| `open_api` | Open API | The site's public data service. |
+| `feed` | RSS feed, or the feed's own name | The site's feed. |
+| `page_data` | Page data | Data the page itself carries. |
+| `hidden_request` | Hidden request | The same data request the site's own page makes, without clicking. |
+| `page_read` | Page read | The page, read without a browser. |
+| `browser` | Browser steps | The skill's recorded steps, in a browser. |
+
+`where` says whether a browser was used, and whose:
+
+| `where` | `where_label` |
+| --- | --- |
+| `none` | no browser |
+| `extension` | your Chrome |
+| `cloud` | the cloud browser |
+
+New runs always have `read_way`. An older run may show one worked out from its record, or none. `tier_used` and `tier_timings` are still returned as before.
+
+A skill lists the ways it reads, in the order it tries them, in `reads_by` on [Get a skill](/api-reference/skills/get). A run uses the first way that works. See [Fast path](/concepts/keeping-skills-working#fast-path).
 
 ## How far to trust the rows
 

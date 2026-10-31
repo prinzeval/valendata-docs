@@ -97,21 +97,16 @@ A recorded click on a consent button, such as "Accept all", is optional. If the 
 
 A skill can learn a faster way to read the same data than a full browser run. A faster way is used only after it gives the same rows as normal runs, and it is saved as a new version: the skill's **fast path**.
 
-From then on, each run tries the quickest proven route first and falls back in the same call if it has to:
+From then on, each run tries the quickest proven way first and falls back in the same call if it has to. The last way is always the skill's recorded steps in a browser. The skill lists its ways, in order, in `reads_by`, and each run says which one it used in `read_way`. What each way means is in [How a run got its data](/concepts/runs#how-a-run-got-its-data).
 
-1. **Direct** (`fetch_direct`): no browser.
-2. **From a browser** (`fetch_browser`): the same route, made from a browser.
-3. **Page read** (`html_direct`): a lighter read without a browser.
-4. **Browser replay** (`replay`): the full recorded steps.
+A faster way never sends your cookies. One that needs no browser costs no browser time. Some sites have no faster way; their skills keep using the browser.
 
-A faster route never sends your cookies, and costs no browser time. Some sites have no faster route; their skills keep using the browser.
-
-A fast path that keeps failing is paused, and runs use the browser until the fast path is proven again. Each result reports `tier_used` and `tier_timings`. `GET /v1/skills/{slug}/health` shows how each route has done over the last 20 attempts.
+A fast path that keeps failing is paused, and runs use the browser until the fast path is proven again. `GET /v1/skills/{slug}/health` shows how each way has done over the last 20 attempts.
 
 ## Where to see it
 
-- **Each run result**: `triage_kind`, `heal_kind`, `recipe_version`, `tier_used`, and the trust fields.
-- **[`GET /v1/skills/{slug}`](/api-reference/skills/get)**: `reliability`, `recipe_version`, `pinned_recipe_version`, and `fast_path`.
+- **Each run result**: `triage_kind`, `heal_kind`, `recipe_version`, `read_way`, and the trust fields.
+- **[`GET /v1/skills/{slug}`](/api-reference/skills/get)**: `reliability`, `recipe_version`, `pinned_recipe_version`, `fast_path`, and `reads_by`.
 - **[`GET /v1/skills/{slug}/health`](/api-reference/skills/health)**: success rate and repairs over the last 20 runs, the last failure kind, and health for each route.
 - **The skill's Optimizer tab**: for a skill built on an open API, what it reads instead of steps to speed up: the API address and a link to its docs, where it was found (the site's API docs, the address you gave, the site's own calls, its feed, or its platform), where each field comes from in the answer, the call it makes once per row when it reads [list plus detail](/guides/create-a-skill#list-plus-detail), how it reads more pages, and how its calls have done.
 - **AI assistants**: each `skill_<slug>` tool's description includes the same short track record. See [MCP tools](/ai-assistants/mcp-tools).
