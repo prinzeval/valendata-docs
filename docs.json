@@ -127,7 +127,10 @@
               "api-reference/skills/clone",
               "api-reference/skills/update",
               "api-reference/skills/delete",
-              "api-reference/skills/health"
+              "api-reference/skills/health",
+              "api-reference/skills/speed",
+              "api-reference/skills/try-speed",
+              "api-reference/skills/use-speed"
             ]
           },
           {

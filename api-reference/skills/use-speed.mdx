@@ -1,0 +1,11 @@
+---
+title: "Use a tier"
+description: "Choose the tier a skill runs on, or go back to automatic."
+openapi: "POST /v1/skills/{slug}/speed/use"
+---
+
+Send `tier`: `1`, `2` or `3` to keep the skill on that tier, or `null` for automatic (the fastest tier that works). The answer is the skill's [speed](/api-reference/skills/speed).
+
+- A tier must work before you can use it. A tier that is untested or failing answers `409`: [try it](/api-reference/skills/try-speed) first.
+- A chosen tier never fails a run. If it stops answering, that run is answered by the next tier down.
+- Only the skill's owner and its workspace can choose. Anyone else gets a `404`.

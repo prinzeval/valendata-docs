@@ -1,0 +1,14 @@
+---
+title: "Try a faster tier"
+description: "Prove a faster tier on the skill's own inputs now. When it passes, runs use it."
+openapi: "POST /v1/skills/{slug}/speed/try"
+---
+
+Send `tier` (`1` or `2`) and, optionally, `browser` (`auto`, `cloud` or `extension`; default `auto`). The trial runs in the background and answers `202` with the `trial`. Read [Get a skill's speed](/api-reference/skills/speed) to follow it.
+
+A trial reads the data the faster way and checks it gives the same rows as the skill's normal run, then checks it again with a second input. When both checks pass, runs use that tier from then on. When they do not, the skill stays on the tier it uses, and the trial's `message` says why.
+
+- Only the skill's owner and its workspace can start a trial. Anyone else gets a `404`.
+- One trial at a time: starting another while one runs answers `409`.
+- `browser: "extension"` needs your Chrome with the Valendata extension connected.
+- A trial is charged like a run.

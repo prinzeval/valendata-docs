@@ -34,7 +34,9 @@ When an agent starts runs for you while you keep talking, each is tracked as a [
 - **Rows**: the data, one object per row, with the skill's output fields. Each value has its field's [type](/concepts/skills#output-field-types).
 - **Count** and **time taken**.
 - **Version**: the skill version this run used (`recipe_version`).
+- **Tier**: `tier` (`1`, `2` or `3`) and `tier_label`, for example "Tier 1 — about 1 second". See [Speed tiers](/concepts/keeping-skills-working#speed-tiers).
 - **How it got its data**: `read_way`. See [How a run got its data](#how-a-run-got-its-data).
+- **Kind**: `run_kind` and `run_kind_label`: your own run, a scheduled run, or one Valendata started itself (a creation test, a repair check or a speed trial). See [Runs Valendata starts itself](/concepts/keeping-skills-working#runs-valendata-starts-itself).
 - **Changes**: on a scheduled run, or one started with `changes_since`, what is new, changed, or removed since the run before. See [Only what's new](/guides/schedule#only-whats-new).
 - **Replay**: in the app, a browser run has a step-by-step replay with screenshots, so you can see where it clicked and typed.
 - **Cost**: `credits_charged` and `cost_usd`. A cloud browser is billed when it closes, so a run can answer before its final cost is known. Until then `cost_final` is `false` and `cost_estimate_credits` holds the expected total. Read the run again for the final number.
@@ -73,7 +75,7 @@ Every skill run says how it got its data in `read_way`, with one set of names:
 
 New runs always have `read_way`. An older run may show one worked out from its record, or none. `tier_used` and `tier_timings` are still returned as before.
 
-A skill lists the ways it reads, in the order it tries them, in `reads_by` on [Get a skill](/api-reference/skills/get). A run uses the first way that works. See [Fast path](/concepts/keeping-skills-working#fast-path).
+A skill lists the ways it reads, in the order it tries them, in `reads_by` on [Get a skill](/api-reference/skills/get). A run uses the first way that works. See [Speed tiers](/concepts/keeping-skills-working#speed-tiers).
 
 ## How far to trust the rows
 

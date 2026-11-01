@@ -1,0 +1,31 @@
+---
+title: "Get a skill's speed"
+description: "The tier a skill runs on, how each tier is doing, the latest speed trial, and what has changed."
+openapi: "GET /v1/skills/{slug}/speed"
+---
+
+| Field | Meaning |
+| --- | --- |
+| `current_tier` | The tier runs use now: `1`, `2`, or `3`. `null` before its first run. See [Speed tiers](/concepts/keeping-skills-working#speed-tiers). |
+| `pinned_tier` | The tier you chose with [Use a tier](/api-reference/skills/use-speed). `null` means automatic: the fastest tier that works. |
+| `summary` | One plain sentence, for example "Runs on Tier 1 — about 1 second. Worked 19 of its last 20 runs." |
+| `success` | `{ok, total}` over its last 20 runs. Repair checks, speed trials and creation tests are not counted. |
+| `last_worked_at` | When a run last worked. |
+| `tiers` | One entry per tier: `tier`, `label`, `time_label`, `status`, `status_label`, `why`, `typical_seconds`, `ok`, `total`, `can_try`, `can_use`. |
+| `trial` | The latest speed trial: `id`, `tier`, `status` (`running`, `passed` or `failed`), `message`, `started_at`, `finished_at`. `null` when there has been none. |
+| `events` | What happened, newest first, at most 30: `at`, `kind`, `tier`, `from_tier`, `message`. |
+
+A tier's `status` is one of:
+
+| `status` | Meaning |
+| --- | --- |
+| `in_use` | Runs use this tier now. |
+| `works` | Proven on this site, not in use. |
+| `untested` | Not tried yet. `can_try` says whether you can try it. |
+| `failing` | It stopped working. `why` says why, for example the site blocked it. |
+| `repairing` | A repair is working on it. |
+| `not_available` | This skill cannot use it. `why` says why. |
+
+An event's `kind` is one of `created_on`, `moved_down`, `moved_up`, `switched`, `trial_passed`, `trial_failed`, `repairing`, `repaired`, or `not_repaired`.
+
+A public skill's speed needs no key. A private skill's is visible to the people who may run it.
