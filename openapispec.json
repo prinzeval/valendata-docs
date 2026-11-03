@@ -25762,10 +25762,11 @@
               "untested",
               "failing",
               "repairing",
-              "not_available"
+              "not_available",
+              "not_found"
             ],
             "title": "Status",
-            "description": "in_use (runs use it now), works (proven, not in use), untested (not tried yet), failing, repairing (fixing itself in the background) or not_available (this skill cannot use it)."
+            "description": "in_use (runs use it now), works (proven, not in use), untested (not tried yet), failing, repairing (fixing itself in the background) not_available (this skill cannot use it) or not_found (tried, and no faster way to read the site was found yet — nothing broke; it may be tried again)."
           },
           "status_label": {
             "type": "string",

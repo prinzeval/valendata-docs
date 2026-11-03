@@ -25,6 +25,7 @@ A tier's `status` is one of:
 | `failing` | It stopped working. `why` says why, for example the site blocked it. |
 | `repairing` | A repair is working on it. |
 | `not_available` | This skill cannot use it. `why` says why. |
+| `not_found` | A trial looked and found no faster way to read the site yet. Nothing broke; it can be tried again. `why` says what was tried. |
 
 An event's `kind` is one of `created_on`, `moved_down`, `moved_up`, `switched`, `trial_passed`, `trial_failed`, `repairing`, `repaired`, or `not_repaired`.
 

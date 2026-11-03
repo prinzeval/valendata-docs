@@ -109,6 +109,10 @@ A skill stays on its tier. If that tier keeps failing, the skill moves down one 
 
 You can also try a faster tier yourself, or choose the tier a skill runs on, from the **Speed** tab, [the API](/api-reference/skills/try-speed) or an AI assistant. A tier must work before you can choose it.
 
+Every skill can use Tier 1, whatever browser it is set to. On a skill set to your Chrome, Tier 1 reads without a browser; when that read does not work, the same run reads through your Chrome. A skill that signs in to a site stays in its browser.
+
+Every skill keeps its recorded browser steps underneath its faster tiers, including a skill that reads the site's own data. When a faster read fails or comes back with less than the steps returned, the same run uses the steps.
+
 A faster tier never sends your cookies. A tier that needs no browser costs no browser time.
 
 ### Runs Valendata starts itself
