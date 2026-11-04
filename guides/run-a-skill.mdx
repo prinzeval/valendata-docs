@@ -13,6 +13,10 @@ Before you start, create an API key in **Settings → API Keys** with the `skill
 
 To see what a skill takes and returns, read its contract with [`GET /v1/skills/{slug}`](/api-reference/skills/get): `input_schema` lists the inputs, `output_json_schema` the row shape.
 
+Some inputs must be sent on every run, such as a hotel's check-in and check-out dates: without them the site shows no prices. They are listed in `input_schema` under `required`, with no default. A run that leaves one out, or sends a date that has passed, is refused with a `422` that names the input. Nothing runs and nothing is charged.
+
+Send every date as `YYYY-MM-DD`, such as `2026-11-20`, whatever way the site writes dates. A date input has `"format": "date"` in `input_schema`, and its example is written the same way. Valendata writes the date the way the site does when the skill runs. A date written any other way is refused with a `422` that shows the format and an example. A date that looks ahead, such as a check-in or a departure, must be today or later. A date that looks back, such as "posted since" or one day's leaderboard, takes any day.
+
 ### Wait for the rows
 
 [`POST /v1/skills/{slug}/run`](/api-reference/runs/run-skill) runs the skill and answers when it finishes. Put the inputs at the top level of the body:

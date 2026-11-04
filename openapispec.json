@@ -4026,7 +4026,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NoteList"
+                  "$ref": "#/components/schemas/app__notes__api__schemas__NoteList"
                 },
                 "example": {
                   "notes": [
@@ -5922,7 +5922,7 @@
             "$ref": "#/components/responses/InternalError"
           }
         },
-        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) `failed` (nothing was saved; `error` says why; the credits it used are not given back) or `cancelled` (you stopped it; nothing was saved). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. `next_step` says what to do. Only the account that started it can read it."
+        "description": "Where a creation is: `queued`, `recording`, `validating`, `ready` (run `run_url`), `needs_fix` (the recording was saved as a draft skill with `sample_rows`, but its test replay did not pass — fix it with `POST /v1/skills/{slug}/improve`, do not create it again) `failed` (nothing was saved; `error` says why; the credits it used are not given back) or `cancelled` (you stopped it; nothing was saved). `progress` is the latest step in plain words and `credits_charged` what the creation has cost so far. Once `ready`, the new skill looks for its fastest tier by itself in the background: `climbing` is true while it does, then `speed_tier` is the tier it ended on (1, 2 or 3). `next_step` says what to do. Only the account that started it can read it."
       }
     },
     "/v1/skill-creations/{creation_id}/cancel": {
@@ -8501,7 +8501,7 @@
           "Skills"
         ],
         "summary": "Get a skill's speed",
-        "description": "The skill's speed in tiers — Tier 1 (about 1 second, read from our server with no browser), Tier 2 (a few seconds, read inside a browser) and Tier 3 (about a minute, the recorded browser steps). `current_tier` is the tier its runs use now, `pinned_tier` the tier chosen with `POST /v1/skills/{slug}/speed/use` (`null`: automatic, the fastest that works). Each tier has a `status` (`in_use`, `works`, `untested`, `failing`, `repairing`, `not_available`) with `why`, `can_try` and `can_use`. `trial` is the latest speed trial; `events` say what happened, newest first: `created_on`, `moved_down`, `moved_up`, `switched`, `trial_passed`, `trial_failed`, `repairing`, `repaired`, `not_repaired`. Public for public Skills; private Skills return 404 to anyone who may not run them.",
+        "description": "The skill's speed in tiers — Tier 1 (about 1 second, read from our server with no browser), Tier 2 (a few seconds, read inside a browser) and Tier 3 (about a minute, the recorded browser steps). `current_tier` is the tier its runs use now, `pinned_tier` the tier chosen with `POST /v1/skills/{slug}/speed/use` (`null`: automatic, the fastest that works). Each tier has a `status` (`in_use`, `works`, `untested`, `failing`, `repairing`, `paused`, `not_available`, `not_found`, `not_proven`) with `why`, `can_try` and `can_use` — `paused` is a tier waiting for the retry it gets on its own after failures, `repairing` one being repaired now. `trial` is the latest speed trial; `climbing` is true while a new skill still looks for its fastest tier in the background; `page_read` is the page read's latest look (found, and why not); `events` say what happened, newest first: `created_on`, `moved_down`, `moved_up`, `switched`, `trial_passed`, `trial_failed`, `trial_unproven`, `climb`, `repairing`, `repaired`, `not_repaired`. Public for public Skills; private Skills return 404 to anyone who may not run them.",
         "operationId": "get_skill_speed",
         "security": [
           {
@@ -14502,7 +14502,7 @@
           },
           "field_fill": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__diagnosis__schemas__FieldFill"
             },
             "type": "object",
             "title": "Field Fill",
@@ -14847,6 +14847,34 @@
             "type": "array",
             "title": "Type Notes",
             "default": []
+          },
+          "read_as": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Read As",
+            "default": {}
+          },
+          "tier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier"
+          },
+          "tier_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier Label"
           },
           "count": {
             "type": "integer",
@@ -15408,27 +15436,19 @@
             "title": "Filled",
             "default": 0
           },
-          "not_listed": {
-            "type": "integer",
-            "title": "Not Listed",
-            "description": "Blank because the site does not list it on that result.",
-            "default": 0
-          },
-          "failed": {
-            "type": "integer",
-            "title": "Failed",
-            "description": "Blank because the read failed (or could not be told apart).",
-            "default": 0
-          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill",
-        "description": "One field over the run's rows (field_fill.py)."
+        "title": "FieldFill"
       },
       "Followup": {
         "properties": {
@@ -17391,41 +17411,6 @@
         ],
         "title": "NoteDeleted"
       },
-      "NoteList": {
-        "properties": {
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor",
-            "description": "Pass as ?cursor= for the next page; null on the last page."
-          },
-          "notes": {
-            "items": {
-              "$ref": "#/components/schemas/Note"
-            },
-            "type": "array",
-            "title": "Notes"
-          },
-          "has_more": {
-            "type": "boolean",
-            "title": "Has More",
-            "description": "True when there is a next page (next_cursor is not null).",
-            "readOnly": true
-          }
-        },
-        "type": "object",
-        "required": [
-          "notes",
-          "has_more"
-        ],
-        "title": "NoteList"
-      },
       "OpenSiteRequest": {
         "properties": {
           "id": {
@@ -18733,6 +18718,11 @@
             "type": "array",
             "title": "Type Notes"
           },
+          "read_as": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Read As"
+          },
           "triage_kind": {
             "anyOf": [
               {
@@ -19411,6 +19401,18 @@
             "type": "boolean",
             "title": "Required",
             "default": false
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format",
+            "description": "\"date\": written YYYY-MM-DD, however the site writes it"
           }
         },
         "type": "object",
@@ -20112,6 +20114,23 @@
               }
             ],
             "title": "Validated At"
+          },
+          "being_made": {
+            "type": "boolean",
+            "title": "Being Made",
+            "default": false
+          },
+          "working": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Working"
           },
           "passed_test": {
             "anyOf": [
@@ -20982,6 +21001,23 @@
               }
             ],
             "title": "Validated At"
+          },
+          "being_made": {
+            "type": "boolean",
+            "title": "Being Made",
+            "default": false
+          },
+          "working": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Working"
           },
           "passed_test": {
             "anyOf": [
@@ -21959,6 +21995,24 @@
             "title": "Source Note",
             "description": "For source browser: why it was not built on an open API (what the search for one found)."
           },
+          "climbing": {
+            "type": "boolean",
+            "title": "Climbing",
+            "description": "True while the ready skill still looks for its fastest tier in the background (a speed trial of Tier 1, then Tier 2; its runs work meanwhile). GET /v1/skills/{slug}/speed shows each step.",
+            "default": false
+          },
+          "speed_tier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed Tier",
+            "description": "The tier the new skill ended its climb on: 1 (about 1 second), 2 (a few seconds) or 3 (about a minute, its browser steps); null while it is still climbing or before it is ready."
+          },
           "queue_position": {
             "anyOf": [
               {
@@ -22303,6 +22357,24 @@
             "title": "Source Note",
             "description": "For source browser: why it was not built on an open API (what the search for one found)."
           },
+          "climbing": {
+            "type": "boolean",
+            "title": "Climbing",
+            "description": "True while the ready skill still looks for its fastest tier in the background (a speed trial of Tier 1, then Tier 2; its runs work meanwhile). GET /v1/skills/{slug}/speed shows each step.",
+            "default": false
+          },
+          "speed_tier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed Tier",
+            "description": "The tier the new skill ended its climb on: 1 (about 1 second), 2 (a few seconds) or 3 (about a minute, its browser steps); null while it is still climbing or before it is ready."
+          },
           "queue_position": {
             "anyOf": [
               {
@@ -22427,7 +22499,7 @@
           },
           "workflows_detached": {
             "items": {
-              "$ref": "#/components/schemas/app__published_skills__manage__schemas__WorkflowRef"
+              "$ref": "#/components/schemas/WorkflowRef"
             },
             "type": "array",
             "title": "Workflows Detached",
@@ -22535,6 +22607,23 @@
               }
             ],
             "title": "Validated At"
+          },
+          "being_made": {
+            "type": "boolean",
+            "title": "Being Made",
+            "default": false
+          },
+          "working": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Working"
           },
           "passed_test": {
             "anyOf": [
@@ -23759,14 +23848,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -23938,6 +24027,18 @@
               }
             ],
             "title": "Description"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format",
+            "description": "\"date\": written YYYY-MM-DD, however the site writes it"
           }
         },
         "type": "object",
@@ -24121,6 +24222,12 @@
             "title": "Required",
             "default": true
           },
+          "compulsory": {
+            "type": "boolean",
+            "title": "Compulsory",
+            "description": "Must be given on every run — the recorded value never stands in (a hotel's check-in date: without a real one the site shows no prices). A run without it, or with a date that has passed, is refused.",
+            "default": false
+          },
           "default": {
             "anyOf": [
               {},
@@ -24188,6 +24295,36 @@
             ],
             "title": "Where",
             "description": "Where it goes (request) or what it reads (filter)"
+          },
+          "needs_value": {
+            "type": "boolean",
+            "title": "Needs Value",
+            "description": "The run form will not run with it empty: a compulsory input, or what or where the run searches (its recorded value fills the form first)",
+            "default": false
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format",
+            "description": "\"date\" for a date input: always given as YYYY-MM-DD, however the site writes it"
+          },
+          "example": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Example",
+            "description": "The recorded value as a caller writes it (a date as YYYY-MM-DD)"
           }
         },
         "type": "object",
@@ -25551,6 +25688,12 @@
             ],
             "description": "The latest speed trial; null when none was run."
           },
+          "climbing": {
+            "type": "boolean",
+            "title": "Climbing",
+            "description": "The new skill is still looking for its fastest tier in the background (its climb: a trial of Tier 1, then Tier 2).",
+            "default": false
+          },
           "events": {
             "items": {
               "$ref": "#/components/schemas/SpeedEvent"
@@ -25558,6 +25701,17 @@
             "type": "array",
             "title": "Events",
             "description": "What happened, newest first (at most 30)."
+          },
+          "page_read": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SpeedPageRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The page read's latest learning (technical); null when it never looked."
           }
         },
         "type": "object",
@@ -25660,12 +25814,14 @@
               "switched",
               "trial_passed",
               "trial_failed",
+              "trial_unproven",
+              "climb",
               "repairing",
               "repaired",
               "not_repaired"
             ],
             "title": "Kind",
-            "description": "created_on, moved_down, moved_up, switched, trial_passed, trial_failed, repairing, repaired or not_repaired."
+            "description": "created_on, moved_down, moved_up, switched, trial_passed, trial_failed, trial_unproven (the trial could not decide), climb (a step of the new skill's climb to its fastest tier: started, a tier skipped and why, stopped), repairing, repaired or not_repaired."
           },
           "tier": {
             "anyOf": [
@@ -25713,6 +25869,45 @@
           "message"
         ],
         "title": "SpeedEvent"
+      },
+      "SpeedPageRead": {
+        "properties": {
+          "found": {
+            "type": "boolean",
+            "title": "Found",
+            "description": "A page read was found on its latest look."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Why it was or was not found, in its own words (technical)."
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At",
+            "description": "When it looked (ISO 8601, UTC)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "found"
+        ],
+        "title": "SpeedPageRead",
+        "description": "The page read's latest learning: whether a way to read the site's page was found, and why not."
       },
       "SpeedSuccess": {
         "properties": {
@@ -25762,11 +25957,13 @@
               "untested",
               "failing",
               "repairing",
+              "paused",
               "not_available",
-              "not_found"
+              "not_found",
+              "not_proven"
             ],
             "title": "Status",
-            "description": "in_use (runs use it now), works (proven, not in use), untested (not tried yet), failing, repairing (fixing itself in the background) not_available (this skill cannot use it) or not_found (tried, and no faster way to read the site was found yet — nothing broke; it may be tried again)."
+            "description": "in_use (runs use it now), works (proven, not in use), untested (not tried yet), failing, repairing (being repaired in the background), paused (paused after failures; retried on its own — nothing is being repaired), not_available (this skill cannot use it) or not_found (tried, and no faster way to read the site was found yet — nothing broke; it may be tried again) or not_proven (tried, and the trial could not decide — a wall, our side, or no second search the site had; it may be tried again)."
           },
           "status_label": {
             "type": "string",
@@ -25865,10 +26062,11 @@
             "enum": [
               "running",
               "passed",
-              "failed"
+              "failed",
+              "unproven"
             ],
             "title": "Status",
-            "description": "running, passed or failed."
+            "description": "running, passed, failed or unproven (the trial could not decide either way)."
           },
           "message": {
             "type": "string",
@@ -28135,6 +28333,35 @@
         ],
         "title": "WorkflowList"
       },
+      "WorkflowRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "WorkflowRef"
+      },
       "WorkflowRunList": {
         "properties": {
           "next_cursor": {
@@ -28466,38 +28693,9 @@
         "title": "WrongValue",
         "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
       },
-      "app__published_skills__improvements__schemas__FieldFill": {
+      "app__notes__api__schemas__NoteList": {
         "properties": {
-          "filled": {
-            "type": "integer",
-            "title": "Filled",
-            "default": 0
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total",
-            "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
-          }
-        },
-        "type": "object",
-        "title": "FieldFill"
-      },
-      "app__published_skills__manage__schemas__WorkflowRef": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "slug": {
+          "next_cursor": {
             "anyOf": [
               {
                 "type": "string"
@@ -28506,15 +28704,58 @@
                 "type": "null"
               }
             ],
-            "title": "Slug"
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
           }
         },
         "type": "object",
         "required": [
-          "id",
-          "name"
+          "notes",
+          "has_more"
         ],
-        "title": "WorkflowRef"
+        "title": "NoteList"
+      },
+      "app__published_skills__diagnosis__schemas__FieldFill": {
+        "properties": {
+          "filled": {
+            "type": "integer",
+            "title": "Filled",
+            "default": 0
+          },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "Error": {
         "type": "object",
