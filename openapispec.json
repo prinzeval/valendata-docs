@@ -3271,7 +3271,7 @@
           "Logins"
         ],
         "summary": "Create a login",
-        "description": "Save a website login for your skills to sign in with. Stored encrypted in your Vault, never shared with your workspace, never returned. Needs a session or an API key with `logins:write`.",
+        "description": "Save a website login for your skills to sign in with. Stored encrypted in your Vault, never shared with your workspace, never returned. `is_default: true` makes it the login used for its site when you have several saved there (your other one for the site stops being the default). Needs a session or an API key with `logins:write`.",
         "operationId": "create_login",
         "security": [
           {
@@ -3525,7 +3525,7 @@
           "Logins"
         ],
         "summary": "Update a login",
-        "description": "Send a new password, username or authenticator seed. Nothing secret comes back.",
+        "description": "Send a new password, username or authenticator seed, or `is_default` (`true`: the login used for its site when you have several saved there — your other one for the site stops being the default; `false`: no longer the default). Nothing secret comes back.",
         "operationId": "update_login",
         "security": [
           {
@@ -3665,6 +3665,101 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/logins/{login_id}/code": {
+      "post": {
+        "tags": [
+          "Logins"
+        ],
+        "summary": "Send a code for a login",
+        "description": "A sign-in code for one of your saved logins, without knowing which run asked for it: what a forwarding rule sends (an iPhone Shortcut or an Android automation passing on a texted code, a mail filter, a script). The run signing in with this login takes it; with none signing in yet it is kept 10 minutes, and only a code that arrived after the sign-in started is used. Send just the code, or the whole message: the code is read out of it. Needs `logins:use` on an API key.",
+        "operationId": "send_login_code",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "ApiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "login_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Login Id"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginCode"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginCodeAccepted"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/X-Request-ID"
+              },
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Idempotent-Replayed": {
+                "$ref": "#/components/headers/Idempotent-Replayed"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "422": {
             "$ref": "#/components/responses/Unprocessable"
@@ -4899,7 +4994,7 @@
           "Runs"
         ],
         "summary": "Send a sign-in code",
-        "description": "When a site texts a sign-in code, the run waits up to 3 minutes for it. Send it here; the run types it into the page and carries on. A skill creation (`sc_…`) signing in or up waits the same way: send its creation id. Only the account that started it. Needs `logins:use` on an API key.",
+        "description": "When a site texts a sign-in code, the run waits up to 10 minutes for it. Send it here; the run types it into the page and carries on. A skill creation (`sc_…`) signing in or up waits the same way: send its creation id. Only the account that started it. Needs `logins:use` on an API key. To pass codes on without knowing the run, send them to the login instead (`POST /v1/logins/{login_id}/code`).",
         "operationId": "send_run_code",
         "security": [
           {
@@ -6258,7 +6353,7 @@
           "Skills"
         ],
         "summary": "Create a skill",
-        "description": "Record `task` in a cloud browser from `start_url` and publish it as a Skill. Answers at once with a creation id; poll `GET /v1/skill-creations/{creation_id}`. Up to 2 recordings in progress per account; needs at least 10 credits. Behind a sign-in, pass `login_id` (needs `logins:use`); without one it uses your saved login for the site, or registers an account with the sign-up email you chose and binds it; with neither it fails with `needs_user` (kind `choose_signup_email`, with `card_id` and `options`) — answer it with `POST /v1/questions/{card_id}/answer`, then create again.",
+        "description": "Record `task` in a cloud browser from `start_url` and publish it as a Skill. Answers at once with a creation id; poll `GET /v1/skill-creations/{creation_id}`. Up to 2 recordings in progress per account; needs at least 10 credits. Behind a sign-in, pass `login_id` (needs `logins:use`); without one it uses your saved login for the site (with several saved there, the one marked `is_default`; with several and no default it fails with `needs_user` kind `choose_login`, its `options` listing them masked — pass one's id as `login_id`), or registers an account with the sign-up email you chose and binds it; with neither it fails with `needs_user` (kind `choose_signup_email`, with `card_id` and `options`) — answer it with `POST /v1/questions/{card_id}/answer`, then create again.",
         "operationId": "create_skill",
         "security": [
           {
@@ -14041,7 +14136,7 @@
               }
             ],
             "title": "Login Id",
-            "description": "Your saved login (POST /v1/logins, GET /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way. Without one, a start page behind a sign-in uses your saved login for the site, or makes an account with the sign-up email you chose (needs logins:use); with neither the creation ends with needs_user (kind choose_signup_email) asking which email — answer it (POST /v1/questions/{card_id}/answer) and create it again."
+            "description": "Your saved login (POST /v1/logins, GET /v1/logins) for a start page behind a sign-in. The recording browser signs in with it first, and the new skill is bound to it so every run signs in the same way. Without one, a start page behind a sign-in uses your saved login for the site (with several saved there, the one marked is_default; with several and no default the creation ends with needs_user kind choose_login, its options listing them masked — pass one's id as login_id), or makes an account with the sign-up email you chose (needs logins:use); with neither the creation ends with needs_user (kind choose_signup_email) asking which email — answer it (POST /v1/questions/{card_id}/answer) and create it again."
           },
           "source": {
             "type": "string",
@@ -14512,7 +14607,7 @@
           },
           "field_fill": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__diagnosis__schemas__FieldFill"
             },
             "type": "object",
             "title": "Field Fill",
@@ -15507,27 +15602,19 @@
             "title": "Filled",
             "default": 0
           },
-          "not_listed": {
-            "type": "integer",
-            "title": "Not Listed",
-            "description": "Blank because the site does not list it on that result.",
-            "default": 0
-          },
-          "failed": {
-            "type": "integer",
-            "title": "Failed",
-            "description": "Blank because the read failed (or could not be told apart).",
-            "default": 0
-          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill",
-        "description": "One field over the run's rows (field_fill.py)."
+        "title": "FieldFill"
       },
       "Followup": {
         "properties": {
@@ -16882,6 +16969,40 @@
         "title": "ListingCard",
         "description": "What a marketplace card shows of a workflow: read from the workflow (apps, cost,\nschedule), plus what its publisher wrote when there is a listing (promise, replaces, risk)."
       },
+      "LoginCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 4,
+            "title": "Code",
+            "description": "The sign-in code, or the whole message it came in (the code is read out of it)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "LoginCode"
+      },
+      "LoginCodeAccepted": {
+        "properties": {
+          "login_id": {
+            "type": "string",
+            "title": "Login Id"
+          },
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "login_id"
+        ],
+        "title": "LoginCodeAccepted"
+      },
       "LoginCreate": {
         "properties": {
           "site": {
@@ -16938,6 +17059,55 @@
               }
             ],
             "title": "Notes"
+          },
+          "code_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Url",
+            "description": "Your own https address a run asks for a sign-in code while it waits for one (texted or emailed codes your systems receive). Called with a signed POST {login_id, site, run_id}; answer {\"code\": \"…\"} (the whole message is fine) or 204 while there is none yet. On an update, \"\" removes it."
+          },
+          "acknowledged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged",
+            "description": "true: this is your own account, and you understand the site may limit or restrict accounts that are automated. Required when saving a login; a saved login is confirmed with PATCH {\"acknowledged\": true}. Valendata never supplies or shares accounts."
+          },
+          "polite_pace": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polite Pace",
+            "description": "Runs on this login start at least a minute apart (30 seconds on X), the way a person uses a site — lowers the chance the site restricts the account. Your choice: on by default for linkedin.com, instagram.com, facebook.com, x.com and twitter.com, off elsewhere. Without it runs on one login still go one at a time, back to back."
+          },
+          "is_default": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Default",
+            "description": "true: the login a run or a skill creation uses for this site when you have several saved for it and none was chosen. One default per site: setting it clears it on your other logins for the same site. false: no longer the default. With several logins for a site and no default, a run or creation stops with needs_user.kind choose_login listing them masked; pass login_id."
           }
         },
         "type": "object",
@@ -17024,6 +17194,30 @@
             "title": "Has Totp",
             "default": false
           },
+          "has_code_url": {
+            "type": "boolean",
+            "title": "Has Code Url",
+            "description": "The login has your own address that hands out sign-in codes.",
+            "default": false
+          },
+          "polite_pace": {
+            "type": "boolean",
+            "title": "Polite Pace",
+            "description": "Runs on this login start at least a minute apart (30 seconds on X), the way a person uses a site — lowers the chance the site restricts the account. Your choice: on by default for linkedin.com, instagram.com, facebook.com, x.com and twitter.com, off elsewhere. Without it runs on one login still go one at a time, back to back.",
+            "default": false
+          },
+          "is_default": {
+            "type": "boolean",
+            "title": "Is Default",
+            "description": "true: the login a run or a skill creation uses for this site when you have several saved for it and none was chosen. One default per site: setting it clears it on your other logins for the same site. false: no longer the default. With several logins for a site and no default, a run or creation stops with needs_user.kind choose_login listing them masked; pass login_id.",
+            "default": false
+          },
+          "acknowledged": {
+            "type": "boolean",
+            "title": "Acknowledged",
+            "description": "Confirmed as your own account. A login not confirmed is never used: runs stop with needs_user.kind login_not_acknowledged.",
+            "default": false
+          },
           "created_by_agent": {
             "type": "boolean",
             "title": "Created By Agent",
@@ -17053,6 +17247,18 @@
             ],
             "title": "Unverified Reason",
             "description": "Why an agent-made sign-up was not confirmed."
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id",
+            "description": "Read-only. The login's own browser profile (its own cookies), made the first time a run uses the login, so two accounts on one site never share a sign-in. Null until then."
           },
           "created_at": {
             "type": "string",
@@ -17151,6 +17357,55 @@
               }
             ],
             "title": "Notes"
+          },
+          "code_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Url",
+            "description": "Your own https address a run asks for a sign-in code while it waits for one (texted or emailed codes your systems receive). Called with a signed POST {login_id, site, run_id}; answer {\"code\": \"…\"} (the whole message is fine) or 204 while there is none yet. On an update, \"\" removes it."
+          },
+          "acknowledged": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged",
+            "description": "true: this is your own account, and you understand the site may limit or restrict accounts that are automated. Required when saving a login; a saved login is confirmed with PATCH {\"acknowledged\": true}. Valendata never supplies or shares accounts."
+          },
+          "polite_pace": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polite Pace",
+            "description": "Runs on this login start at least a minute apart (30 seconds on X), the way a person uses a site — lowers the chance the site restricts the account. Your choice: on by default for linkedin.com, instagram.com, facebook.com, x.com and twitter.com, off elsewhere. Without it runs on one login still go one at a time, back to back."
+          },
+          "is_default": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Default",
+            "description": "true: the login a run or a skill creation uses for this site when you have several saved for it and none was chosen. One default per site: setting it clears it on your other logins for the same site. false: no longer the default. With several logins for a site and no default, a run or creation stops with needs_user.kind choose_login listing them masked; pass login_id."
           }
         },
         "type": "object",
@@ -20689,6 +20944,18 @@
             "title": "Login Site",
             "description": "The site the login is for, e.g. storeleads.app"
           },
+          "login_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Notice",
+            "description": "Set on every skill that can sign in (required or optional): it runs on your own account, with your own access, and the site may limit or restrict accounts that are automated."
+          },
           "site_domain": {
             "anyOf": [
               {
@@ -21600,6 +21867,18 @@
             "title": "Login Site",
             "description": "The site the login is for, e.g. storeleads.app"
           },
+          "login_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Notice",
+            "description": "Set on every skill that can sign in (required or optional): it runs on your own account, with your own access, and the site may limit or restrict accounts that are automated."
+          },
           "site_domain": {
             "anyOf": [
               {
@@ -22289,7 +22568,7 @@
               }
             ],
             "title": "Needs User",
-            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Kind choose_signup_email also carries card_id, question and options: answer which email to register with (POST /v1/questions/{card_id}/answer), then create it again. Kind no_login: save a login for the site and create it again with login_id."
+            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Kind choose_signup_email also carries card_id, question and options: answer which email to register with (POST /v1/questions/{card_id}/answer), then create it again. Kind no_login: save a login for the site and create it again with login_id. Kind choose_login: several logins are saved for the site and none is its default — options lists them masked ({login_id, username_hint, label}); create it again with one's login_id, or mark one is_default (PATCH /v1/logins/{login_id})."
           },
           "created_at": {
             "anyOf": [
@@ -22651,7 +22930,7 @@
               }
             ],
             "title": "Needs User",
-            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Kind choose_signup_email also carries card_id, question and options: answer which email to register with (POST /v1/questions/{card_id}/answer), then create it again. Kind no_login: save a login for the site and create it again with login_id."
+            "description": "Set when it failed at a login wall: {kind, message, action_url, site}. Kind choose_signup_email also carries card_id, question and options: answer which email to register with (POST /v1/questions/{card_id}/answer), then create it again. Kind no_login: save a login for the site and create it again with login_id. Kind choose_login: several logins are saved for the site and none is its default — options lists them masked ({login_id, username_hint, label}); create it again with one's login_id, or mark one is_default (PATCH /v1/logins/{login_id})."
           },
           "created_at": {
             "anyOf": [
@@ -23229,6 +23508,18 @@
             ],
             "title": "Login Site",
             "description": "The site the login is for, e.g. storeleads.app"
+          },
+          "login_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Notice",
+            "description": "Set on every skill that can sign in (required or optional): it runs on your own account, with your own access, and the site may limit or restrict accounts that are automated."
           },
           "site_domain": {
             "anyOf": [
@@ -24086,14 +24377,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -24398,6 +24689,18 @@
             ],
             "title": "Login Site",
             "description": "The site the login is for, e.g. storeleads.app"
+          },
+          "login_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Notice",
+            "description": "Set on every skill that can sign in (required or optional): it runs on your own account, with your own access, and the site may limit or restrict accounts that are automated."
           },
           "api_endpoint": {
             "type": "string",
@@ -28945,26 +29248,34 @@
         "title": "WrongValue",
         "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
       },
-      "app__published_skills__improvements__schemas__FieldFill": {
+      "app__published_skills__diagnosis__schemas__FieldFill": {
         "properties": {
           "filled": {
             "type": "integer",
             "title": "Filled",
             "default": 0
           },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill"
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "app__published_skills__manage__schemas__WorkflowRef": {
         "properties": {
