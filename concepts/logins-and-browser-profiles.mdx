@@ -39,6 +39,19 @@ Only **your own** runs sign in. A teammate running a shared skill, an API key wi
 
 A login is a setting on a skill, not a tool. No AI assistant can ask Valendata to "log in somewhere", and nothing can read a saved password back.
 
+### Does a skill need a login?
+
+Every skill says so in `login_need`, with the site in `login_site`:
+
+| `login_need` | Meaning |
+| --- | --- |
+| `required` | The site asked for a sign-in: its recording signed in, a run met a login wall, or its first page showed one to a signed-out visitor. Bring your own login for `login_site`: sign in to it in your Chrome, or save it here and pick it on the skill. |
+| `optional` | It can sign in when the site asks, but a run also worked without a login. |
+| `none` | A run worked with no login and nothing ever asked for one. |
+| `unknown` | Not known yet. It is never a promise that no login is needed. |
+
+A required skill run with no usable login stops before it starts, so it costs nothing.
+
 ### Two-step sign-in
 
 | What the site asks | What happens |
