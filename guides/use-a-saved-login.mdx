@@ -56,6 +56,8 @@ curl -X POST "https://api.valendata.com/v1/skills/my-orders/run?max_results=5" \
 
 API keys need `logins:write` to save logins and pick them, and `logins:use` to run skills that sign in. A key without `logins:use` still runs the skill but never signs in. See [Authentication and scopes](/api-reference/authentication#scopes).
 
-If a site texts a code, the run waits up to 3 minutes. Enter it in the run panel, or send it with [`POST /v1/runs/{run_id}/otp`](/api-reference/runs/send-code).
+### Sign-in codes
+
+When the site asks for a code, the run gets it from the login's authenticator key or from your email when it can read it, or waits 10 minutes for a texted code. Your phone can forward texted codes so runs do not wait on you. In the **Vault**, open **How sign-in codes work** on the login for its address. See [Two-step sign-in](/concepts/logins-and-browser-profiles#two-step-sign-in).
 
 If a run cannot sign in, its `needs_user` says what to do. See [When a run cannot sign in](/concepts/logins-and-browser-profiles#when-a-run-cannot-sign-in). A site with no saved login asks which email to register an account with — see [When a site needs an account that does not exist yet](/concepts/logins-and-browser-profiles#when-a-site-needs-an-account-that-does-not-exist-yet).

@@ -52,13 +52,63 @@ Every skill says so in `login_need`, with the site in `login_site`:
 
 A required skill run with no usable login stops before it starts, so it costs nothing.
 
+### Your own account
+
+A skill that can sign in (`login_need` is `required` or `optional`) always runs on your own account, with your own access. Its `login_notice` says so, for example:
+
+> Runs on your own linkedin.com account, with your own access. linkedin.com may limit or restrict accounts that are automated. Valendata never supplies or shares accounts.
+
+Show it as it is wherever you show the skill. A skill that never signs in has `login_notice: null`.
+
+No run uses a saved login until you confirm once that it is your own account:
+
+- In the app, tick **This is my own account** when you save the login in the **Vault**. A login saved earlier has a **Confirm** button there.
+- Over the API, send `"acknowledged": true` with [Create a login](/api-reference/logins/create) (without it the login is refused with `422`), or confirm an existing login with [Update a login](/api-reference/logins/update). Every login shows `acknowledged`.
+
+Until then, a run that needs the login stops with `needs_user.kind = "login_not_acknowledged"`.
+
+Two runs never drive the same saved login at once (they would break each other's session), so a run waits until no other run is using that login. Different logins run side by side.
+
+With **polite pace** on, runs on the login also start at least a minute apart (30 seconds on X), the way a person uses a site. It lowers the chance the site restricts the account; turn it off for speed, and runs on the login go back to back. Every login shows `polite_pace`. It is on by default for linkedin.com, instagram.com, facebook.com, x.com and twitter.com and off everywhere else; change it with the **Polite pace** switch in the **Vault** or with [Update a login](/api-reference/logins/update).
+
+How you use your accounts is your responsibility under the [Terms](https://valendata.com/terms-and-conditions): you confirm each login is your own, Valendata keeps the record of your runs, and it cooperates with lawful requests.
+
+### Several logins for one site
+
+You can save more than one login for the same site, for example a work and a personal account. A run picks one this way:
+
+1. The login chosen on the skill always wins.
+2. With only one saved login for the site, it is used without asking.
+3. With several, the site's **default** is used. Mark it with the star on the login in the **Vault**, or send `"is_default": true` with [Create a login](/api-reference/logins/create) or [Update a login](/api-reference/logins/update). A site has one default; making a new one clears the old.
+4. Otherwise the run stops with `needs_user.kind = "choose_login"` and lists the site's logins, masked:
+
+```json
+{
+  "needs_user": {
+    "kind": "choose_login",
+    "site": "linkedin.com",
+    "message": "You have several saved logins for linkedin.com and none is chosen. Which one should it use?",
+    "options": [
+      {"login_id": "lgn_1…", "username_hint": "ad***a", "label": "Work"},
+      {"login_id": "lgn_2…", "username_hint": "ad***2", "label": "Personal"}
+    ]
+  }
+}
+```
+
+Pick one in the app and it is saved on the skill, so that skill never asks again. Tick **Make it the default for** the site and no skill asks again. Over the API or MCP, pass the option's `login_id`: on the skill with [Update a skill](/api-reference/skills/update) (MCP: `update_skill`), or when you create one with [Create a skill](/api-reference/skills/create) (MCP: `create_skill`).
+
+Each saved login has its own browser profile (`profile_id`, read-only), so two accounts on the same site never share cookies.
+
 ### Two-step sign-in
 
 | What the site asks | What happens |
 | --- | --- |
 | A code from an authenticator app | Add the authenticator seed (`totp_secret`) to the login. The run works out the current code. |
 | A code sent by email | If the site account uses your Valendata email, the run reads the code from your inbox; if it uses your connected Gmail or Outlook, the run reads it there. Any other address stops with `otp_email`. |
-| A code sent by text or a phone app | The run waits up to 3 minutes for you to enter it, in the app or with [Send a sign-in code](/api-reference/runs/send-code). No code in time gives `otp_sms`. |
+| A code sent by text or a phone app | The run waits up to 10 minutes for you to enter it, in the app or with [Send a sign-in code](/api-reference/runs/send-code). No code in time gives `otp_sms`. |
+| A texted code you forward from your phone | An iPhone Shortcut or an Android automation sends the message to [`POST /v1/logins/{login_id}/code`](/api-reference/logins/send-code) (setup on that page). The run signing in with that login takes it. The Vault shows each login's address under **How sign-in codes work**. |
+| Codes your own systems receive | Give the login a `code_url`: your own public `https` address. While a run waits for a code, Valendata sends a `POST` there every 10 seconds with `{"type": "sign_in_code_request", "login_id", "site", "run_id"}`, signed like [webhooks](/api-reference/webhooks/overview#verify-the-signature) (`X-Valendata-Signature`, same secret). Answer `{"code": "..."}` (the whole message is fine), or `204` while there is none yet. Public hosts only; redirects are not followed. Set it with [Create a login](/api-reference/logins/create) or [Update a login](/api-reference/logins/update); `""` removes it. |
 
 ### When a run cannot sign in
 
@@ -84,6 +134,8 @@ The run fails with `triage_kind: "login_failed"` (or `"logged_out"` when there i
 | `otp_email` | Use your Valendata email on the site account, or sign in once on the skill's browser profile. |
 | `otp_sms` | Run it again and enter the code when asked, or add the authenticator seed. |
 | `captcha` | Sign in once on the skill's browser profile, then run it again. |
+| `login_not_acknowledged` | Confirm the login is your own account (see [Your own account](#your-own-account)). |
+| `choose_login` | Several saved logins fit the site and none is chosen: pick one (see [Several logins for one site](#several-logins-for-one-site)). |
 
 You also get an inbox note with a link to the **Vault**. Valendata never asks for your password in a chat.
 

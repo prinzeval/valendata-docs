@@ -238,7 +238,8 @@
               "api-reference/logins/update",
               "api-reference/logins/delete",
               "api-reference/logins/get-question",
-              "api-reference/logins/answer-question"
+              "api-reference/logins/answer-question",
+              "api-reference/logins/send-code"
             ]
           },
           {

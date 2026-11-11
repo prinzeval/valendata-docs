@@ -1,0 +1,19 @@
+---
+title: "Send a code for a login"
+description: "Pass a texted sign-in code to whichever run is signing in with this login."
+openapi: "POST /v1/logins/{login_id}/code"
+---
+
+For a forwarding rule on your phone or in your mail: you do not need to know which run asked. The run signing in with this login takes the code. With none signing in yet, it is kept 10 minutes, and only a code that arrived after the sign-in started is used.
+
+Send just the code, or the whole message (up to 2,000 characters). The code is read out of it. The answer is `202` with `{"login_id": "...", "accepted": true}`.
+
+`404` for a login that is not yours. `422` when no code is found in the text. Needs `logins:use`.
+
+```bash
+curl -X POST https://api.valendata.com/v1/logins/$LOGIN_ID/code \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" -H "Content-Type: application/json" \
+  -d '{"code": "Your Example code is 482913. It expires in 10 minutes."}'
+```
+
+To set this up on an iPhone, make a Shortcuts automation: **When I get a message containing** `code`, then **Get contents of URL** with method `POST`, the `Authorization` header, and a JSON body whose `code` is the message. On Android, use any automation app that can send a web request when a text arrives. The **Vault** shows each login's exact address under **How sign-in codes work**. See [Two-step sign-in](/concepts/logins-and-browser-profiles#two-step-sign-in).

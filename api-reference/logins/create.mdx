@@ -6,6 +6,12 @@ openapi: "POST /v1/logins"
 
 The response shows the site and a masked username (`to***h`) only. Nothing ever returns the password, the authenticator seed, or a code.
 
-Add `totp_secret` when the site asks for a code from an authenticator app.
+Send `"acknowledged": true` to confirm the login is your own account. A login without it is refused with `422`; see [Your own account](/concepts/logins-and-browser-profiles#your-own-account).
+
+Send `"polite_pace": true` or `false` to choose whether runs on the login start spaced out; leave it out for the site's default. See [Your own account](/concepts/logins-and-browser-profiles#your-own-account).
+
+Send `"is_default": true` to make it the default login for its site, used when you have several for that site; see [Several logins for one site](/concepts/logins-and-browser-profiles#several-logins-for-one-site).
+
+Add `totp_secret` when the site asks for a code from an authenticator app. Add `code_url` when your own systems receive the site's codes; see [Two-step sign-in](/concepts/logins-and-browser-profiles#two-step-sign-in).
 
 There is no MCP tool for this on purpose: a password in a tool call would stay in the assistant's chat history. To use the login, pick it on a skill with [Update a skill](/api-reference/skills/update). See [Use a saved login](/guides/use-a-saved-login).

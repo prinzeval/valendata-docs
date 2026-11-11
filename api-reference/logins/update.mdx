@@ -4,4 +4,10 @@ description: "Change a login's password, username, or authenticator seed. Nothin
 openapi: "PATCH /v1/logins/{login_id}"
 ---
 
-Send `"totp_secret": ""` to remove the authenticator seed.
+Send `"totp_secret": ""` to remove the authenticator seed, and `"code_url": ""` to remove your code address.
+
+Send `"acknowledged": true` to confirm a login saved earlier is your own account. No run signs in with it until then; see [Your own account](/concepts/logins-and-browser-profiles#your-own-account).
+
+Send `"polite_pace": true` or `false` to turn polite pace on or off for the login (see the same section).
+
+Send `"is_default": true` to make the login the default for its site; the site's other logins stop being the default. See [Several logins for one site](/concepts/logins-and-browser-profiles#several-logins-for-one-site).
