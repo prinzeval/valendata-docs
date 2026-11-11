@@ -785,7 +785,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, start_page, version, details, browser_type, proxy_config, profile_id, scrape_mode.",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, start_page, version, details, browser_type, proxy_config, profile_id.",
                 "additionalProperties": true
               },
               "example": {
@@ -4026,7 +4026,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__notes__api__schemas__NoteList"
+                  "$ref": "#/components/schemas/NoteList"
                 },
                 "example": {
                   "notes": [
@@ -4666,7 +4666,7 @@
           "Runs"
         ],
         "summary": "Get a run",
-        "description": "Any run, skill or workflow: its status, and the result once it has finished. Skill runs hold their rows in `rows`; workflow runs hold `outputs` and have `kind: \"workflow\"`. Every row has every output field of the skill, `null` when the run found no value (`[]` for a list type), and `details`: everything else the source had for that row, under the source's own names (nested objects and lists kept; `{}` when it gave nothing more). A run started with `details: false` has no `details`. A compared skill run (a scheduled run, or one started with `changes_since`) also has `changes`: `new`, `changed`, `removed` since `since_run_id`, the `key_fields` rows were matched on, and a few `examples`; with `delivery` `new` or `changes`, `rows` holds only those rows. Needs `runs:read` for a skill run, `workflows:read` for a workflow run.",
+        "description": "Any run, skill or workflow: its status, and the result once it has finished. Skill runs hold their rows in `rows`; workflow runs hold `outputs` and have `kind: \"workflow\"`. Every row has every output field of the skill, `null` when the run found no value (`[]` for a list type), and `details`: everything else the source had for that row, under the source's own names (nested objects and lists kept; `{}` when it gave nothing more). A run started with `details: false` has no `details`. A compared skill run (a scheduled run, or one started with `changes_since`) also has `changes`: `new`, `changed`, `removed` since `since_run_id`, the `key_fields` rows were matched on, and a few `examples`; with `delivery` `new` or `changes`, `rows` holds only those rows. A run of a skill that fills its inputs on the page has `inputs`: for each input, the `value` asked, its `status` (`verified`: the page shows it; `failed`: the page shows something else or it could not be filled; `unsure`: nothing could be read either way), `shown` (what the page showed), `evidence` (where it was read) and, when not verified, the `reason`; a suggestion (a city, an airport) also has `how`: `chosen_from_list`, or `search_ran` (weaker: no list appeared, the search ran and the page it opened shows the value), e.g. `{\"check_in\": {\"value\": \"2026-12-10\", \"status\": \"verified\", \"shown\": \"Thu, Dec 10\", \"evidence\": \"the box's value\", \"reason\": null}}`; `null` for other skills. Needs `runs:read` for a skill run, `workflows:read` for a workflow run.",
         "operationId": "get_run",
         "security": [
           {
@@ -7892,7 +7892,7 @@
           "Runs"
         ],
         "summary": "Run a skill and wait",
-        "description": "Run a published Skill and wait for the rows. Put the Skill's inputs at the top level of the JSON body (or in the query string). The body keys `browser_type`, `proxy_config`, `profile_id`, `scrape_mode`, `max_pages`, `version`, and `details` are run settings, not inputs; `details: false` leaves each row's `details` out (rows as on `GET /v1/runs/{run_id}`). `changes_since` (`last` or a run id), `delivery` and `watch` compare the rows with an earlier run's and add `changes`, as on `POST /v1/skills/{slug}/runs`. Inputs are checked against `input_schema` before anything runs. If too many of your runs are in progress, this returns 429 with `Retry-After` instead of waiting. `browser_type` picks the browser: `remote` (or `cloud`), `extension` (your own Chrome with the Valendata extension), `none`, or `auto` (left out: the skill's own browser, else the cloud browser). The browser never changes by itself: `409` `cloud_browser_paused` when the run would use the cloud browser while it is unavailable (the message says why; to run it on your Chrome instead, call again with `browser_type` `extension` — it uses your Chrome's own sign-ins, which may be a different account), `extension_not_connected` when you asked for your Chrome and it is not connected; nothing is charged. The result's `browser_used` (`cloud` or `extension`) and `browser_note` say where it ran.",
+        "description": "Run a published Skill and wait for the rows. Put the Skill's inputs at the top level of the JSON body (or in the query string). The body keys `browser_type`, `proxy_config`, `profile_id`, `max_pages`, `version`, and `details` are run settings, not inputs; `details: false` leaves each row's `details` out (rows as on `GET /v1/runs/{run_id}`). `changes_since` (`last` or a run id), `delivery` and `watch` compare the rows with an earlier run's and add `changes`, as on `POST /v1/skills/{slug}/runs`. Inputs are checked against `input_schema` before anything runs. If too many of your runs are in progress, this returns 429 with `Retry-After` instead of waiting. `browser_type` picks the browser: `remote` (or `cloud`), `extension` (your own Chrome with the Valendata extension), `none`, or `auto` (left out: the skill's own browser, else the cloud browser). The browser never changes by itself: `409` `cloud_browser_paused` when the run would use the cloud browser while it is unavailable (the message says why; to run it on your Chrome instead, call again with `browser_type` `extension` — it uses your Chrome's own sign-ins, which may be a different account), `extension_not_connected` when you asked for your Chrome and it is not connected; nothing is charged. The result's `browser_used` (`cloud` or `extension`) and `browser_note` say where it ran. The answer's `run_id` is the run (`GET /v1/runs/{run_id}` reads it again), and `inputs` is what the page showed for each input, as on `GET /v1/runs/{run_id}`.",
         "operationId": "run_skill",
         "security": [
           {
@@ -8038,7 +8038,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, start_page, version, details, browser_type, proxy_config, profile_id, scrape_mode.",
+                "description": "The skill's inputs at the top level, plus optional run settings: max_results, max_pages, start_page, version, details, browser_type, proxy_config, profile_id.",
                 "additionalProperties": true
               },
               "example": {
@@ -8973,6 +8973,7 @@
           "Skill versions"
         ],
         "summary": "Restore a version",
+        "description": "Make version `n` the live recipe. The restore is saved as a new version. A version rejected when it was checked (`status: rejected`) is refused with 409 unless you send `force=true`. Owner or workspace editor only.",
         "operationId": "restore_skill_version",
         "security": [
           {
@@ -9002,6 +9003,16 @@
               "title": "N"
             },
             "example": 2
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Force"
+            }
           },
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -9059,8 +9070,7 @@
           "500": {
             "$ref": "#/components/responses/InternalError"
           }
-        },
-        "description": "Make version `n` the live recipe. The restore is saved as a new version. Owner or workspace editor only."
+        }
       }
     },
     "/v1/usage": {
@@ -14502,7 +14512,7 @@
           },
           "field_fill": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/app__published_skills__diagnosis__schemas__FieldFill"
+              "$ref": "#/components/schemas/FieldFill"
             },
             "type": "object",
             "title": "Field Fill",
@@ -14545,6 +14555,19 @@
             ],
             "title": "Needs User",
             "description": "Set when it stopped at a login wall: {kind, message, action_url, site} — kind no_login, bad_password, otp_email, otp_sms or captcha. No hint fixes it; the owner has to."
+          },
+          "obstacle": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Obstacle",
+            "description": "Set when a wall stopped it (triage_kind `blocked`): {kind, vendor, site, url, http_status, browser, tried, message} — kind bot_check, network_block or proxy_refused. No hint fixes it."
           },
           "error": {
             "anyOf": [
@@ -14791,18 +14814,6 @@
             ],
             "title": "Max Pages",
             "description": "Page ceiling for paginated skills: None = recipe default, 0 = all pages."
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode",
-            "description": "Scrape mode for THIS run (bridge skills): 'deep' (careful replay) | 'flash' (fast reveal sweep; falls back to deep when degraded). Omit to use the skill's saved scrape_mode (falling back to 'deep')."
           }
         },
         "additionalProperties": true,
@@ -14818,6 +14829,18 @@
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "The run: GET /v1/runs/{run_id} reads it again."
           },
           "data": {
             "items": {
@@ -14853,6 +14876,39 @@
             "type": "object",
             "title": "Read As",
             "default": {}
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/RunInput"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs",
+            "description": "What the page showed for each input this run filled, read back off the page — or, when a faster tier answered, off the site's own answer (evidence \"the site's answer\"): {name: {value, status, shown, evidence, reason, how}}. Null for a skill whose inputs are not filled on the page."
+          },
+          "suggestions": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestions",
+            "description": "When the site had no entry for an input's value: {input name: the entries it offered instead, in its own words} — run it again with one of them. Null otherwise."
           },
           "tier": {
             "anyOf": [
@@ -14894,6 +14950,18 @@
               }
             ],
             "title": "Error"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "Why the run failed, in one short plain sentence to show a person, e.g. \"The site didn't accept 'Atlantis' as a city.\" Null unless the run failed. `error` keeps the full technical line."
           },
           "cached": {
             "type": "boolean",
@@ -14950,6 +15018,20 @@
             "title": "Drifted Fields",
             "default": {}
           },
+          "field_evidence": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Field Evidence",
+            "default": {}
+          },
+          "field_notes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Field Notes",
+            "default": {}
+          },
           "unverified_fields": {
             "additionalProperties": {
               "type": "string"
@@ -14975,17 +15057,6 @@
             "type": "array",
             "title": "Truncated Sections",
             "default": []
-          },
-          "scrape_mode_used": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode Used"
           },
           "browser_used": {
             "anyOf": [
@@ -15436,19 +15507,27 @@
             "title": "Filled",
             "default": 0
           },
+          "not_listed": {
+            "type": "integer",
+            "title": "Not Listed",
+            "description": "Blank because the site does not list it on that result.",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "description": "Blank because the read failed (or could not be told apart).",
+            "default": 0
+          },
           "total": {
             "type": "integer",
             "title": "Total",
             "default": 0
-          },
-          "rate": {
-            "type": "number",
-            "title": "Rate",
-            "default": 0.0
           }
         },
         "type": "object",
-        "title": "FieldFill"
+        "title": "FieldFill",
+        "description": "One field over the run's rows (field_fill.py)."
       },
       "Followup": {
         "properties": {
@@ -16115,6 +16194,12 @@
             "type": "boolean",
             "title": "Widened",
             "description": "The one recorded row was widened to every item the page shows",
+            "default": false
+          },
+          "check_blocked": {
+            "type": "boolean",
+            "title": "Check Blocked",
+            "description": "The site blocked a check run: the repair was not tested — it is kept as candidate_version and the live recipe is unchanged",
             "default": false
           }
         },
@@ -17411,6 +17496,41 @@
         ],
         "title": "NoteDeleted"
       },
+      "NoteList": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as ?cursor= for the next page; null on the last page."
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "True when there is a next page (next_cursor is not null).",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "notes",
+          "has_more"
+        ],
+        "title": "NoteList"
+      },
       "OpenSiteRequest": {
         "properties": {
           "id": {
@@ -18512,6 +18632,10 @@
         ],
         "title": "RunCodeAccepted"
       },
+      "RunInput": {
+        "additionalProperties": true,
+        "type": "object"
+      },
       "RunReadWay": {
         "properties": {
           "kind": {
@@ -18622,6 +18746,18 @@
             ],
             "title": "Error"
           },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "Why the run failed, in one short plain sentence to show a person, e.g. \"The site didn't accept 'Atlantis' as a city.\" Null unless the run failed. `error` keeps the full technical line."
+          },
           "credits_charged": {
             "type": "number",
             "title": "Credits Charged",
@@ -18646,17 +18782,6 @@
             "items": {},
             "type": "array",
             "title": "Rows"
-          },
-          "scrape_mode_used": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode Used"
           },
           "browser_used": {
             "anyOf": [
@@ -18686,6 +18811,13 @@
             },
             "type": "object",
             "title": "Drifted Fields"
+          },
+          "field_notes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Field Notes"
           },
           "unverified_fields": {
             "additionalProperties": {
@@ -18722,6 +18854,39 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Read As"
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/RunInput"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs",
+            "description": "What the page showed for each input this run filled, read back off the page — or, when a faster tier answered, off the site's own answer (evidence \"the site's answer\"): {name: {value, status, shown, evidence, reason, how}}. Null for a skill whose inputs are not filled on the page."
+          },
+          "suggestions": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestions",
+            "description": "When the site had no entry for an input's value: {input name: the entries it offered instead, in its own words} — run it again with one of them. Null otherwise."
           },
           "triage_kind": {
             "anyOf": [
@@ -20312,6 +20477,22 @@
             "type": "boolean",
             "title": "Is Official"
           },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured",
+            "default": false
+          },
+          "featured_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Featured Rank"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -20484,6 +20665,30 @@
             ],
             "title": "Login Id"
           },
+          "login_need": {
+            "type": "string",
+            "enum": [
+              "required",
+              "optional",
+              "none",
+              "unknown"
+            ],
+            "title": "Login Need",
+            "description": "required: needs your own login for login_site (add it in the Vault, then choose it on the skill); optional: signs in when the site asks; none: proven to work without a login; unknown: not known yet",
+            "default": "unknown"
+          },
+          "login_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Site",
+            "description": "The site the login is for, e.g. storeleads.app"
+          },
           "site_domain": {
             "anyOf": [
               {
@@ -20539,22 +20744,6 @@
               }
             ],
             "title": "Proxy Config"
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode"
-          },
-          "scrape_mode_applies": {
-            "type": "boolean",
-            "title": "Scrape Mode Applies",
-            "default": false
           },
           "engine_auto_upgrade": {
             "type": "boolean",
@@ -21199,6 +21388,22 @@
             "type": "boolean",
             "title": "Is Official"
           },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured",
+            "default": false
+          },
+          "featured_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Featured Rank"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -21371,6 +21576,30 @@
             ],
             "title": "Login Id"
           },
+          "login_need": {
+            "type": "string",
+            "enum": [
+              "required",
+              "optional",
+              "none",
+              "unknown"
+            ],
+            "title": "Login Need",
+            "description": "required: needs your own login for login_site (add it in the Vault, then choose it on the skill); optional: signs in when the site asks; none: proven to work without a login; unknown: not known yet",
+            "default": "unknown"
+          },
+          "login_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Site",
+            "description": "The site the login is for, e.g. storeleads.app"
+          },
           "site_domain": {
             "anyOf": [
               {
@@ -21426,22 +21655,6 @@
               }
             ],
             "title": "Proxy Config"
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode"
-          },
-          "scrape_mode_applies": {
-            "type": "boolean",
-            "title": "Scrape Mode Applies",
-            "default": false
           },
           "engine_auto_upgrade": {
             "type": "boolean",
@@ -22499,7 +22712,7 @@
           },
           "workflows_detached": {
             "items": {
-              "$ref": "#/components/schemas/WorkflowRef"
+              "$ref": "#/components/schemas/app__published_skills__manage__schemas__WorkflowRef"
             },
             "type": "array",
             "title": "Workflows Detached",
@@ -22805,6 +23018,22 @@
             "type": "boolean",
             "title": "Is Official"
           },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured",
+            "default": false
+          },
+          "featured_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Featured Rank"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -22977,6 +23206,30 @@
             ],
             "title": "Login Id"
           },
+          "login_need": {
+            "type": "string",
+            "enum": [
+              "required",
+              "optional",
+              "none",
+              "unknown"
+            ],
+            "title": "Login Need",
+            "description": "required: needs your own login for login_site (add it in the Vault, then choose it on the skill); optional: signs in when the site asks; none: proven to work without a login; unknown: not known yet",
+            "default": "unknown"
+          },
+          "login_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Site",
+            "description": "The site the login is for, e.g. storeleads.app"
+          },
           "site_domain": {
             "anyOf": [
               {
@@ -23032,22 +23285,6 @@
               }
             ],
             "title": "Proxy Config"
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode"
-          },
-          "scrape_mode_applies": {
-            "type": "boolean",
-            "title": "Scrape Mode Applies",
-            "default": false
           },
           "engine_auto_upgrade": {
             "type": "boolean",
@@ -23762,11 +23999,12 @@
               "improved",
               "kept_old",
               "no_change",
+              "not_tested",
               "failed",
               "applied"
             ],
             "title": "Result",
-            "description": "running | improved (new version live) | kept_old (not better — the old version stays, the attempt is candidate_version) | no_change (nothing to learn or nothing changed) | failed (could not run) | applied (imported: applied without a check run)",
+            "description": "running | improved (new version live) | kept_old (not better — the old version stays, the attempt is candidate_version) | no_change (nothing to learn or nothing changed) | not_tested (nothing was proven — a check run was blocked or did not run: the repair is kept as candidate_version and the live recipe is unchanged) | failed (could not run) | applied (imported: applied without a check run)",
             "default": "running"
           },
           "imported": {
@@ -23848,14 +24086,14 @@
           },
           "fields_before": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields Before"
           },
           "fields_after": {
             "additionalProperties": {
-              "$ref": "#/components/schemas/FieldFill"
+              "$ref": "#/components/schemas/app__published_skills__improvements__schemas__FieldFill"
             },
             "type": "object",
             "title": "Fields After"
@@ -24137,6 +24375,30 @@
             ],
             "title": "Recipe Version"
           },
+          "login_need": {
+            "type": "string",
+            "enum": [
+              "required",
+              "optional",
+              "none",
+              "unknown"
+            ],
+            "title": "Login Need",
+            "description": "required: needs your own login for login_site (add it in the Vault, then choose it on the skill); optional: signs in when the site asks; none: proven to work without a login; unknown: not known yet",
+            "default": "unknown"
+          },
+          "login_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Login Site",
+            "description": "The site the login is for, e.g. storeleads.app"
+          },
           "api_endpoint": {
             "type": "string",
             "title": "Api Endpoint",
@@ -24254,6 +24516,21 @@
             "title": "Is Auto Detected",
             "description": "Whether this parameter was auto-detected from history",
             "default": false
+          },
+          "accepted_values": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Values",
+            "description": "The only values the site takes for this input — its own choices, read off its list. Null for an input that takes any words."
           },
           "known_values": {
             "items": {
@@ -24454,18 +24731,6 @@
             ],
             "title": "Profile Id",
             "description": "Owner's profile id; '' removes"
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode",
-            "description": "deep|flash; '' clears"
           },
           "data_retention_days": {
             "anyOf": [
@@ -25010,6 +25275,33 @@
               }
             ],
             "title": "Error"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "Why the run failed, in one short plain sentence to show a person, e.g. \"The site didn't accept 'Atlantis' as a city.\" Null unless the run failed. `error` keeps the full technical line."
+          },
+          "inputs": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/RunInput"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inputs",
+            "description": "What the page showed for each input this run filled, read back off the page — or, when a faster tier answered, off the site's own answer (evidence \"the site's answer\"): {name: {value, status, shown, evidence, reason, how}}. Null for a skill whose inputs are not filled on the page."
           },
           "run_url": {
             "type": "string",
@@ -26506,17 +26798,6 @@
               }
             ],
             "title": "Profile Id"
-          },
-          "scrape_mode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scrape Mode"
           },
           "webhook_url": {
             "anyOf": [
@@ -28333,35 +28614,6 @@
         ],
         "title": "WorkflowList"
       },
-      "WorkflowRef": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "slug": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Slug"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "WorkflowRef"
-      },
       "WorkflowRunList": {
         "properties": {
           "next_cursor": {
@@ -28693,9 +28945,38 @@
         "title": "WrongValue",
         "description": "Filled cells that are not data (wrong_values.py) — they wake the skill's doctor even on a success."
       },
-      "app__notes__api__schemas__NoteList": {
+      "app__published_skills__improvements__schemas__FieldFill": {
         "properties": {
-          "next_cursor": {
+          "filled": {
+            "type": "integer",
+            "title": "Filled",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "rate": {
+            "type": "number",
+            "title": "Rate",
+            "default": 0.0
+          }
+        },
+        "type": "object",
+        "title": "FieldFill"
+      },
+      "app__published_skills__manage__schemas__WorkflowRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "slug": {
             "anyOf": [
               {
                 "type": "string"
@@ -28704,58 +28985,15 @@
                 "type": "null"
               }
             ],
-            "title": "Next Cursor",
-            "description": "Pass as ?cursor= for the next page; null on the last page."
-          },
-          "notes": {
-            "items": {
-              "$ref": "#/components/schemas/Note"
-            },
-            "type": "array",
-            "title": "Notes"
-          },
-          "has_more": {
-            "type": "boolean",
-            "title": "Has More",
-            "description": "True when there is a next page (next_cursor is not null).",
-            "readOnly": true
+            "title": "Slug"
           }
         },
         "type": "object",
         "required": [
-          "notes",
-          "has_more"
+          "id",
+          "name"
         ],
-        "title": "NoteList"
-      },
-      "app__published_skills__diagnosis__schemas__FieldFill": {
-        "properties": {
-          "filled": {
-            "type": "integer",
-            "title": "Filled",
-            "default": 0
-          },
-          "not_listed": {
-            "type": "integer",
-            "title": "Not Listed",
-            "description": "Blank because the site does not list it on that result.",
-            "default": 0
-          },
-          "failed": {
-            "type": "integer",
-            "title": "Failed",
-            "description": "Blank because the read failed (or could not be told apart).",
-            "default": 0
-          },
-          "total": {
-            "type": "integer",
-            "title": "Total",
-            "default": 0
-          }
-        },
-        "type": "object",
-        "title": "FieldFill",
-        "description": "One field over the run's rows (field_fill.py)."
+        "title": "WorkflowRef"
       },
       "Error": {
         "type": "object",
