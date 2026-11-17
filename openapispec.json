@@ -14231,6 +14231,20 @@
             "title": "Connections",
             "description": "Edges between steps: [{from_step, to_step}]. Leave empty for a straight line (steps run in order)."
           },
+          "task": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task",
+            "description": "Instead of steps: what the workflow should do, in plain words. The workflow is made at once and Valendata's workflow builder builds it from your skills (a few minutes); read build.state with GET /v1/workflows/{slug} until it is tested. Send task or steps, not both."
+          },
           "workspace_id": {
             "anyOf": [
               {
@@ -28815,6 +28829,25 @@
             "title": "Version",
             "description": "How many saved versions came before this one."
           },
+          "build": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuildState"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A workflow made from plain words: how its build is going"
+          },
+          "cannot_run": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cannot Run",
+            "description": "Why a run would be refused now (a skill step whose skill is not finished); empty when it can run"
+          },
           "yours": {
             "type": "boolean",
             "title": "Yours",
@@ -29364,6 +29397,45 @@
             "description": "Every validation problem, on a 422 from request validation."
           }
         }
+      },
+      "BuildState": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "title": "State",
+            "description": "building | needs_you | tested | failed"
+          },
+          "said": {
+            "type": "string",
+            "title": "Said",
+            "default": "",
+            "description": "The latest update, in plain words (what was tested, the schedule, the cost; or the question / why it stopped)"
+          },
+          "test_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Run Id",
+            "description": "The one test run, readable at GET /v1/runs/{run_id}"
+          },
+          "brain_url": {
+            "type": "string",
+            "title": "Brain Url",
+            "description": "Where the build can be watched in the app"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "brain_url"
+        ],
+        "title": "BuildState",
+        "description": "How a workflow made from plain words (``task``) is coming along."
       }
     }
   }

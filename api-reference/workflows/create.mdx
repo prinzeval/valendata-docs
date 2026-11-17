@@ -1,8 +1,28 @@
 ---
 title: "Create a workflow"
-description: "Create a workflow from its inputs, steps, and connections."
+description: "Create a workflow from plain words, or from its inputs, steps, and connections."
 openapi: "POST /v1/workflows"
 ---
+
+You can create a workflow in two ways. Send one of them, not both.
+
+## From plain words
+
+- `name`: the workflow's name.
+- `task`: what the workflow should do, in plain words. For example: `"every Monday, list the top 10 Hacker News stories and save them to a CSV"`.
+- `workspace_id`: a workspace you belong to. Default: your personal workspace.
+
+The workflow is made at once and answered with a `201`. Valendata's workflow builder then builds it from your skills. It makes a skill only when you have none for the job. This takes a few minutes. When the build is done, the workflow is tested once, and its schedule is saved.
+
+Read the workflow with [Get a workflow](/api-reference/workflows/get) until `build.state` is `tested`, `needs_you`, or `failed`:
+
+- `build.said`: the latest update in plain words. When tested, it says what the test read, when the workflow runs, and what the test cost.
+- `build.test_run_id`: the test run. Read it with `GET /v1/runs/{run_id}`.
+- `build.brain_url`: where you can watch the build, and answer a question, in the app.
+
+The build is charged like any use of the builder, and the test run like any run.
+
+## From a graph
 
 - `inputs`: what a run takes, `[{name, type, required, default, description, example}]`.
 - `steps`: in the same JSON the app saves, `[{id, name, type, config, on_error, retries}]`. A skill step names the skill in `config.skill`; a workflow step in `config.target_workflow_id`. Steps read inputs as `{{inputs.<name>}}`.
@@ -13,4 +33,8 @@ Everything is checked first. A `422` lists every problem and nothing is saved. I
 
 The easiest way to build steps is the Brain on the canvas. See [Build a workflow](/guides/build-a-workflow). To copy an existing workflow's steps, read it with [Get a workflow](/api-reference/workflows/get) and `include_graph=true`.
 
-A key limited to some workflows cannot create one. Needs `workflows:write`. MCP tool: `create_workflow`.
+## Either way
+
+A workflow whose skill step uses a skill that is not finished yet cannot run. [Get a workflow](/api-reference/workflows/get) lists why in `cannot_run`, and a run is refused with the reason. Nothing is charged.
+
+A key limited to some workflows cannot create one. Needs `workflows:write`. MCP tool: `create_workflow` (send `task` for plain words).
