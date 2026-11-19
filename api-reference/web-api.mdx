@@ -1,48 +1,30 @@
 ---
-title: "Universal web API (Firecrawl-compatible)"
-description: "Scrape, crawl, map, search, and extract any public page with the same calls and answers as Firecrawl. Point a Firecrawl SDK at Valendata and keep your code."
+title: "Universal web API"
+description: "Scrape, crawl, map, search, and extract any public page with one API key."
 ---
 
-Valendata answers Firecrawl's API paths. If your code or agent already uses Firecrawl, change the API key and the base URL. Nothing else.
+Scrape, crawl, map, search, and extract any public page with one API key. Every answer is plain JSON.
 
 - Base URL: `https://api.valendata.com`
-- `/v2/*` matches Firecrawl SDK v4 and later. Use this one.
-- `/v1/*` matches older integrations (LangChain, LlamaIndex, n8n) and gives their v1 answer shapes.
+- `/v2/*`: use this one.
+- `/v1/*`: older answer shapes, kept for existing integrations (LangChain, LlamaIndex, n8n).
 
 ## Before you start
 
-Send your key as `Authorization: Bearer vd_sk_...` (what Firecrawl SDKs send with their `api_key`) or as `x-api-key`. See [Authentication and scopes](/api-reference/authentication).
+Send your key as `Authorization: Bearer vd_sk_...` or as `x-api-key`. See [Authentication and scopes](/api-reference/authentication).
 
 The key needs the `web:read` scope. New keys made in **Settings → API Keys** have it on by default.
 
 Fields Valendata does not know are ignored, so the extra fields SDKs send (such as `origin`) do no harm.
 
-## Switch from Firecrawl
+## Call it
 
-<CodeGroup>
-
-```python Python
-from firecrawl import Firecrawl
-
-app = Firecrawl(api_key="vd_sk_...", api_url="https://api.valendata.com")
-doc = app.scrape("https://example.com", formats=["markdown", "links"])
-```
-
-```js JavaScript
-import Firecrawl from '@mendable/firecrawl-js';
-
-const app = new Firecrawl({ apiKey: 'vd_sk_...', apiUrl: 'https://api.valendata.com' });
-const doc = await app.scrape('https://example.com', { formats: ['markdown'] });
-```
-
-```bash curl
+```bash
 curl -X POST https://api.valendata.com/v2/scrape \
   -H "Authorization: Bearer vd_sk_..." \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","formats":["markdown"]}'
 ```
-
-</CodeGroup>
 
 ## How a page is fetched
 
@@ -231,7 +213,7 @@ Each delivery is a `POST` with `{success, type, id, data, metadata, error}`, whe
 
 ## Errors
 
-Errors look like Firecrawl's, `{success: false, error, code}`, plus Valendata's `detail`, `type`, and `request_id`. See [Errors and limits](/api-reference/errors) for the shared fields.
+Errors look like `{success: false, error, code}`, plus `detail`, `type`, and `request_id`. See [Errors and limits](/api-reference/errors) for the shared fields.
 
 | Status | When |
 | --- | --- |
@@ -247,16 +229,4 @@ Errors look like Firecrawl's, `{success: false, error, code}`, plus Valendata's 
 
 ## MCP tools
 
-The Valendata MCP server has `scrape_url`, `crawl_site`, `get_crawl`, `map_site`, `search_web`, `extract_data`, and `get_extract`. It also has the same tools under Firecrawl's MCP names: `firecrawl_scrape`, `firecrawl_search`, `firecrawl_map`, `firecrawl_crawl`, and `firecrawl_check_crawl_status`. Agents set up for Firecrawl keep working. All need `web:read`. See [Connect your AI assistant](/ai-assistants/connect).
-
-## What's different from Firecrawl
-
-| Feature | Status |
-| --- | --- |
-| Scrape, batch scrape, crawl, map | Supported |
-| Extract | Supported, one AI model pass over the pages |
-| Search | Partial: `tbs`, location, and the `images` and `news` sources are not used yet |
-| `pdf` action | Not yet |
-| Change tracking | Not yet |
-| Agent, interact, monitor | Not yet |
-| Parse, deep research, `llmstxt` | Not yet |
+The Valendata MCP server has `scrape_url`, `crawl_site`, `get_crawl`, `map_site`, `search_web`, `extract_data`, and `get_extract`. All need `web:read`. See [Connect your AI assistant](/ai-assistants/connect).

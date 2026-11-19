@@ -18,7 +18,7 @@ The assistant only sees the tools its connection's scopes allow, so the list gro
 - **Logins**: `list_logins`, `list_profiles`, `get_question`, `answer_questions`.
 - **Workflows**: `list_workflows`, `get_workflow`, `get_workflow_webhook`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `list_workflow_versions`, `compare_workflow_versions`, `get_workflow_chat`.
 - **Runs and schedules**: `list_runs`, `get_run`, `cancel_run`, `resume_run`, `list_schedules`.
-- **Web pages**: `scrape_url`, `search_web`, `map_site`, `crawl_site`, `get_crawl`, `extract_data`, `get_extract`, and their Firecrawl names.
+- **Web pages**: `scrape_url`, `search_web`, `map_site`, `crawl_site`, `get_crawl`, `extract_data`, `get_extract`.
 - **Knowledge**: `get_knowledge`, `save_knowledge`.
 
 `update_skill`, `delete_skill`, `delete_unused_archived_skills`, `update_from_marketplace`, `schedule_skill`, `try_skill_speed`, `use_skill_speed`, `restore_skill_version`, and `pin_skill_version` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `restore_workflow_version`, `talk_to_workflow`, `stop_workflow_doctor`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account`, `get_usage`, and `get_signup_email` appear only with `account:read`. `set_signup_email` needs `logins:write`, which only an API key can hold. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills`, `search_workflows`, and `site_status` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
@@ -114,15 +114,15 @@ Your skills grouped by website, each one an endpoint you call by name. What they
 
 ## Web pages
 
-Read any public page, site or search without a skill. Arguments use Firecrawl's names, and each tool also answers to Firecrawl's own MCP tool name, so an assistant set up for Firecrawl keeps working. Every call spends credits like the [Web API](/api-reference/web-api).
+Read any public page, site or search without a skill. Every call spends credits like the [Web API](/api-reference/web-api).
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `scrape_url` (also `firecrawl_scrape`) | `url`, optional `formats` (`markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`), `onlyMainContent`, `waitFor`, `mobile`, `maxAge`, `jsonOptions` (`{schema, prompt}` for `json`) | `web:read` | `POST /v2/scrape` |
-| `search_web` (also `firecrawl_search`) | `query`, optional `limit` (1–20, default 5), `includeDomains` and `excludeDomains` (up to 20 sites each), `scrapeOptions` (`formats`, `onlyMainContent`) | `web:read` | `POST /v2/search` |
-| `map_site` (also `firecrawl_map`) | `url`, optional `search`, `limit` (default 200), `includeSubdomains` | `web:read` | `POST /v2/map` |
-| `crawl_site` (also `firecrawl_crawl`) | `url`, optional `limit` (1–100, default 10), `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `scrapeOptions` | `web:read` | `POST /v2/crawl` |
-| `get_crawl` (also `firecrawl_check_crawl_status`) | `id`, optional `skip` (pages already read) | `web:read` | `GET /v2/crawl/{id}` |
+| `scrape_url` | `url`, optional `formats` (`markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`), `onlyMainContent`, `waitFor`, `mobile`, `maxAge`, `jsonOptions` (`{schema, prompt}` for `json`) | `web:read` | `POST /v2/scrape` |
+| `search_web` | `query`, optional `limit` (1–20, default 5), `includeDomains` and `excludeDomains` (up to 20 sites each), `scrapeOptions` (`formats`, `onlyMainContent`) | `web:read` | `POST /v2/search` |
+| `map_site` | `url`, optional `search`, `limit` (default 200), `includeSubdomains` | `web:read` | `POST /v2/map` |
+| `crawl_site` | `url`, optional `limit` (1–100, default 10), `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `scrapeOptions` | `web:read` | `POST /v2/crawl` |
+| `get_crawl` | `id`, optional `skip` (pages already read) | `web:read` | `GET /v2/crawl/{id}` |
 | `extract_data` | `urls` (`site/*` for a whole site), `prompt`, optional `schema` | `web:read` | `POST /v2/extract` |
 | `get_extract` | `id` | `web:read` | `GET /v2/extract/{id}` |
 
