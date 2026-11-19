@@ -1,0 +1,11 @@
+---
+title: "Get a workflow webhook"
+description: "A workflow's webhook: its URL, signing secret, whether it is on, and the inputs it fills."
+openapi: "GET /v1/workflows/{slug}/webhook"
+---
+
+`url` and `signing_secret` are shown only to someone who may change the workflow, and an API key also needs `workflows:write` to see them. Everyone else sees `url_preview`, the URL with its secret part hidden. `inputs` lists the workflow inputs a field of the same name fills.
+
+`404` when the workflow has no webhook. How the webhook works: [Start a workflow from a webhook](/guides/start-from-a-webhook).
+
+Needs `workflows:read`. MCP tool: `get_workflow_webhook`, which also lists the latest deliveries.

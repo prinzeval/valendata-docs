@@ -17,7 +17,7 @@ Jobs can be started from:
 - **The API**: the [Background jobs](/api-reference/jobs/start) routes.
 - **AI assistants**: the job MCP tools. See [MCP tools](/ai-assistants/mcp-tools#background-jobs).
 
-A job started through the API or an assistant tells nobody when it ends. Read it back with [Get a background job](/api-reference/jobs/get) (or `get_job`) until it has ended.
+A job started through the API or an assistant does not come back into a chat. Read it back with [Get a background job](/api-reference/jobs/get) (or `get_job`) until it has ended, or pass `webhook_url` when you start it. See [Hearing when a long job is done](/concepts/long-jobs).
 
 A job is not a different kind of run. It wraps a normal [run](/concepts/runs) and keeps track of it for the chat, so the run still shows in your run history and costs the same as running it yourself.
 
@@ -29,11 +29,11 @@ A job is not a different kind of run. It wraps a normal [run](/concepts/runs) an
 
 The result in the chat is short on purpose: a line, the row count, and the first few rows. The run's own page has every row.
 
-## Batches
+## Job groups
 
-Start two or more things together and they form a **batch**, for example "check this product on Amazon and on eBay". Each result still comes back as it lands. When the last one has ended, the agent gives you **one combined answer** from all of them, the way you asked (compared, ranked, or merged), and says which ones did not work and why.
+Start two or more things together and they form a **job group**, for example "check this product on Amazon and on eBay". Each result still comes back as it lands. When the last one has ended, the agent gives you **one combined answer** from all of them, the way you asked (compared, ranked, or merged), and says which ones did not work and why.
 
-A batch is a job too, of kind `batch`. It ends when every job in it has ended.
+A job group is a job too. Its `kind` is `batch`. It ends when every job in it has ended. To run one skill over many inputs instead, see [Run one skill over many inputs](/guides/run-a-skill#run-one-skill-over-many-inputs).
 
 ## Status
 
@@ -49,7 +49,7 @@ Once a job has ended, its status never changes. The other fields are on [Get a b
 
 ## Stop a job
 
-Press **Cancel** on the job in the chat, ask the agent to stop it, or use [Cancel a background job](/api-reference/jobs/cancel). Stopping a job stops its run too. Rows the run already found are kept, and credits already used stay charged. Stopping a batch stops every job in it that is still running.
+Press **Cancel** on the job in the chat, ask the agent to stop it, or use [Cancel a background job](/api-reference/jobs/cancel). Stopping a job stops its run too. Rows the run already found are kept, and credits already used stay charged. Stopping a job group stops every job in it that is still running.
 
 ## If Valendata restarts
 
@@ -57,7 +57,7 @@ Jobs are saved, so a restart does not lose them: work still waiting starts when 
 
 ## Limits
 
-- **Per start**: up to 6 things at once. Two or more make a batch.
+- **Per start**: up to 6 things at once. Two or more make a job group.
 - **Research helpers**: only an agent in a chat in the app can start them, at most 3 at a time. The API and AI assistants start skills and workflows only. A research helper cannot start jobs of its own.
 - **Credits**: a job costs what the run inside it costs. See [Credits](/concepts/credits).
 

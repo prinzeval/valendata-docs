@@ -1,0 +1,11 @@
+---
+title: "Get a workflow's app event"
+description: "The app event a workflow starts on, whether it is on, and when the last event came."
+openapi: "GET /v1/workflows/{slug}/app-trigger"
+---
+
+`app_trigger` has the `app`, the `trigger` and its name, its `config`, `enabled`, `last_event_at`, and `last_error` (why the last event started no run, if it did not). It is `null` when the workflow has no app event.
+
+`events_ready` is `false` when Valendata cannot receive app events yet. Nothing starts until it is `true`.
+
+What app events are: [Start a workflow on an app event](/api-reference/workflow-triggers/app-event-set). Needs `workflows:read`. MCP tool: `get_workflow` shows it in one line.

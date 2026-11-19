@@ -1,0 +1,15 @@
+---
+title: "Delete unused archived skills"
+description: "Delete every archived skill you own that nothing uses."
+openapi: "POST /v1/skills/archived/delete-unused"
+---
+
+An archived skill that something still uses is kept: a workflow step, its schedule, an API key limited to it, or the marketplace. `kept` lists each one with `used_by`, what uses it in words. `deleted` lists the ones deleted.
+
+Live and draft skills, and other people's skills, are never touched. Runs of deleted skills stay in run history (your billing history). A key limited to some skills only touches those.
+
+This cannot be undone. Send `dry_run=true` first to see what would be deleted and what kept, without deleting anything.
+
+In the app, this is **Delete unused** in the **Archived** view of your skills. To delete one skill, use [Delete a skill](/api-reference/skills/delete).
+
+Needs `skills:write`. MCP tool: `delete_unused_archived_skills`.

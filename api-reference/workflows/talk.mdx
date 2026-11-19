@@ -1,0 +1,20 @@
+---
+title: "Talk to a workflow"
+description: "Say what is wrong or what you want in plain words. The workflow's doctor changes it and checks it on its own."
+openapi: "POST /v1/workflows/{slug}/doctor"
+---
+
+Send one `message` of up to 2,000 characters, such as `the last run failed, fix it` or `also send the rows to Slack`. The doctor reads the workflow's runs and steps, changes the steps, and runs it again to check. It is the same doctor as the Brain chat in the app's builder.
+
+The call answers at once. The doctor keeps working after it, so the answer has:
+
+- `messages` and `working`: the chat, as [Read a workflow's chat](/api-reference/workflows/chat) shows it.
+- `answer`: what happened to your message, in plain words.
+- `status_url`: where its reply is posted.
+- `next_step`: when to read it.
+
+A message sent while the doctor is working is queued for its next step. A message that is only `stop` stops it, as [Stop a workflow's doctor](/api-reference/workflows/stop-doctor) does.
+
+Every change it makes is kept as a version, so you can [restore](/api-reference/workflow-versions/restore) the workflow as it was. Its work is charged like any use of the builder.
+
+Only the owner or an editor in the workflow's workspace. Needs `workflows:write` and `workflows:invoke`. MCP tool: `talk_to_workflow`, with `slug` and `message`.

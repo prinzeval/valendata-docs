@@ -1,0 +1,13 @@
+---
+title: "Resume a run"
+description: "Carry a failed, paused, or stopped workflow run on from where it ended."
+openapi: "POST /v1/runs/{run_id}/resume"
+---
+
+Starts a new run with the same inputs and browser. Steps that already finished are not run again, and a step you stopped carries on at its next item. Only a workflow run can be resumed: one that `failed`, waits for a person, or was `cancelled`. A run that is still going or finished, or a skill run, returns `409`; run the skill again instead.
+
+It answers `202` at once with the new `run_id`, `resumed_from`, `status_url`, and `next_step`. Poll it with [Get a run](/api-reference/runs/get).
+
+It is charged like any run, with the same checks as [Start a workflow run](/api-reference/runs/start-workflow-run): `402` when you cannot pay to start it, and `409` when a browser it needs is not available. Send an `Idempotency-Key` to make a retry safe.
+
+The person who started the run, or an editor of its workflow. Needs `workflows:invoke`. MCP tool: `resume_run`. In the app, it is **Resume** on the run.

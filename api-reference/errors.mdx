@@ -9,19 +9,22 @@ description: "Status codes, error bodies, request ids, rate limits, and how many
 | --- | --- | --- |
 | `200` / `201` / `202` / `204` | It worked. `202` means it started and you read the result later. | |
 | `400` | The body is not valid JSON, or a `cursor` or `Idempotency-Key` is not valid. | Fix the request. |
-| `401` | The key is missing, malformed, revoked, or expired. | See [Authentication](/api-reference/authentication). |
+| `401` | The key is missing, malformed, revoked, or expired. `code` is `unauthorized`. | Send a valid key. See [Authentication](/api-reference/authentication). |
 | `402` | Not enough credits to start (`detail` has `current_balance` and `required`), or your workspace spend cap is reached (`detail` has `cap` and `spent`). Every run endpoint checks this before anything starts, background runs included. | Top up or ask the owner to raise the cap, then retry. |
 | `403` | The key lacks a scope, you may not do this to a skill or workflow you can see (for example, only the owner can restore or pin), or you tried to run a public marketplace skill you have not cloned (`clone_required`). | Check the scope and the owner. For `clone_required`, clone the skill and run your copy. |
 | `404` | It does not exist, or it is not yours to see. A private skill, workflow, or run of someone else's is a `404`, never a `403`, so nobody learns it exists. | Check the slug or id. |
 | `405` | The route exists but not with this method. The `Allow` header lists the methods it takes. | Use one of those. |
-| `409` | A conflict: the skill is already being improved, it already has a schedule, a workflow still uses the skill you are deleting, the run is not waiting for a code, or a request with the same `Idempotency-Key` is still running. | `detail` says which. |
+| `409` | A conflict: the skill is already being improved, it already has a schedule, a workflow still uses the skill you are deleting, the run is not waiting for a code, a request with the same `Idempotency-Key` is still running, or the browser it needs is not available (`cloud_browser_paused`, `extension_not_connected`). | `detail` says which. |
+| `410` | The [question](/api-reference/logins/answer-question) you answered expired first. The body is `{"card": …}`, the card as it stands, with `status` `expired`. | Run or create again to get a new question. |
+| `413` | The request body is too large. | Send less. |
+| `415` | The body's `Content-Type` is not one this route takes. | Send JSON with `Content-Type: application/json`. |
 | `422` | A field is invalid (`param` names it), inputs do not match the contract, the `version` does not exist, `webhook_url` is not allowed, or the `Idempotency-Key` was already used with a different request. | Fix the request. The body lists every problem. |
 | `429` | Too many requests for your key, or too many runs, creations, or improvements in progress. | Wait `Retry-After` seconds, or run in the background. |
 | `500` | Something broke on our side. | Retry. Credits a run already used are not given back. |
 | `502` | A [connected app](/concepts/connected-apps) refused the call or could not be reached. `detail` gives its reason. | Fix the inputs it names, or retry later. |
 | `503` | This part of the API is not available right now. | Retry later. |
 
-A request refused before it starts (`400`, `401`, `402`, `403`, `404`, `409`, `422`, `429`) runs nothing and costs nothing.
+A request refused before it starts (`400`, `401`, `402`, `403`, `404`, `409`, `410`, `413`, `415`, `422`, `429`) runs nothing and costs nothing.
 
 ## Error body
 
@@ -57,6 +60,17 @@ A `402` from a run endpoint says why the run did not start. `detail.error` is `i
   },
   "code": "payment_required",
   "type": "billing_error",
+  "request_id": "3f9a1c2b7d4e"
+}
+```
+
+A `403` because the key lacks a scope names the scope in `detail`:
+
+```json
+{
+  "detail": "This API key is missing the 'skills:invoke' scope. Create a key with 'skills:invoke' in Settings → API keys.",
+  "code": "permission_denied",
+  "type": "permission_error",
   "request_id": "3f9a1c2b7d4e"
 }
 ```
@@ -139,9 +153,15 @@ A `429` because too many runs are in progress has a `Retry-After` header, and `d
 | `method_not_allowed` | `405` | Wrong method for this route. |
 | `conflict` | `409` | The current state does not allow it. |
 | `app_not_connected` | `409` | The connected app is not connected, or its connection expired. `detail.connect_url` connects it. |
-| `cloud_browser_paused` | `409` | The run needs the cloud browser, which is paused right now. Nothing was charged. Send `browser_type` `extension` to run it in your own Chrome. |
+| `connection_required` | `409` | Several of your accounts on the app work and you named none. `detail.connections` lists them. Nothing ran. Send `connection_id`. |
+| `connection_not_found` | `404` | `connection_id` is not one of your accounts on this app. |
+| `connection_expired` | `409` | That account's sign-in lapsed. `detail.reconnect_url` signs it in again under the same id. |
+| `cloud_browser_paused` | `409` | The run needs the cloud browser, which is paused right now. Nothing ran and nothing was charged. The browser never changes by itself: to run it in your own Chrome, call again with `browser_type` `extension`. |
+| `extension_not_connected` | `409` | You asked for your own Chrome, and it is not connected to Valendata. Nothing was charged. Open Chrome with the Valendata extension, or pick the cloud browser. |
 | `idempotency_key_in_use` | `409` | The first request with this key is still running. |
 | `idempotent_replay_unavailable` | `409` | The first request with this key succeeded, but its answer was too large to keep. `detail` names what it started. |
+| `payload_too_large` | `413` | The request body is too large. |
+| `unsupported_media_type` | `415` | The body's `Content-Type` is not one this route takes. |
 | `validation_error` | `422` | A field or input is invalid. |
 | `idempotency_key_reused` | `422` | This key was already used with a different request. |
 | `rate_limited` | `429` | Too many requests for this key, or too many runs in progress. |
@@ -180,7 +200,7 @@ X-RateLimit-Reset: 1720000060
 | --- | --- |
 | Runs in progress | A limit per account. Runs that wait for the result get `429`; background runs queue (up to about an hour, then fail uncharged). |
 | Rows per run | `max_results` up to 500. `0` returns the whole list. |
-| Skill creations | 2 in progress, at least 10 credits to start, 30 minutes each. |
+| Skill creations | 10 in progress, counting the ones waiting for a browser, at least 10 credits to start, 30 minutes each. |
 | Improvements | 1 in progress per account and per skill, 6 an hour, at least 10 credits to start. |
 | Workflow wait | `wait` up to 120 seconds on `POST /v1/workflows/{slug}/run`. |
 | Items per list page | `limit` up to 100. See [Pagination](/api-reference/pagination-and-idempotency#pagination). |

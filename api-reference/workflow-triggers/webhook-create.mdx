@@ -1,0 +1,13 @@
+---
+title: "Create a workflow webhook"
+description: "Give a workflow a secret URL. Each POST to it starts a run."
+openapi: "POST /v1/workflows/{slug}/webhook"
+---
+
+The answer (`201`) is the webhook, with its `url` and `signing_secret`. Send `require_signature: true` to refuse any POST without a valid signature, and `enabled: false` to create it turned off.
+
+A workflow has one webhook. Creating a second answers `409`.
+
+What to send to the URL, what it answers, and signing: [Start a workflow from a webhook](/guides/start-from-a-webhook). Each run it starts uses your credits like any run.
+
+Needs `workflows:write` and `workflows:invoke`. MCP tool: `get_workflow_webhook` with `create: true`.

@@ -1,0 +1,18 @@
+---
+title: "Read a workflow's chat"
+description: "The workflow's chat with its doctor, oldest first, and whether it is working."
+openapi: "GET /v1/workflows/{slug}/doctor"
+---
+
+A workflow's doctor is the Brain in the app's workflow builder. This returns the last 100 messages of its chat, oldest first. Each message has a `role`:
+
+| Role | Meaning |
+| --- | --- |
+| `user` | A message you or someone in your workspace sent. |
+| `doctor` | The doctor's reply. `status` says how its turn ended, when known. |
+
+`working` is `true` while the doctor is working on a message. Its reply is posted here when it is done.
+
+The owner and the workflow's workspace can read it. Needs `workflows:read`. MCP tool: `get_workflow_chat`, with `slug`.
+
+To send a message, see [Talk to a workflow](/api-reference/workflows/talk).

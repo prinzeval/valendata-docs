@@ -1,0 +1,11 @@
+---
+title: "Disconnect one connection"
+description: "Remove one of your accounts on an app. Your other accounts on it keep working."
+openapi: "DELETE /v1/apps/{app}/connections/{connection_id}"
+---
+
+The account's sign-in is deleted. `connection_id` is an `id` from [List an app's connections](/api-reference/apps/list-connections). `404` `connection_not_found` when it is not one of your connections on this app.
+
+To remove every account on the app, use [Disconnect an app](/api-reference/apps/disconnect).
+
+Needs `apps:write`. MCP tool: `disconnect_app` with `connection_id`.

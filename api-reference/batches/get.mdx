@@ -1,0 +1,20 @@
+---
+title: "Get a batch"
+description: "A batch's status and progress, and where to read its rows."
+openapi: "GET /v1/batches/{batch_id}"
+---
+
+| Field | What it is |
+| --- | --- |
+| `status` | `queued` or `running` while it goes. Then `completed`, `cancelled`, `out_of_credits`, or `failed`. |
+| `done`, `total` | How many inputs have ended, of how many. |
+| `counts` | The inputs by status. |
+| `rows` | Rows collected so far. |
+| `credits_used`, `estimated_credits` | What it has spent so far, against the estimate when it started. |
+| `stop_reason` | Why it stopped early, in plain words. |
+| `cancel_requested` | `true` while running inputs are being stopped after a cancel. |
+| `rows_url`, `csv_url` | Where the rows are: [Get a batch's rows](/api-reference/batches/get-rows) and [as CSV](/api-reference/batches/get-rows-csv). |
+
+To see each input, call [List a batch's inputs](/api-reference/batches/list-items).
+
+You can read only your own batches. Anyone else's answers `404`. Needs `runs:read`. MCP tool: `get_batch`.

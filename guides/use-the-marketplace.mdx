@@ -3,7 +3,7 @@ title: "Use the marketplace"
 description: "Find a ready-made skill, clone it into your workspace, rate it, or share your own."
 ---
 
-The **marketplace** is a public library of skills and workflows. Instead of building a skill yourself, find one that does what you need and clone it into your workspace. The copy is yours to run and change. Your changes do not affect the original, and changes to the original are not pushed to your copy.
+The **marketplace** is a public library of skills and workflows. Instead of building a skill yourself, find one that does what you need and clone it into your workspace. The copy is yours to run and change. Your changes do not affect the original. The original's tested improvements can reach your copy, without undoing your own changes: see [Updates from the original](#updates-from-the-original).
 
 ## Browse
 
@@ -75,6 +75,16 @@ The same numbers are in the API and MCP: `proof` on [Find a skill for a task](/a
 <Note>
   Runs of a cloned skill use your credits, not the author's, the same as your own skills. See [Credits](/concepts/credits).
 </Note>
+
+## Updates from the original
+
+When the author improves the original, your copy can get the change. Only a version that has proved itself, in its checks or on real runs, is offered.
+
+- **Auto-update** is on by default. Your copy takes each tested version by itself. Turn it off in the skill's **Versions** tab, and updates wait for you to click **Pull latest**.
+- **Your own changes are kept.** The update is merged onto them, and new inputs and output fields are added. Each update is saved as a new version, so you can switch back.
+- **A clash waits for you.** When you and the author changed the same step in different ways, nothing is applied. Choose **Keep mine** or **Use theirs** in the **Versions** tab.
+
+From the API: [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take), [Keep your version](/api-reference/versions/marketplace-update-keep-mine), [Take the original's version](/api-reference/versions/marketplace-update-use-theirs), and [Set automatic marketplace updates](/api-reference/versions/marketplace-update-settings). MCP tool: `update_from_marketplace`.
 
 ## Rate a skill you cloned
 

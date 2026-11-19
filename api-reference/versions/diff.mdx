@@ -5,3 +5,5 @@ openapi: "GET /v1/skills/{slug}/versions/{a}/diff/{b}"
 ---
 
 Returns changed settings (`fields`), added, removed, and changed steps (`actions`), and a one-line `summary`.
+
+Needs `skills:read`. MCP tool: `compare_skill_versions`, with `skill`, `a`, and `b`.

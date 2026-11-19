@@ -1,0 +1,11 @@
+---
+title: "Cancel a batch"
+description: "Stop a batch. Rows already found are kept."
+openapi: "POST /v1/batches/{batch_id}/cancel"
+---
+
+No more inputs start: they become `not_started`. Inputs that are running are stopped. Rows already collected are kept, and the runs that ran stay charged.
+
+The answer is the batch as it is now. `cancel_requested` is `true` while running inputs stop. A batch that already ended is left as it is.
+
+Needs `skills:invoke`. MCP tool: `cancel_batch`.

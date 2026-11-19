@@ -7,7 +7,7 @@ There are three ways to get a skill:
 
 | Way | Best for | Can sign in to sites? |
 | --- | --- | --- |
-| [From a sentence](#from-a-sentence) | Public pages: search results, listings, directories. | No |
+| [From a sentence](#from-a-sentence) | Search results, listings, directories, public or behind a saved login. | Yes, with a [saved login](/concepts/logins-and-browser-profiles) |
 | [By recording it](#by-recording-it) | Tasks behind your sign-in, or that need exact clicks. | Yes |
 | [From the marketplace](/guides/use-the-marketplace) | Common tasks someone has already built. | Depends on the skill |
 
@@ -25,15 +25,15 @@ Optionally name the **inputs** (with the example value the task uses) and the **
 
 ### Open APIs first
 
-Many sites publish their data through an open API: a web address that answers with data, without a browser. Before it opens a browser, Valendata looks for one, then checks that the answer holds the fields you asked for. No cookie of yours is sent. While it looks, `progress` reads like `Looking for an open API for bayse.markets…`, then `Found its public API — building the skill on it` and `Checking the API returns the fields…`.
+Many sites publish their data through an open API: a web address that answers with data, without a browser. Before it opens a browser, Valendata looks for one that returns the fields you asked for. No cookie of yours is sent. While it looks, `progress` says so in plain words.
 
-**When the site blocks our server.** If you have agreed that Valendata may use your Chrome and the Valendata extension is connected, Valendata may open the start page once in a background tab of your Chrome to finish the search, then closes the tab. Your other tabs are not touched, and nothing is recorded. `progress` says `The site blocked our server — reading its page in your Chrome…`.
+If the site blocks our servers and you have agreed that Valendata may use your Chrome with the Valendata extension connected, it may open the start page once in a background tab of your Chrome, then close it. Your other tabs are not touched, and nothing is recorded.
 
-**Inputs the task names.** When the task names a value, such as "jobs in the programming category", and the API takes no parameter for it, Valendata maps the input another way the source allows: a part of the address (the category's own feed, a store's collection) or a filter on an output field. A part of the address must be one of the site's own values, and a filter must keep some of the sample rows. See [Inputs](/concepts/skills#inputs).
+When the task names a value, such as "jobs in the programming category", the skill turns it into an [input](/concepts/skills#inputs) that the site really understands. When no such value exists on the site, the creation does not guess.
 
-If an API checks out, the skill is built on it. There is no recording. Each run calls the API directly, with no browser, and returns the site's own values: one call per page of results, plus one per row for a [list plus detail](#list-plus-detail) skill. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**.
+If an API fits, the skill is built on it. There is no recording. Each run reads the site's own data with no browser. The creation's `source` is `api`, and `api_endpoint` names what it reads, such as `gamma-api.polymarket.com/markets`. In the app, the skill shows **Reads gamma-api.polymarket.com's public API**. When the API's list leaves out fields you asked for, the skill also reads each record's own page of data, so every row still has its fields. A row whose extra read fails keeps its other fields, and the run's `drifted_fields` says how many rows were left empty and why.
 
-If none checks out, it records in a browser as usual. `progress` says `No open API to build on — recording it in a browser`, `source` is `browser`, and `source_note` says what the search found.
+If no API fits, it records in a browser. `source` is `browser`, and `source_note` says why.
 
 Two optional fields change this:
 
@@ -44,13 +44,7 @@ Two optional fields change this:
 
 A creation with a saved login (`login_id`) does not look for an API: its data is behind a sign-in. Sending `login_id` with `source: "api"`, or `api_url` with `source: "browser"`, is refused.
 
-#### List plus detail
-
-Some APIs list their records without every field. A jobs list can leave out each job's description, and a markets list each market's full rules. When a list checks out but leaves fields you asked for empty, Valendata looks for the API's call for one record. It tries the record's own link to itself, then the usual address for one record (such as `…/jobs/{id}` or `…/products/{handle}.json`), then the API docs it read. It calls each one for two or three real rows and keeps it only when every answer is about that row. It then reads your fields from the answer and checks the whole skill again. `progress` says `The list lacks description — looking for the API's call for one record…`.
-
-A skill built this way makes one more call per row it returns, so `max_results` limits those calls too. At most four go out at once, and each waits its turn with the site like any other call. If one row's call fails, that row's fields from it are empty and the run still succeeds. The run's `drifted_fields` says how many rows were left empty and why. There is no charge per call: a run costs what any run of an API skill costs.
-
-[`GET /v1/skills/{slug}`](/api-reference/skills/get) names the second call in `fast_path_detail_endpoint`. In the app, the skill's **Optimizer** tab shows it under **Then, for each row**, with the fields read from it. To add such a field to a skill you already have, use [Add fields](/guides/improve-a-skill#skills-built-on-an-open-api).
+A skill built on an API costs what any API skill run costs. To add a field to one you already have, use [Add fields](/guides/improve-a-skill#skills-built-on-an-open-api).
 
 ### Which browser records it
 
@@ -58,11 +52,11 @@ The browser is used only when no open API is found. Pick it under **Browser** in
 
 | `browser` | In the app | Where it records |
 | --- | --- | --- |
-| `auto` (default) | **Automatic** | A Valendata cloud browser. It switches to your Chrome when the cloud is busy or the site blocks cloud browsers. |
+| `auto` (default) | **Automatic** | A Valendata cloud browser. |
 | `cloud` | **Cloud** | A Valendata cloud browser only. |
-| `extension` | **My Chrome** | Your own Chrome, through the Valendata extension. Chrome must be open with the extension connected. |
+| `extension` | **My Chrome** | Your own Chrome, through the Valendata extension. Chrome must be open with the extension connected. It uses your Chrome's own sign-ins. |
 
-Pick **My Chrome** for sites that block cloud browsers. When **Automatic** switches for that reason, `progress` says `The site blocked the cloud browser — recording on your Chrome instead`. A creation with a saved login (`login_id`) always records on the cloud. For how the two browsers differ when a skill runs, see [Where a skill runs](/concepts/skills#where-a-skill-runs).
+The browser never changes by itself. Pick **My Chrome** for sites that block cloud browsers. While the cloud browser is paused, an `auto` or `cloud` creation that needs a browser is refused before it starts with `409` `cloud_browser_paused`, and nothing is charged. The message says why. To record it in your own Chrome, create it again with `browser: "extension"`. For how the two browsers differ when a skill runs, see [Where a skill runs](/concepts/skills#where-a-skill-runs).
 
 <CodeGroup>
 
@@ -163,7 +157,7 @@ To stop one that is still going, use [Cancel a skill creation](/api-reference/sk
 
 **Limits:** up to 10 creations at a time, counting the ones waiting, at least 10 credits to start, and 30 minutes per creation. Creations that cannot start yet wait in a queue (`queued`) for a free browser. Nothing is charged while one waits.
 
-**Behind a sign-in:** if the start page asks you to sign in, pick a saved login under **Sign in with** (`login_id` in the API, from [List logins](/api-reference/logins/list)). A cloud browser signs in with it first, and the new skill keeps using that login. Without one, the creation stops and asks you to save a login for the site, then create it again.
+**Behind a sign-in:** if the start page asks you to sign in, pick a saved login under **Sign in with** (`login_id` in the API, from [List logins](/api-reference/logins/list)). The browser signs in with it first, and the new skill keeps using that login. Without one, it uses your saved login for the site. With several saved there and none marked as the default, the creation stops and asks which one (`needs_user` kind `choose_login`). With no saved login, it can make an account with the sign-up email you chose; with no sign-up email either, it stops and asks which email to use. See [Logins and browser profiles](/concepts/logins-and-browser-profiles).
 
 ## By recording it
 

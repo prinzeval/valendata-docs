@@ -1,0 +1,9 @@
+---
+title: "Delete a workflow webhook"
+description: "Remove a workflow's webhook. Its URL stops working."
+openapi: "DELETE /v1/workflows/{slug}/webhook"
+---
+
+The URL stops working, and its delivery log is deleted. The workflow and its runs stay. To stop it for a while instead, turn it off with [Update a workflow webhook](/api-reference/workflow-triggers/webhook-update).
+
+Needs `workflows:write`.

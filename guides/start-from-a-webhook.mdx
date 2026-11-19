@@ -5,6 +5,8 @@ description: "Give a workflow a secret URL. Anything that can send a POST, such 
 
 A workflow's **webhook** is a secret URL. Each POST to it starts one [run](/concepts/runs) of the workflow, with what was sent as its inputs. Each run uses [credits](/concepts/credits) like any other run.
 
+To start a workflow when something happens in one of your connected apps instead, such as a new email, see [Start a workflow on an app event](/api-reference/workflow-triggers/app-event-set).
+
 ## In the app
 
 <Steps>
@@ -104,23 +106,23 @@ A signature is checked whenever one is sent, even when signing is not required. 
 
 ## From the API
 
-A workflow has **one** webhook. Creating a second returns `409`.
+A workflow has **one** webhook.
 
 | Do this | Call |
 | --- | --- |
-| Create it | `POST /v1/workflows/{slug}/webhook` |
-| Read it | `GET /v1/workflows/{slug}/webhook` |
-| Turn it off or on, or require a signature | `PATCH /v1/workflows/{slug}/webhook` with `enabled` or `require_signature` |
-| Get a new URL or signing secret | `POST /v1/workflows/{slug}/webhook/rotate` with `{"rotate": "url"}` or `{"rotate": "secret"}` |
-| See recent deliveries | `GET /v1/workflows/{slug}/webhook/deliveries` |
-| Remove it | `DELETE /v1/workflows/{slug}/webhook` |
+| Create it | [Create a workflow webhook](/api-reference/workflow-triggers/webhook-create) |
+| Read it | [Get a workflow webhook](/api-reference/workflow-triggers/webhook-get) |
+| Turn it off or on, or require a signature | [Update a workflow webhook](/api-reference/workflow-triggers/webhook-update) |
+| Get a new URL or signing secret | [Rotate a workflow webhook](/api-reference/workflow-triggers/webhook-rotate) |
+| See recent deliveries | [List a workflow webhook's deliveries](/api-reference/workflow-triggers/webhook-deliveries) |
+| Remove it | [Delete a workflow webhook](/api-reference/workflow-triggers/webhook-delete) |
 
 ```bash
 curl -X POST https://api.valendata.com/v1/workflows/new-signups/webhook \
   -H "Authorization: Bearer $VALENDATA_API_KEY"
 ```
 
-Reading needs `workflows:read`. The full `url` and `signing_secret` are only shown to someone who may change the workflow; others see `url_preview`. Changing needs `workflows:write`, and turning the webhook on also needs `workflows:invoke`. Deliveries are kept for 30 days.
+Each page lists the scopes it needs.
 
 ## From an AI assistant
 

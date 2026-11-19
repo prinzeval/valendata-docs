@@ -1,0 +1,18 @@
+---
+title: "List runs"
+description: "Every run you started, skill runs and workflow runs together, newest first."
+openapi: "GET /v1/runs"
+---
+
+Each run has its `kind` (`skill` or `workflow`), `status`, the `skill` or `workflow` slug and its `name`, `created_at`, `finished_at`, `rows` (`null` while it runs), `credits_charged`, `error` (why it failed, in plain words), and `status_url`. Read one run in full with [Get a run](/api-reference/runs/get).
+
+Filter with:
+
+- `kind`: `skill` or `workflow`.
+- `status`: a comma list in each kind's own words. A skill run is `queued`, `running`, `success`, `partial`, `failed`, or `cancelled`. A workflow run is `pending`, `running`, `completed`, `failed`, or `cancelled`.
+
+Page with `limit` (1–100, default 50) and `cursor`. See [Pagination](/api-reference/pagination-and-idempotency).
+
+Skill runs need `runs:read` and workflow runs `workflows:read`. A kind your key cannot read is left out; asking for it with `kind` is a `403`. A key limited to some skills or workflows lists only their runs. MCP tool: `list_runs`.
+
+For one skill's or one workflow's runs, see [List skill runs](/api-reference/runs/list-skill-runs) and [List workflow runs](/api-reference/runs/list-workflow-runs).

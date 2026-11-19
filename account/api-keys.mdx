@@ -18,7 +18,7 @@ An API key lets your code, or an AI assistant, call Valendata as you. Each key c
     Name it after where it will be used, for example `Production Server`, `Zapier Integration`, or `CI Pipeline`. A clear name helps you find and revoke the right key later.
   </Step>
   <Step title="Pick the scopes and expiry">
-    Tick only what this integration needs (see [Scopes](/api-reference/authentication#scopes)). The default is **Read skills**, **Invoke skills**, and **Read runs**: enough to run skills and read their results. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
+    Tick only what this integration needs (see [Scopes](/api-reference/authentication#scopes)). The defaults let a key make, run, and read skills and workflows, read your credits, and use the universal web API. Everything else is opt-in. The [default scopes](/api-reference/authentication#scopes) are listed there. Pick an expiry (7, 30, or 90 days, 1 year, or never). An expired key stops working, like a revoked one.
   </Step>
   <Step title="Limit it to some skills or workflows (optional)">
     Under **Limit to**, pick the skills and/or workflows this key may use. Leave a list empty to allow all. See [Limit a key to some skills or workflows](#limit-a-key-to-some-skills-or-workflows).

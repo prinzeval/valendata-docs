@@ -62,7 +62,7 @@ Every skill run says how it got its data in `read_way`, with one set of names:
 | `open_api` | Open API | The site's public data service. |
 | `feed` | RSS feed, or the feed's own name | The site's feed. |
 | `page_data` | Page data | Data the page itself carries. |
-| `hidden_request` | Hidden request | The same data request the site's own page makes, without clicking. |
+| `hidden_request` | Hidden request | The data the site's own page loads, read without a browser. |
 | `page_read` | Page read | The page, read without a browser. |
 | `browser` | Browser steps | The skill's recorded steps, in a browser. |
 
@@ -74,9 +74,9 @@ Every skill run says how it got its data in `read_way`, with one set of names:
 | `extension` | your Chrome |
 | `cloud` | the cloud browser |
 
-New runs always have `read_way`. An older run may show one worked out from its record, or none. `tier_used` and `tier_timings` are still returned as before.
+New runs always have `read_way`. An older run may show one worked out from its record, or none.
 
-A skill lists the ways it reads, in the order it tries them, in `reads_by` on [Get a skill](/api-reference/skills/get). A run uses the first way that works. See [Speed tiers](/concepts/keeping-skills-working#speed-tiers).
+A skill lists the ways it can read, in `reads_by` on [Get a skill](/api-reference/skills/get). A run uses the fastest way that works. See [Speed tiers](/concepts/keeping-skills-working#speed-tiers).
 
 ## How far to trust the rows
 

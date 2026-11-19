@@ -1,0 +1,9 @@
+---
+title: "Pause or resume a workflow's app event"
+description: "Stop new events from starting runs for a while, then start them again."
+openapi: "PATCH /v1/workflows/{slug}/app-trigger"
+---
+
+`{"enabled": false}` pauses it: new events start no runs. `{"enabled": true}` resumes it with its saved settings.
+
+`404` when the workflow has no app event. Needs `workflows:write`, plus `workflows:invoke` to resume. MCP tool: `update_workflow` with `app_trigger: {"enabled": false}`.

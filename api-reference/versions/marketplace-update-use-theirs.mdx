@@ -1,0 +1,11 @@
+---
+title: "Take the original's version after a clash"
+description: "After an update clashed with your changes, take the marketplace version instead."
+openapi: "POST /v1/skills/{slug}/marketplace-update/use-theirs"
+---
+
+Use it when [Check for a marketplace update](/api-reference/versions/marketplace-update-check) says `reason: "clash"`. The original's version goes live as a new version of your copy, and your copy counts as up to date. Your earlier version stays in the history, and you can [restore](/api-reference/versions/restore) it.
+
+The answer is the update check as it is now. In the app, this is **Use theirs** in the skill's **Versions** tab.
+
+Owner or workspace editor. Needs `skills:write`.

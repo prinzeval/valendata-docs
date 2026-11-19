@@ -1,0 +1,23 @@
+---
+title: "List browser profiles"
+description: "Your browser profiles, masked: the sites each one is signed in to."
+openapi: "GET /v1/profiles"
+---
+
+A browser profile keeps the sign-ins of a browser, so a skill can run as you on a site. Pass a profile's `id` as `profile_id` when you [run a skill](/api-reference/runs/run-skill). Profiles are made and filled in the app, under **Browser profiles**.
+
+Each profile has:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Its id, for `profile_id`. |
+| `name` | Its name. |
+| `status` | `empty` (nothing saved in it yet), `ready`, or `error`. |
+| `is_default` | `true` for your one default profile. |
+| `signed_in_sites` | The sites it holds a sign-in for. |
+| `country` | The country it browses from, when it has a proxy. |
+| `last_used_at`, `created_at` | When it was last used and made. |
+
+Never a cookie, a storage key, or a proxy address. Page with `limit` and `cursor`.
+
+Needs `logins:use` or `logins:write`. MCP tool: `list_profiles`.

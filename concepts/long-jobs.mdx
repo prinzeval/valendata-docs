@@ -1,0 +1,55 @@
+---
+title: "Hearing when a long job is done"
+description: "Skill creations, improvements, speed trials, background runs and batches keep going after the call that starts them. How you find out each one has ended: a status URL, a webhook, or an MCP task."
+---
+
+Some calls start work that takes longer than one request. They answer at once with an id, and the work keeps going in the background. These are the long jobs:
+
+| Job | Started with | Read it with |
+| --- | --- | --- |
+| A background skill run | [`POST /v1/skills/{slug}/runs`](/api-reference/runs/start-skill-run) | `GET /v1/runs/{run_id}` |
+| A workflow run | [`POST /v1/workflows/{slug}/runs`](/api-reference/runs/start-workflow-run) | `GET /v1/runs/{run_id}` |
+| A skill creation | [`POST /v1/skills`](/api-reference/skills/create) | `GET /v1/skill-creations/{id}` |
+| A skill improvement | [`POST /v1/skills/{slug}/improve`](/api-reference/improvements/improve) | `GET /v1/skill-improvements/{id}` |
+| A repair the skill's chat starts | `POST /v1/skills/{slug}/doctor` | `GET /v1/skill-improvements/{id}` |
+| A speed trial | [`POST /v1/skills/{slug}/speed/try`](/api-reference/skills/try-speed) | [`GET /v1/skills/{slug}/speed/trials/{id}`](/api-reference/skills/get-speed-trial) |
+| A batch (one skill over many inputs) | `POST /v1/skills/{slug}/batches` | `GET /v1/batches/{id}` |
+| Background jobs | [`POST /v1/jobs`](/api-reference/jobs/start) | `GET /v1/jobs/{id}` |
+| A workflow made from a `task` | `POST /v1/workflows` | `GET /v1/workflows/{slug}` (its `build`) |
+
+You hear a job has ended in one of three ways. Pick the one that fits your caller.
+
+## 1. Read it again: `status_url` and `next_step`
+
+The answer that starts a job carries `status_url`, the URL that reads it. While the job runs, its answers also carry `next_step`: the exact call to make and how long to wait, for example:
+
+```text
+Call GET /v1/skill-creations/sc_9c1d… in about 3 minutes. Until then it keeps going on its own.
+```
+
+The wait is how long that kind of job usually takes, less the time it has already run. A job that runs past its usual time says "about 30 seconds", so you never wait long for one that is nearly done. Once the job has ended, `next_step` says what to do with the result, or is `null`.
+
+Background run answers also keep `poll_url`, the same URL as `status_url`.
+
+## 2. Get a webhook: `webhook_url`
+
+Pass `webhook_url` when you start the job, and Valendata sends one `POST` to it when the job ends. Every long job above takes it except two: a repair the skill's chat starts, and a workflow made from a `task`. Read those with their `status_url`. A [schedule](/guides/schedule) takes it too, for each run it fires.
+
+- The body is what the job's `status_url` returns, plus `event`.
+- It is signed like every Valendata webhook. See [About webhooks](/api-reference/webhooks/overview) for the signature, the retries and the address rules.
+- It is sent once per job, however the job ended: finished, failed or stopped.
+
+| Job | `event` |
+| --- | --- |
+| A background skill or workflow run, or a batch | none: the body is the run or the batch |
+| A skill creation | `skill_creation.finished` |
+| A skill improvement | `skill_improvement.finished` |
+| A speed trial | `speed_trial.finished` |
+| A background job (`POST /v1/jobs`) | `job.finished`, for the job group when you started two or more |
+| A run a schedule fired | `schedule.run_finished` (a skill schedule can also send `schedule.rows_changed`) |
+
+## 3. From an AI assistant: tasks
+
+An MCP client that supports the tasks extension gets a **task** back from a long tool and reads it with `tasks/get` until it has ended. Which tools answer with a task, and the task's fields, are in [MCP Tasks](/ai-assistants/mcp-tools#mcp-tasks).
+
+A client without the extension gets the tool's normal answer. Its text and its `next_step` name the tool to call next and when, for example `Call get_skill_speed_trial(skill="books", trial_id="st_…") in about 3 minutes.`

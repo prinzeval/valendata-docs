@@ -1,0 +1,18 @@
+---
+title: "List a workflow webhook's deliveries"
+description: "The latest POSTs that reached a workflow's webhook, and what each one started."
+openapi: "GET /v1/workflows/{slug}/webhook/deliveries"
+---
+
+Newest first. Each delivery has when it arrived, its `outcome`, the status it was answered with, and the run it started with that run's status now, or the `error` that says why none started.
+
+| `outcome` | Meaning |
+| --- | --- |
+| `started` | It started a run. |
+| `duplicate` | It repeated an `Idempotency-Key` already seen, so it answered with the run it had started. |
+| `refused` | It was turned away, for example for a bad signature, too many requests, a body that is too large, or inputs that do not fit. |
+| `failed` | Something went wrong on Valendata's side and nothing started. |
+
+`fields` lists the top-level field names that were sent, never their values. Deliveries are kept for 30 days. Page with `limit` (1–100, default 20) and `cursor`.
+
+Needs `workflows:read`.

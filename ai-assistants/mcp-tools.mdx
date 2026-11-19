@@ -5,37 +5,54 @@ description: "Every tool the Valendata MCP server gives your AI assistant, what 
 
 Tool names follow the API: `list_`, `get_`, `search_`, `create_`, `update_`, `delete_`, plus one tool per skill (`skill_<slug>`) and per workflow (`workflow_<slug>`). Each tool does the same thing as the API call in its last column, so the API page has the full fields.
 
+Each argument has one name on every tool: `skill` for a skill's slug, and `browser` (`auto`, `cloud`, or `extension`) for where it runs. Workflow tools take the workflow's `slug`. The API's spelling works too: `slug` on a skill tool reads as `skill`, and `browser_type` reads as `browser` (its `remote` as `cloud`). Sending both names with different values is refused.
+
 For how to connect, see [Connect your AI assistant](/ai-assistants/connect). For what each tool changes and costs, see [Limits and side effects](/ai-assistants/limits-and-side-effects).
 
 ## Which tools the assistant sees
 
-The assistant only sees the tools its connection's scopes allow. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees 28 tools, plus one tool per skill and per workflow:
+The assistant only sees the tools its connection's scopes allow, so the list grows with what you grant. A default assistant connection (OAuth, nothing ticked under **Optional extra access**) sees these tools, plus one tool per skill and per workflow:
 
-`search_skills`, `search_workflows`, `site_status`, `request_site`, `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`, `list_skill_runs`, `list_site_apis`, `call_site_api`, `list_logins`, `get_question`, `answer_questions`, `get_signup_email`, `set_signup_email`, `list_workflows`, `get_workflow`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `get_run`, `cancel_run`, `list_schedules`, `get_knowledge`, `save_knowledge`.
+- **Find**: `search_skills`, `search_workflows`, `site_status`, `request_site`.
+- **Skills**: `list_skills`, `get_skill`, `clone_skill`, `run_skill`, `run_skill_batch`, `get_batch`, `create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`, `stop_skill_doctor`, `cancel_skill_creation`, `list_skill_versions`, `compare_skill_versions`, `list_batches`, `cancel_batch`, `list_skill_runs`, `list_site_apis`, `call_site_api`.
+- **Logins**: `list_logins`, `list_profiles`, `get_question`, `answer_questions`.
+- **Workflows**: `list_workflows`, `get_workflow`, `get_workflow_webhook`, `clone_workflow`, `run_workflow`, `list_workflow_runs`, `list_workflow_versions`, `compare_workflow_versions`, `get_workflow_chat`.
+- **Runs and schedules**: `list_runs`, `get_run`, `cancel_run`, `resume_run`, `list_schedules`.
+- **Web pages**: `scrape_url`, `search_web`, `map_site`, `crawl_site`, `get_crawl`, `extract_data`, `get_extract`, and their Firecrawl names.
+- **Knowledge**: `get_knowledge`, `save_knowledge`.
 
-`update_skill`, `delete_skill`, `schedule_skill`, `try_skill_speed`, and `use_skill_speed` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account` and `get_usage` appear only with `account:read`. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills`, `search_workflows`, and `site_status` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
+`update_skill`, `delete_skill`, `delete_unused_archived_skills`, `update_from_marketplace`, `schedule_skill`, `try_skill_speed`, `use_skill_speed`, `restore_skill_version`, and `pin_skill_version` appear only with `skills:write`. `create_workflow`, `update_workflow`, `delete_workflow`, `schedule_workflow`, `restore_workflow_version`, `talk_to_workflow`, `stop_workflow_doctor`, `update_schedule`, and `delete_schedule` appear only with `workflows:write` (`update_schedule` and `delete_schedule` also with `skills:write`). `get_account`, `get_usage`, and `get_signup_email` appear only with `account:read`. `set_signup_email` needs `logins:write`, which only an API key can hold. The connected-app tools appear only with `apps:read` (`act_in_app` and `disconnect_app` only with `apps:write`). `list_followups` and `get_followup` appear only with `followups:read`, `create_followup` and `cancel_followup` only with `followups:write`. `list_jobs` and `get_job` appear only with `jobs:read`, `start_jobs` and `cancel_job` only with `jobs:write`. `list_notes` and `get_note` appear only with `notes:read`, `create_note`, `update_note`, and `delete_note` only with `notes:write`. `search_skills`, `search_workflows`, and `site_status` are listed for every connection, whatever its scopes. An API key sees the tools its own scopes allow. The tables below give each tool's scope.
 
 ## Skills
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `list_skills` | optional `q`, `status`, `category`, `limit`, `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
+| `list_skills` | optional `q`, `status` (`active` or `draft`), `category`, `archived` (`exclude`, `only`, or `include`; default `exclude`), `limit` (default 50), `cursor` | `skills:read` | [List skills](/api-reference/skills/list) |
 | `get_skill` | `skill` (slug) | `skills:read` | [Get a skill](/api-reference/skills/get) |
-| `clone_skill` | `slug` | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
-| `update_from_marketplace` | `slug`, optional `apply` (default `false`: only check) | `skills:write` | [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take) |
+| `clone_skill` | `skill` (the public skill's slug) | `skills:invoke` or `skills:write` | [Clone a skill](/api-reference/skills/clone) |
+| `update_from_marketplace` | `skill`, optional `apply` (default `false`: only check), `auto_update` (`true` or `false`: whether the copy takes each proven update by itself; leave it out to keep the setting) | `skills:write` | [Check for a marketplace update](/api-reference/versions/marketplace-update-check), [Take a marketplace update](/api-reference/versions/marketplace-update-take), `PUT /v1/skills/{slug}/marketplace-update/settings` |
 | `create_skill` | `task`, `start_url`, optional `name`, `inputs`, `output_fields`, `login_id` (a saved login from `list_logins`, to record behind a sign-in), `browser` (`auto`, `cloud`, or `extension`; default `auto`), `source` (`auto`, `api`, or `browser`; default `auto`), `api_url` (the site's API address, when known), `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a skill](/api-reference/skills/create) |
 | `get_skill_creation` | `creation_id` | `skills:invoke` | [Get a skill creation](/api-reference/skills/get-creation) |
 | `list_skill_creations` | optional `status`, `limit`, `cursor` | `skills:invoke` | [List skill creations](/api-reference/skills/list-creations) |
+| `cancel_skill_creation` | `creation_id` | `skills:invoke` | [Cancel a skill creation](/api-reference/skills/cancel-creation) |
 | `update_skill` | `skill`, and any [Update a skill](/api-reference/skills/update) field | `skills:write` | [Update a skill](/api-reference/skills/update) |
 | `delete_skill` | `skill`, optional `force` | `skills:write` | [Delete a skill](/api-reference/skills/delete) |
-| `try_skill_speed` | `skill`, `tier` (`1` or `2`), optional `browser` (`auto`, `cloud` or `extension`; default `auto`) | `skills:write` | [Try a faster tier](/api-reference/skills/try-speed) |
+| `delete_unused_archived_skills` | optional `dry_run` (default `false`) | `skills:write` | `POST /v1/skills/archived/delete-unused` |
+| `try_skill_speed` | `skill`, `tier` (`1` or `2`), optional `browser` (`auto`, `cloud` or `extension`; default `auto`), optional `webhook_url` | `skills:write` | [Try a faster tier](/api-reference/skills/try-speed) |
+| `get_skill_speed_trial` | `skill`, `trial_id` | `skills:read` | [Get a speed trial](/api-reference/skills/get-speed-trial) |
 | `use_skill_speed` | `skill`, `tier` (`1`, `2`, `3`, or `null` for automatic) | `skills:write` | [Use a tier](/api-reference/skills/use-speed) |
+| `list_skill_versions` | `skill`, optional `limit`, `cursor` | `skills:read` | [List versions](/api-reference/versions/list) |
+| `compare_skill_versions` | `skill`, `a`, `b` (version numbers) | `skills:read` | [Compare two versions](/api-reference/versions/diff) |
+| `restore_skill_version` | `skill`, `version`, optional `force` (restore one rejected when it was checked) | `skills:write` | [Restore a version](/api-reference/versions/restore) |
+| `pin_skill_version` | `skill`, `version` (`null` unpins) | `skills:write` | [Pin a version](/api-reference/versions/pin) |
 
 `get_skill` lists the skill's [available inputs](/concepts/skills#available-inputs) in its text, each with how it acts and whether it is on, for example `Available inputs: department (filter, off), q (request, on).` To turn one on, the assistant sends that entry from `available_inputs` in `update_skill`'s `inputs.add`; to turn it off, its name in `inputs.remove`. `update_skill` also changes an output field's type with `outputs.update`, and sets `row_key`, the fields that tell rows apart when runs are compared (see [Only what's new](/guides/schedule#only-whats-new)). See [Update a skill](/api-reference/skills/update#inputs).
 
+`delete_unused_archived_skills` clears your **Archive**: it deletes every archived skill you own that nothing uses. A skill that a workflow, a schedule, an API key, or the marketplace still uses is kept, and the answer says what uses it. Live skills, drafts, and other people's skills are never touched, and runs are kept. It cannot be undone, so the assistant calls it with `dry_run: true` first, shows you what would go, and deletes only on your yes.
+
 Over OAuth, `skills:invoke` lets an assistant run skills and also create and improve them (`create_skill`, `get_skill_creation`, `list_skill_creations`, `improve_skill`, `get_skill_improvement`, `talk_to_skill`). Changing, deleting, and scheduling skills need `skills:write`, which you tick on the consent screen under **Optional extra access** ("Create, edit and delete your skills"). It is never granted by default.
 
-`create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. A `queued` creation may be waiting for a free browser; nothing is charged while it waits. When the site has an [open API](/guides/create-a-skill#open-apis-first), the skill is built on it with no browser, and the result's `source` is `api`. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
+`create_skill` answers at once. While the creation is `queued`, `recording`, or `validating`, the assistant calls `get_skill_creation` about every 30 seconds and passes on its `progress` line. A `queued` creation may be waiting for a free browser; nothing is charged while it waits. When the site has an open API, the skill is built on it with no browser, and the result's `source` is `api`. It stops at `ready`, `needs_fix`, or `failed` and follows `next_step`. On `needs_fix` the draft is fixed with `improve_skill`, not created again. Once it is `ready`, the assistant runs it with `run_skill`. See [Create a skill](/guides/create-a-skill#from-a-sentence).
 
 ### A tool for each of your most used skills: `skill_<slug>`
 
@@ -43,15 +60,15 @@ Your 20 most used skills (the most recently run first, then the most run) are ea
 
 Each tool has:
 
-- **A description**: what the skill does, a short track record (runs, recent success rate, typical time and row count, the last error, and its fast path if it has one), and what a run usually costs, for example "About 6 credits (\$0.06) per run." See [Price](/api-reference/skills/get#price).
-- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `idempotency_key`, `max_age`, `detail`, `fields`, `changes_since`, `delivery`, and `watch` (see [Run results](#run-results)).
+- **A description**: what the skill does, a short track record (runs, recent success rate, typical time and row count, the last error, and its [speed](/api-reference/skills/speed) when it is faster than a browser), and what a run usually costs, for example "About 6 credits (\$0.06) per run." See [Price](/api-reference/skills/get#price).
+- **An input schema**: the skill's own inputs, plus optional `max_results` (0–500, `0` for the whole list), `version`, `browser`, `idempotency_key`, `max_age`, `details`, `detail`, `fields`, `start_page`, `changes_since`, `delivery`, and `watch` (see [Run results](#run-results)). A skill input with the same name as one of these stays the skill's input.
 - **An output schema**: the row shape, so the assistant can rely on field names.
 
 Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a skill and wait](/api-reference/runs/run-skill), with the wait described in [Run results](#run-results). The list is rebuilt each time the assistant refreshes it, so a new skill shows up on the next refresh.
 
-`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `idempotency_key`, `max_age`, `detail`, `fields`, `changes_since`, `delivery`, `watch`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
+`run_skill` (`slug` or id, optional `inputs`, `max_results`, `version`, `browser`, `idempotency_key`, `max_age`, `details`, `detail`, `fields`, `changes_since`, `delivery`, `watch`) runs any skill you can run, the same way. Use it for a skill created or fixed in this chat: the assistant's tool list only refreshes when a new chat starts. The owner can also test-run a `needs_fix` draft with it.
 
-`run_skill` does not run a public marketplace skill you have not cloned. It answers `not_found` with `'<slug>' is a public marketplace skill you have not cloned. Clone it first with clone_skill(slug="<slug>"), then run the copy's slug.` and `next_step` set to `clone_skill(slug="<slug>")`.
+`run_skill` does not run a public marketplace skill you have not cloned. It answers `not_found` with `'<slug>' is a public marketplace skill you have not cloned. Clone it first with clone_skill(skill="<slug>"), then run the copy's slug.` and `next_step` set to `clone_skill(skill="<slug>")`.
 
 ## Marketplace
 
@@ -60,12 +77,12 @@ Listing needs `skills:read`. Calling needs `skills:invoke`. It works like [Run a
 | `search_skills` | `query` (the task, in plain words), optional `site`, `category`, `limit` | None. With `skills:read` it also searches your own skills and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search) |
 | `search_workflows` | `query` (the task, in plain words), optional `limit` | None. With `workflows:read` it also searches your own workflows and your workspaces'. | [Find a skill for a task](/api-reference/marketplace/search#workflows) with `kind=workflow` |
 
-Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", its [track record](/guides/use-the-marketplace#track-record) (for a public skill, for example "track record: Working: worked 18 of the last 20 runs (90%) · typical run 6.2 s · last worked 2 h ago · checked 2 h ago"; for your own private skill, what percent of its last 20 runs worked), and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(slug=...)`, and how to clone the others, `clone_skill(slug=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
+Its structured content is the API's answer, with each skill's `sample_rows` and `clone_url`. Its text lists one skill per line: the slug, name and site, "About N credits (\$X) per run", its [track record](/guides/use-the-marketplace#track-record) (for a public skill, for example "track record: Working: worked 18 of the last 20 runs (90%) · typical run 6.2 s · last worked 2 h ago · checked 2 h ago"; for your own private skill, what percent of its last 20 runs worked), and its inputs (`*` marks a required one). A skill that is not yours ends with "Not yours: clone it first." The text ends with how to run yours, `run_skill(skill=...)`, and how to clone the others, `clone_skill(skill=...)`, or, when nothing does the task exactly, the hint that `create_skill` can record it.
 
 An assistant can read everything public about a marketplace skill: its inputs, sample rows, price, and health. It runs only its own skills and its workspaces'. To use a marketplace skill:
 
 1. Find it with `search_skills`. Read its inputs, `sample_rows`, price, and track record, or call `get_skill` for the full contract. The text of `get_skill` has the same "Track record:" line for a public skill.
-2. Copy it with `clone_skill`. Cloning is free. The answer says `Cloned <slug> as <new slug>. Run it with run_skill(slug="<new slug>").`
+2. Copy it with `clone_skill`. Cloning is free. The answer says `Cloned <slug> as <new slug>. Run it with run_skill(skill="<new slug>").`
 3. Run the copy with `run_skill` and its new slug.
 
 `search_workflows` does the same for workflows. Its text lists one workflow per line: the slug, name, "About N credits (\$X) per run", how many runs it has had so far, and its inputs. One that is not yours ends with "Not yours: clone it first." The text ends with what to do next. To use a marketplace workflow:
@@ -82,7 +99,7 @@ An assistant can read everything public about a marketplace skill: its inputs, s
 | `site_status` | `url_or_domain` | None | [Get a site](/api-reference/sites/get) |
 | `request_site` | `url`, optional `wanted` (what you wanted to do there), `run_id` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Create a site request](/api-reference/sites/create-request) |
 
-Before building a skill for a site, or after a run on it fails, the assistant can check the site with `site_status`. When a site does not work, `request_site` asks us to fix it, with the failure details from `run_id` attached. One vote per person per site, and the user gets an email when it is fixed. See [When a site does not work](/guides/when-a-site-does-not-work).
+The assistant checks a site with `site_status` before building a skill for it or after a run on it fails, and asks for a fix with `request_site`, passing the failed `run_id`. What a site's status means and what happens to a request: [When a site does not work](/guides/when-a-site-does-not-work).
 
 ## Site APIs
 
@@ -102,7 +119,7 @@ Read any public page, site or search without a skill. Arguments use Firecrawl's 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `scrape_url` (also `firecrawl_scrape`) | `url`, optional `formats` (`markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`), `onlyMainContent`, `waitFor`, `mobile`, `maxAge`, `jsonOptions` (`{schema, prompt}` for `json`) | `web:read` | `POST /v2/scrape` |
-| `search_web` (also `firecrawl_search`) | `query`, optional `limit` (1–20, default 5), `scrapeOptions` (`formats`, `onlyMainContent`) | `web:read` | `POST /v2/search` |
+| `search_web` (also `firecrawl_search`) | `query`, optional `limit` (1–20, default 5), `includeDomains` and `excludeDomains` (up to 20 sites each), `scrapeOptions` (`formats`, `onlyMainContent`) | `web:read` | `POST /v2/search` |
 | `map_site` (also `firecrawl_map`) | `url`, optional `search`, `limit` (default 200), `includeSubdomains` | `web:read` | `POST /v2/map` |
 | `crawl_site` (also `firecrawl_crawl`) | `url`, optional `limit` (1–100, default 10), `includePaths`, `excludePaths`, `maxDiscoveryDepth`, `crawlEntireDomain`, `allowSubdomains`, `scrapeOptions` | `web:read` | `POST /v2/crawl` |
 | `get_crawl` (also `firecrawl_check_crawl_status`) | `id`, optional `skip` (pages already read) | `web:read` | `GET /v2/crawl/{id}` |
@@ -111,37 +128,74 @@ Read any public page, site or search without a skill. Arguments use Firecrawl's 
 
 Over HTTP a JSON format is `{"type": "json", "schema": …}` inside `formats`. For the tool, send `"json"` in `formats` and the schema in `jsonOptions`. They read pages as a logged-out visitor; for data behind a login, use a skill with a saved login.
 
-## Many inputs at once
+## Many inputs at once: batches
+
+A batch runs one skill once per input set, over a list of up to 10,000, a few at a time, in the background.
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `run_skill_batch` | `skill`, `inputs` (one input set per item), optional `max_results_per_input`, `concurrency`, `label`, `allow_partial` | `skills:invoke` | `POST /v1/skills/{slug}/batches` |
-| `get_batch` | `batch_id` | `runs:read` | `GET /v1/batches/{batch_id}` |
+| `run_skill_batch` | `skill`, `inputs` (one object of the skill's inputs per run, 1–10,000), optional `max_results_per_input` (1–500), `concurrency` (1–100, capped at your account's limit), `label`, `allow_partial` (default `false`) | `skills:invoke` | `POST /v1/skills/{slug}/batches` |
+| `get_batch` | `batch_id`, optional `rows` (default `false`), `limit` (rows per page, 1–100, default 25), `cursor` | `runs:read` | `GET /v1/batches/{batch_id}`, and `GET /v1/batches/{batch_id}/rows` with `rows: true` |
+| `list_batches` | optional `skill`, `open` (default `false`), `limit` (1–100, default 25), `cursor` | `runs:read` | [List batches](/api-reference/batches/list) |
+| `cancel_batch` | `batch_id` | `skills:invoke` | [Cancel a batch](/api-reference/batches/cancel) |
 
-The price of a batch is shown before it starts (`POST /v1/skills/{slug}/batches/estimate`), and every item is charged like a single run.
+Every input is checked first: one bad input refuses the whole list and nothing starts. `run_skill_batch` answers at once with the batch and its credit estimate (the same as `POST /v1/skills/{slug}/batches/estimate`). It is refused when your balance covers less than half the estimate, unless `allow_partial` is `true`; then it stops when the credits run out. Every input is charged like a single run.
+
+The assistant polls `get_batch` until its status is no longer `queued` or `running`. It ends as `completed`, `cancelled`, `out_of_credits`, or `failed`, with how many inputs are done, the rows collected, and the credits used. With `rows: true` it adds a page of rows, each with `_input`, the input it came from; pass `rows_next_cursor` as `cursor` for the next page.
 
 ## Runs
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
+| `list_runs` | optional `kind` (`skill` or `workflow`), `status`, `limit` (1–100, default 50), `cursor` | `runs:read` (skill runs), `workflows:read` (workflow runs) | [List runs](/api-reference/runs/list) |
 | `list_skill_runs` | `skill`, optional `status`, `since`, `limit`, `cursor` | `runs:read` | [List skill runs](/api-reference/runs/list-skill-runs) |
 | `list_workflow_runs` | `slug`, optional `status`, `source`, `since`, `until`, `limit`, `cursor` | `workflows:read` | [List workflow runs](/api-reference/runs/list-workflow-runs) |
 | `get_run` | `run_id` (skill or workflow run), optional `offset`, `limit`, `fields`, `detail`, `changes` | `runs:read` (skill run) or `workflows:read` (workflow run) | [Get a run](/api-reference/runs/get) |
 | `cancel_run` | `run_id` | `skills:invoke` or `workflows:invoke` | [Cancel a run](/api-reference/runs/cancel) |
+| `resume_run` | `run_id` (a workflow run), optional `idempotency_key` | `workflows:invoke` | [Resume a run](/api-reference/runs/resume) |
 
-`get_run_status` and `list_recent_runs` are gone. Use `get_run` for any run, and `list_skill_runs` or `list_workflow_runs` to list them.
+`get_run_status` and `list_recent_runs` are gone. Use `get_run` for any run, `list_runs` for every run you started, and `list_skill_runs` or `list_workflow_runs` for one skill's or workflow's.
+
+`resume_run` carries a failed, paused, or cancelled workflow run on: a new run that skips the steps already done. It answers at once with the new `run_id`, and `next_step` says when to read it with `get_run`. It is charged like a run.
 
 ## Run results
 
 ### Waiting
 
-`skill_<slug>`, `run_skill`, `workflow_<slug>`, and `run_workflow` start the run, then wait up to **75 seconds** for it.
+`skill_<slug>`, `run_skill`, `call_site_api`, `workflow_<slug>`, and `run_workflow` start the run, then wait up to **75 seconds** for it. How waiting compares with a background run in general: [Runs](/concepts/runs#wait-or-run-in-the-background).
 
 - **Done in time**: the result is the finished run.
 - **Not done yet**: the result has `status: "running"` (or `queued` / `pending`), the `run_id`, and `next_step`: "Call get_run with this run_id in about 30 seconds; cancel_run stops it." The run keeps going and is billed as usual.
 - **A workflow that needs a person** stops waiting at once, with `status: "waiting_for_human"` and a `next_step` telling the user to answer it in the Valendata app.
 
-A client that sends a `progressToken` gets a progress notification about every 10 seconds while it waits. Clients that support the MCP Tasks extension get a task to poll instead of a wait.
+A client that sends a `progressToken` gets a progress notification about every 10 seconds while it waits.
+
+### MCP Tasks
+
+A client on a current MCP protocol version that declares the MCP Tasks extension (`io.modelcontextprotocol/tasks`) in its capabilities gets a task instead of a wait from `skill_<slug>`, `run_skill`, `call_site_api`, `workflow_<slug>`, `run_workflow`, `create_skill`, `improve_skill`, `try_skill_speed`, `run_skill_batch`, `crawl_site`, and `extract_data`, and from `talk_to_skill` when its answer started a repair that is still running (the task is that repair, with the skill's answer as its `statusMessage`). The call answers at once with `resultType: "task"` and a task:
+
+| Field | What it is |
+| --- | --- |
+| `taskId` | The work's own id: the skill run id (`run_…`), the workflow run id with `wfrun_` in front, the creation id, the improvement id, the speed trial id (`st_…`), the batch id (`bat_…`), or the crawl or extract id with `wj_` in front. |
+| `status` | `working` while it goes, then `completed` or `cancelled`. |
+| `statusMessage` | One plain line, such as "Austin dentists is running." |
+| `pollIntervalMs` | How often to poll: 5000 (5 seconds). |
+| `createdAt`, `lastUpdatedAt` | When it started and last changed. |
+| `ttlMs` | `null`: the task is kept, so you can read it later. |
+
+Poll with `tasks/get` and the `taskId`. Once `status` is `completed`, its `result` is the same tool result the call would have given without the extension, including a run that failed, which still ends as `completed` with `status: "failed"` in its result. `tasks/cancel` stops a skill run, a workflow run, a speed trial, a batch, a crawl or an extract, and a skill creation while it is still recording. An improvement cannot be stopped once it has started. A stopped speed trial ends as `cancelled` and its skill stays on the tier it uses. A task is visible only to the person who started it; any other id answers `Unknown task`. Nothing here asks the client for input, so `tasks/update` is refused.
+
+A client that does not declare the extension gets the 75-second wait above, the same as always. Every long tool's answer then carries `next_step`: the exact tool call that reads it and how long to wait. See [Hearing when a long job is done](/concepts/long-jobs).
+
+### Which browser
+
+The run, schedule, and `create_skill` tools take an optional `browser`:
+
+- `auto` (default): the skill's own browser, else the cloud browser. In a workflow, each browser step uses its own, so steps may differ.
+- `cloud`: the Valendata cloud browser.
+- `extension`: your own Chrome with the Valendata extension. It must be connected, and it uses that Chrome's own sign-ins, which may be a different account. The assistant uses it only when you chose it.
+
+The browser never changes by itself. When the cloud browser is paused, the call is refused with `cloud_browser_paused` and nothing is charged; the assistant tells you why and asks before calling again with `extension`. When your Chrome is not connected, the call is refused with `extension_not_connected`. A skill that signs in with a saved login or browser profile runs only on its own browser. More on where skills run: [Skills](/concepts/skills#where-a-skill-runs).
 
 ### Retry safely: `idempotency_key`
 
@@ -153,9 +207,7 @@ Skill tools and `run_skill` take an optional `max_age` (seconds, 0–86400). Whe
 
 ### Only what's new
 
-Skill tools and `run_skill` take `changes_since` (`last` or a run id), `delivery` (`all`, `new`, or `changes`), and `watch` (such as `["price:down"]`), as on [Start a skill run](/api-reference/runs/start-skill-run#only-whats-new). The answer and `get_run` then carry `changes`, and `get_run`'s text says, for example, "Changes: 3 new, 1 changed, 0 removed since run_x." `get_run` with `changes: true` returns every new, changed, and removed row, as [Get a run's changes](/api-reference/runs/get-changes) does.
-
-For a schedule, `schedule_skill` and `update_schedule` take `delivery`, `notify_on`, `watch`, and `webhook_url`. Ask in plain words, such as "tell me when a new Bayse market opens". See [Only what's new](/guides/schedule#only-whats-new).
+Skill tools and `run_skill` take `changes_since` (`last` or a run id), `delivery` (`all`, `new`, or `changes`), and `watch` (such as `["price:down"]`); `schedule_skill` and `update_schedule` take `delivery`, `notify_on`, `watch`, and `webhook_url`. The answer and `get_run` then carry `changes`, and `get_run` with `changes: true` returns every new, changed, and removed row. What these mean and how runs are compared: [Only what's new](/guides/schedule#only-whats-new).
 
 ### What a skill run answers
 
@@ -177,11 +229,13 @@ A skill run's answer (from a skill tool, `run_skill`, or `get_run`) holds only w
 
 It also has `suggested_hint_examples` (hints for `improve_skill`) when there are some, `type_notes` when some values were kept as printed (see [Output field types](/concepts/skills#output-field-types)), and `idempotent_replay: true` on a replay. `get_run` adds `kind` (`skill` or `workflow`). A workflow run answers its own fields (`outputs`, `steps`, and the rest; statuses `pending`, `running`, `waiting_for_human`, `completed`, `failed`, `cancelled`), with each final step's rows paged the same way and `has_more`, `next_offset`, and `next_step` added.
 
-### Less or more: `detail`, `fields`, `offset`, `limit`
+### Less or more: `detail`, `details`, `fields`, `offset`, `limit`
 
 | Argument | On | What it does |
 | --- | --- | --- |
 | `detail` | skill tools, `run_skill`, `get_run` | `summary` (default): the fields above. `full`: everything a skill run recorded, as [Get a run](/api-reference/runs/get) returns it (timings, cost estimates, field checks). |
+| `details` | skill tools, `run_skill` | `true` (default): each row also has `details`, everything else the site had for it, under the site's own names. `false`: only the skill's own fields, for smaller answers. Not the same as `detail`. |
+| `start_page` | skill tools | Start further into a paged list: a page number, or the `next_page` an earlier answer gave. |
 | `fields` | skill tools, `run_skill`, `get_run` | Only these row columns, for example `["name", "phone"]`. A `price` field's `<field>_currency` comes with it. An unknown name is refused with `invalid_arguments`, and `details.valid_fields` lists the valid ones. |
 | `offset` | `get_run` | First row to return. Default `0`. |
 | `limit` | `get_run` | Rows per page. Default `100`, max `500`. |
@@ -196,9 +250,12 @@ Every run is also a resource at `valendata://runs/{run_id}`, with optional `?off
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
-| `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`), `feedback`, optional `fields`, `example_input`, `browser_type` (`remote` or `extension`; default: where the skill runs), `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
+| `improve_skill` | `skill`, optional `mode` (`fix`, `add_fields`, `relearn_details`, `relearn_steps`, or `rebuild`; default `fix`), `feedback` (needed for `fix` and `add_fields`), optional `fields`, `example_input`, `browser` (`auto`, `cloud`, or `extension`; default `auto`: where the skill runs), `idempotency_key` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Improve a skill](/api-reference/improvements/improve) |
 | `get_skill_improvement` | `improvement_id` | `skills:invoke` | [Get an improvement](/api-reference/improvements/get) |
 | `talk_to_skill` | `skill`, `message` (plain words, up to 2,000 characters) | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Talk to a skill](/api-reference/improvements/talk) |
+| `stop_skill_doctor` | `skill` | `skills:write`, or `skills:invoke` for an assistant (OAuth) | [Stop a skill's doctor](/api-reference/improvements/stop) |
+
+What each mode is for: [Improve a skill](/guides/improve-a-skill). `rebuild` is for the skill's owner and is not charged: it checks every output field against the site again, for a run that returns wrong values marked as success, and makes a new version only when every field is proven.
 
 `talk_to_skill` is the easy way when the assistant does not know which mode fits: the skill reads its own runs and decides. It answers within about a minute; a repair it starts carries on and is posted to the skill's chat in the app.
 
@@ -211,10 +268,12 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_schedules` | optional `kind` (`skill` or `workflow`), `workflow` | `skills:read` / `workflows:read` | [List schedules](/api-reference/schedules/list) |
-| `schedule_skill` | `skill`, `cron` or `every`, optional `timezone`, `inputs`, `max_results`, `enabled`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` | [Schedule a skill](/api-reference/schedules/create-skill-schedule) |
-| `schedule_workflow` | `slug`, `cron` or `every`, optional `timezone`, `inputs`, `enabled` | `workflows:write` (+ `workflows:invoke` to switch on) | [Schedule a workflow](/api-reference/schedules/create-workflow-schedule) |
-| `update_schedule` | `schedule_id`, optional `cron`, `every`, `timezone`, `inputs`, `enabled`, and for a skill schedule `max_results`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` / `workflows:write` | [Update a schedule](/api-reference/schedules/update) |
+| `schedule_skill` | `skill`, `cron` or `every`, optional `timezone`, `inputs`, `browser`, `max_results`, `enabled`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` | [Schedule a skill](/api-reference/schedules/create-skill-schedule) |
+| `schedule_workflow` | `slug`, `cron` or `every`, optional `timezone`, `inputs`, `browser`, `enabled` | `workflows:write` (+ `workflows:invoke` to switch on) | [Schedule a workflow](/api-reference/schedules/create-workflow-schedule) |
+| `update_schedule` | `schedule_id`, optional `cron`, `every`, `timezone`, `inputs`, `browser`, `enabled`, and for a skill schedule `max_results`, `delivery`, `notify_on`, `watch`, `webhook_url` | `skills:write` / `workflows:write` | [Update a schedule](/api-reference/schedules/update) |
 | `delete_schedule` | `schedule_id` | `skills:write` / `workflows:write` | [Delete a schedule](/api-reference/schedules/delete) |
+
+A scheduled run whose browser is not available fails with the reason, and you are told. It never moves to the other browser by itself. See [Which browser](#which-browser).
 
 ## Workflows
 
@@ -223,18 +282,30 @@ A skill or workflow has one schedule. Skill schedule ids start with `sklsch_`, w
 | `list_workflows` | optional `q`, `limit`, `cursor` | `workflows:read` | [List workflows](/api-reference/workflows/list) |
 | `get_workflow` | `slug`, optional `include_graph` (default `true`). A public workflow that is not yours never includes its steps. | `workflows:read` | [Get a workflow](/api-reference/workflows/get) |
 | `clone_workflow` | `slug`, optional `inputs`, `schedule`, `destinations`, `preview` (default `false`) | `workflows:invoke` or `workflows:write` (a `schedule` needs `workflows:write`) | [Clone a workflow](/api-reference/workflows/clone) |
-| `create_workflow` | `name`, optional `description`, `inputs`, `steps`, `connections`, `workspace_id` | `workflows:write` | [Create a workflow](/api-reference/workflows/create) |
-| `update_workflow` | `slug`, optional `name`, `description`, `inputs`, `steps`, `connections` | `workflows:write` | [Update a workflow](/api-reference/workflows/update) |
+| `create_workflow` | `name`, and either `task` (what it should do, in plain words) or `steps` with optional `inputs` and `connections`; optional `description`, `workspace_id` | `workflows:write` | [Create a workflow](/api-reference/workflows/create) |
+| `update_workflow` | `slug`, optional `name`, `description`, `inputs`, `steps`, `connections`, `destinations` (the app ids that get its results; `[]` turns them all off), `browser` (`auto`, `cloud`, or `extension`, for every browser step at once), `app_trigger` | `workflows:write` (switching an `app_trigger` on also `workflows:invoke`) | [Update a workflow](/api-reference/workflows/update), and `PUT`/`PATCH`/`DELETE /v1/workflows/{slug}/app-trigger` |
 | `delete_workflow` | `slug` | `workflows:write` | [Delete a workflow](/api-reference/workflows/delete) |
-| `get_workflow_webhook` | `slug`, optional `create`, `deliveries` (0–20, default 5) | `workflows:read` (`create` and the full URL need `workflows:write`; `create` also `workflows:invoke`) | [Start a workflow from a webhook](/guides/start-from-a-webhook) |
+| `list_workflow_versions` | `slug`, optional `limit`, `cursor` | `workflows:read` | [List workflow versions](/api-reference/workflow-versions/list) |
+| `compare_workflow_versions` | `slug`, `a`, `b` (version numbers) | `workflows:read` | [Compare two workflow versions](/api-reference/workflow-versions/diff) |
+| `restore_workflow_version` | `slug`, `version` | `workflows:write` | [Restore a workflow version](/api-reference/workflow-versions/restore) |
+| `get_workflow_chat` | `slug` | `workflows:read` | [Read a workflow's chat](/api-reference/workflows/chat) |
+| `talk_to_workflow` | `slug`, `message` (plain words, up to 2,000 characters), optional `idempotency_key` | `workflows:write` and `workflows:invoke` | [Talk to a workflow](/api-reference/workflows/talk) |
+| `stop_workflow_doctor` | `slug` | `workflows:write` | [Stop a workflow's doctor](/api-reference/workflows/stop-doctor) |
+| `get_workflow_webhook` | `slug`, optional `create` (default `false`), `deliveries` (0–20, default 5) | `workflows:read` (`create` and the full URL need `workflows:write`; `create` also `workflows:invoke`) | `GET /v1/workflows/{slug}/webhook` (`POST` with `create`), and its deliveries. See [Start a workflow from a webhook](/guides/start-from-a-webhook) |
+
+`create_workflow` with `task` builds the workflow from your skills in a few minutes and tests it once: the assistant polls `get_workflow` until `build.state` is `tested`, `needs_you`, or `failed`, and `build.said` says what was tested and what it costs. With `steps` the graph is checked and saved, not run; an error lists every problem and nothing is saved. Send `task` or `steps`, not both.
+
+`app_trigger` starts the workflow when something happens in a connected app: `{app, trigger, config}` sets it (for example `app: "gmail"`), `{enabled}` alone pauses or resumes it, and `null` removes it. Each event starts a run that spends credits.
+
+`talk_to_workflow` hands your message to the workflow's doctor, the same as the Brain chat in the builder. It answers at once; the doctor reads the runs, changes steps, and runs it again on its own. `next_step` says when to read its reply with `get_workflow_chat`. Every change it makes is kept as a version, so `restore_workflow_version` undoes it.
 
 `workflows:write` is on API keys. For an assistant it is opt-in: tick "Create, edit and delete your workflows and schedules" under **Optional extra access** on the consent screen.
 
 ### One tool per workflow: `workflow_<slug>`
 
-Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs plus optional `idempotency_key`, and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow), with the wait described in [Run results](#run-results).
+Every workflow you can run is its own tool, for example `workflow_competitor-prices`. Its input schema is the workflow's inputs plus optional `browser` and `idempotency_key`, and its output schema is the run. Calling it needs `workflows:invoke`. It works like [Run a workflow and wait](/api-reference/runs/run-workflow), with the wait described in [Run results](#run-results).
 
-`run_workflow` (`slug` or id, optional `inputs`, `idempotency_key`) runs any workflow you can run, the same way. Use it for a workflow made or cloned in this chat. A public marketplace workflow runs only once you copy it with `clone_workflow`; its answer says `Cloned <slug> as <new slug>. Run it with run_workflow(slug="<new slug>").`
+`run_workflow` (`slug` or id, optional `inputs`, `browser`, `idempotency_key`) runs any workflow you can run, the same way. Use it for a workflow made or cloned in this chat. A public marketplace workflow runs only once you copy it with `clone_workflow`; its answer says `Cloned <slug> as <new slug>. Run it with run_workflow(slug="<new slug>").`
 
 Each workflow is also a resource at `valendata://workflows/{workflow_id}/latest`. Reading it returns the rows of its last finished run, at no cost. Needs `workflows:read`.
 
@@ -254,12 +325,15 @@ Your own accounts, such as Gmail, Google Calendar, or Slack. What they are and h
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_apps` | optional `q`, `limit`, `cursor` | `apps:read` | [List apps](/api-reference/apps/list) |
-| `list_connected_apps` | optional `limit`, `cursor` | `apps:read` | [List connected apps](/api-reference/apps/list-connected) |
+| `list_connected_apps` | optional `limit` (default 100), `cursor` | `apps:read` | [List connected apps](/api-reference/apps/list-connected) |
 | `get_app` | `app` (id or name) | `apps:read` | [Get an app](/api-reference/apps/get) |
+| `list_app_connections` | `app`, optional `limit` (default 100), `cursor` | `apps:read` | `GET /v1/apps/{app}/connections` |
 | `list_app_tools` | `app`, optional `q` (a task), `limit` (default 25), `cursor` | `apps:read` | [List an app's tools](/api-reference/apps/list-tools) |
-| `read_from_app` | `app`, `tool`, optional `inputs` | `apps:read` | [Run an app tool](/api-reference/apps/run-tool), `read` tools only |
-| `act_in_app` | `app`, `tool`, optional `inputs` | `apps:write` | [Run an app tool](/api-reference/apps/run-tool), `write` tools |
-| `disconnect_app` | `app` | `apps:write` | [Disconnect an app](/api-reference/apps/disconnect) |
+| `read_from_app` | `app`, `tool`, optional `inputs`, `connection_id` | `apps:read` | [Run an app tool](/api-reference/apps/run-tool), `read` tools only |
+| `act_in_app` | `app`, `tool`, optional `inputs`, `connection_id` | `apps:write` | [Run an app tool](/api-reference/apps/run-tool), `write` tools |
+| `disconnect_app` | `app`, optional `connection_id` (only that account) | `apps:write` | [Disconnect an app](/api-reference/apps/disconnect), or `DELETE /v1/apps/{app}/connections/{connection_id}` with `connection_id` |
+
+You can connect several accounts on one app, such as two Instagram pages or YouTube channels. `list_app_connections` lists them, each with its `id`, `username` (the handle, without `@`), and `status` (`active`, or `expired`: it needs reconnecting). Pass an `id` as `connection_id` to use that account. With several working accounts and no `connection_id`, `read_from_app` and `act_in_app` are refused; the account is never guessed. `disconnect_app` without `connection_id` removes every account on the app; with it, only that one, and the others keep working.
 
 `read_from_app` is marked read-only, so an assistant can run it without asking. It refuses a `write` tool, even when the connection has `apps:write`. `act_in_app` is marked as changing things, so assistants such as Claude ask you first.
 
@@ -288,7 +362,7 @@ Nothing wakes the assistant. `create_followup` answers at once with the follow-u
 
 ## Background jobs
 
-Run skills and workflows in the background, one or several at once, and see what your in-app agents left running. What jobs are, batches, and limits: [Background jobs](/concepts/background-jobs).
+Run skills and workflows in the background, one or several at once, and see what your in-app agents left running. What jobs are, job groups, and limits: [Background jobs](/concepts/background-jobs). To run one skill over a long list of inputs, use a [batch](#many-inputs-at-once-batches) instead.
 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
@@ -297,7 +371,7 @@ Run skills and workflows in the background, one or several at once, and see what
 | `get_job` | `job_id` | `jobs:read` | [Get a background job](/api-reference/jobs/get) |
 | `cancel_job` | `job_id` | `jobs:write` | [Cancel a background job](/api-reference/jobs/cancel) |
 
-Nothing calls the assistant back. `start_jobs` answers at once with one line per job started, the batch id when there are two or more, and any item that could not start, and its text ends: poll with `get_job` about every 30 seconds. While a job is open, `get_job`'s text says to call again in about 30 seconds; once it is done it gives the one-line summary and, for a skill or workflow, `get_run(run_id=...)` for every row; when it failed it says why.
+Nothing calls the assistant back. `start_jobs` answers at once with one line per job started, the job group's id when there are two or more (a job of kind `batch`), and any item that could not start, and its text ends: poll with `get_job` about every 30 seconds. While a job is open, `get_job`'s text says to call again in about 30 seconds; once it is done it gives the one-line summary and, for a skill or workflow, `get_run(run_id=...)` for every row; when it failed it says why.
 
 `start_jobs` is marked as reaching outside Valendata and changing things, like `run_workflow`. `cancel_job` is marked as changing things.
 
@@ -367,6 +441,8 @@ Every failed tool call answers the same shape, as structured content and as JSON
 | `run_failed` | The run ran and failed. | Follow `next_step`: usually `improve_skill`, or run again if it failed on our side. |
 | `needs_user` | The user must act: a login, a code, a human check, or connecting an app. | Pass on the message and the link (`action_url`, or `connect_url` for an app), then run again. |
 | `conflict` | The `idempotency_key` was already used for a different run, or the request clashes with the current state. | Use a new `idempotency_key` for a new run. |
+| `cloud_browser_paused` | The run needs the cloud browser, which is paused right now. Nothing ran and nothing was charged. | Tell the user why, and ask before calling again with `browser: "extension"`. See [Which browser](#which-browser). |
+| `extension_not_connected` | The run was sent to the user's Chrome, but the Valendata extension is not connected. Nothing ran. | Ask the user to open Chrome with the extension, then call again. Use `browser: "cloud"` only if the user says so. |
 | `internal` | Something failed on our side. The message has a reference. | Try again shortly; if it keeps failing, give the user the reference. |
 
 A run that started and then failed is not a tool error: its answer has `status: "failed"` and an `error_code` of `run_failed`, `needs_user`, `insufficient_credits`, or `spend_cap`, with the same meaning as above. A run is checked for credits before it starts, so `insufficient_credits` or `spend_cap` here means the balance ran out after it started.
@@ -376,6 +452,7 @@ A run that started and then failed is not a tool error: its answer has `status: 
 | Tool | Arguments | Scope | Same as |
 | --- | --- | --- | --- |
 | `list_logins` | optional `limit`, `cursor` | `skills:invoke` (OAuth), or `logins:use` or `logins:write` | [List logins](/api-reference/logins/list) |
+| `list_profiles` | optional `limit`, `cursor` | `skills:invoke` (OAuth), or `logins:use` or `logins:write` | [List browser profiles](/api-reference/logins/list-profiles) |
 | `get_question` | `card_id` (a run's or creation's `needs_user.card_id`) | `logins:use` or `logins:write` | [Get a question card](/api-reference/logins/get-question) |
 | `answer_questions` | `card_id`, `answers` (by question id, the option's label as shown, e.g. `{"signup_email": "Valendata email (…)"}`; add `"signup_email_always": "Always use this for new sites"` to remember it), optional `skipped` | `logins:use` or `logins:write` | [Answer a question card](/api-reference/logins/answer-question) |
 | `get_signup_email` | none | `account:read` | [Get the sign-up email default](/api-reference/account/get-signup-email) |

@@ -1,0 +1,24 @@
+---
+title: "List workflow versions"
+description: "Every version of a workflow, newest first, with the live one first."
+openapi: "GET /v1/workflows/{slug}/versions"
+---
+
+Every save keeps the workflow as it was before, so nothing is lost. Versions are numbered from 1, the oldest. The live workflow has the highest number and comes first, with `is_live: true`.
+
+Each earlier version has:
+
+| Field | Meaning |
+| --- | --- |
+| `number` | Its version number. |
+| `note` | Why it was kept, such as `edit`, `brain edit`, or `before restore`. |
+| `edited_by` | The email of the person whose edit replaced it. |
+| `created_at` | When it was kept. |
+| `steps` | How many steps it has. |
+| `change_summary` | What the edit after it did, in plain words, such as "Rewrote ‘Find jobs’ · Removed ‘Google Maps’". |
+
+Page with `limit` and `cursor`. See [Pagination](/api-reference/pagination-and-idempotency).
+
+The owner and the workflow's workspace can read it. Needs `workflows:read`. MCP tool: `list_workflow_versions`, with `slug`.
+
+To see one change in full, [compare two versions](/api-reference/workflow-versions/diff).

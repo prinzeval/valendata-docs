@@ -4,4 +4,6 @@ description: "Every version of a skill, newest first, with the live and pinned o
 openapi: "GET /v1/skills/{slug}/versions"
 ---
 
-`is_live` marks the version runs use. `is_pinned` marks a pinned one. `reason` says why each was made (`initial`, `heal_fp`, `heal_ai`, `edit`, `restore`, and so on). See [Versions](/concepts/keeping-skills-working#versions).
+`is_live` marks the version runs use. `is_pinned` marks a pinned one. `reason` says why each was made, such as `initial`, `edit`, or `restore`; automatic repairs and faster reads have reasons of their own. Treat an unknown `reason` as a change Valendata made. See [Versions](/concepts/keeping-skills-working#versions).
+
+The owner and the skill's workspace can read it. Needs `skills:read`. MCP tool: `list_skill_versions`, with `skill`.

@@ -5,7 +5,7 @@ description: "Get a finished background run or scheduled run pushed to your URL,
 
 When you start a background run (a [skill run](/api-reference/runs/start-skill-run) or a [workflow run](/api-reference/runs/start-workflow-run)) with a `webhook_url`, Valendata sends the finished run to that URL as a `POST` with a JSON body. The body is the same object [`GET /v1/runs/{run_id}`](/api-reference/runs/get) returns.
 
-A skill schedule with a `webhook_url` sends its runs the same way. See [Schedule webhooks](#schedule-webhooks).
+A skill schedule with a `webhook_url` sends its runs the same way. See [Schedule webhooks](#schedule-webhooks). Skill creations, improvements, speed trials, batches and background jobs take a `webhook_url` too; which jobs send what is in [Hearing when a long job is done](/concepts/long-jobs).
 
 ## Delivery
 
@@ -95,7 +95,7 @@ export function verifyValendata(
 
 ## Schedule webhooks
 
-A [skill schedule](/guides/schedule#only-whats-new) with a `webhook_url` sends a run there when its `notify_on` says so. Delivery, retries, and the signature are the same as above.
+A [skill schedule](/guides/schedule#only-whats-new) with a `webhook_url` sends a run there when its `notify_on` says so. A workflow schedule with a `webhook_url` sends every run it fires, with `event` `schedule.run_finished`. Delivery, retries, and the signature are the same as above.
 
 The body is the run as [`GET /v1/runs/{run_id}`](/api-reference/runs/get) returns it, plus two fields:
 

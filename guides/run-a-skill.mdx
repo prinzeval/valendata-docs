@@ -94,6 +94,32 @@ Then either read [`GET /v1/runs/{run_id}`](/api-reference/runs/get) until `statu
 
 To stop a run, call [`POST /v1/runs/{run_id}/cancel`](/api-reference/runs/cancel). To list a skill's past runs, call [`GET /v1/skills/{slug}/runs`](/api-reference/runs/list-skill-runs).
 
+### Run one skill over many inputs
+
+A **batch** runs one skill once for each input set in a list, such as 300 search words or 2,000 product links. It runs in the background, and all its rows come back as one result.
+
+1. Check the price first with [Estimate a batch](/api-reference/batches/estimate). It checks every input and says what the list would cost and how many inputs your balance covers. Nothing runs and nothing is charged.
+2. Start it with [Start a batch](/api-reference/batches/start), with the same body.
+3. Follow it with [Get a batch](/api-reference/batches/get), then read the rows with [Get a batch's rows](/api-reference/batches/get-rows) or [as CSV](/api-reference/batches/get-rows-csv). Each row says which input it came from.
+
+```bash
+curl -X POST https://api.valendata.com/v1/skills/austin-dentists/batches \
+  -H "Authorization: Bearer $VALENDATA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": [{"city": "Dallas"}, {"city": "Houston"}, {"city": "El Paso"}], "max_results_per_input": 20}'
+# → 202 {"batch_id": "bat_4f2a9c1e7b3d", "status": "queued", "total": 3, "poll_url": "/v1/batches/bat_4f2a9c1e7b3d", ...}
+```
+
+What to know:
+
+- **Each input is an ordinary run**, charged like one. A list costs the sum of its runs.
+- **Every input is checked before anything starts.** One bad input refuses the whole list with a `422` that names each problem by its position.
+- **Limits**: 1 to 10,000 inputs per list, up to 500 rows per input, and up to 5 of your lists running at once. Inputs run a few at a time, by default half of what your account may run at once for the skill, so your other runs are not kept waiting.
+- **Credits**: a list your balance covers less than half of is refused with `402`. Send `allow_partial: true` to run as many inputs as your credits allow. When the credits run out, the rest are not started.
+- **Stopping**: [Cancel a batch](/api-reference/batches/cancel) stops it. Rows already found are kept, and runs that ran stay charged.
+
+From an AI assistant, the tools are `run_skill_batch` and `get_batch`. See [MCP tools](/ai-assistants/mcp-tools).
+
 ### Run settings
 
 These go next to the inputs and are not inputs themselves:

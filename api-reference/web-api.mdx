@@ -46,19 +46,16 @@ curl -X POST https://api.valendata.com/v2/scrape \
 
 ## How a page is fetched
 
-Valendata tries a plain HTTP fetch first. It uses the cloud browser only when:
+A page is read without a browser when it can be. It is read in the cloud browser when the site refuses a plain read, the page needs JavaScript to show its content, or you asked for `actions`, a screenshot, `waitFor`, or `mobile`. A page that needed the cloud browser costs more; see [Pricing](#pricing).
 
-- the site refuses the plain fetch (`403`, `429`, `451`, or a bot wall),
-- the page needs JavaScript to show its content, or
-- you asked for `actions`, a screenshot, `waitFor`, or `mobile`.
-
-PDFs are turned into text. `metadata.tier` says how the page was fetched:
+PDFs are turned into text. `metadata.tier` says how the page was read:
 
 | `tier` | Meaning |
 | --- | --- |
-| `fetch` | Plain HTTP. |
-| `fetch_browser` | Fetched from inside a cloud browser that passed the site's bot check. |
+| `fetch` | Without a browser. |
+| `fetch_browser` | Through the cloud browser, without rendering the whole page. |
 | `browser` | Fully rendered in the cloud browser. |
+| `unblock` | The site refused the cloud browser too, and a paid unblocking service read it. |
 | `cache` | Served from cache. |
 
 ## Scrape a page
@@ -220,6 +217,7 @@ Each delivery is a `POST` with `{success, type, id, data, metadata, error}`, whe
 | --- | --- | --- |
 | A page fetched with plain HTTP | 0.1 | \$0.001 |
 | A page that needed the cloud browser | 0.5 | \$0.005 |
+| A page read by an unblocking service (`tier` `unblock`) | 0.5, plus that service's charge for the reply, which depends on how hard the site is to read | \$0.005, plus the reply |
 | A page from the cache | 0.1 | \$0.001 |
 | `json` or `summary`, per page | +0.3, plus the AI model's tokens | +\$0.003, plus tokens |
 | A search | 0.2, plus the page price for each result you scrape | \$0.002, plus pages |
@@ -244,7 +242,7 @@ Errors look like Firecrawl's, `{success: false, error, code}`, plus Valendata's 
 | `404` | No such job. |
 | `408` | `SCRAPE_TIMEOUT`: the page took longer than `timeout`. |
 | `409` | The job already finished. |
-| `429` | Too many at once: at most 10 web requests and 5 background jobs (crawls, batches, extracts) per account. Wait `Retry-After` seconds. |
+| `429` | Too many at once: at most 10 web requests and 5 background jobs (crawls, batch scrapes, extracts) per account. Wait `Retry-After` seconds. |
 | `502` | The site could not be fetched (`SCRAPE_FAILED`, `SCRAPE_DNS_RESOLUTION_ERROR`). |
 
 ## MCP tools

@@ -1,0 +1,30 @@
+---
+title: "Start a batch"
+description: "Run one skill once for each input set in a list, in the background."
+openapi: "POST /v1/skills/{slug}/batches"
+---
+
+`inputs` is the list: one object of the skill's inputs per run, 1 to 10,000 of them. Every input is checked before anything starts. One bad input refuses the list with `422`, each problem named by its position, and nothing runs.
+
+The answer comes at once (`202`) with the batch, as [Get a batch](/api-reference/batches/get) shows it. Poll its `poll_url`.
+
+| Field | What it does |
+| --- | --- |
+| `inputs` | The list. Required. |
+| `max_results_per_input` | At most this many rows from each input's run, up to 500. Leave it out for the skill's saved default. |
+| `concurrency` | How many inputs run at once. Capped at your account's limit for the skill. Default: half of it. |
+| `allow_partial` | Start even when your balance covers less than half the estimate. Inputs run until the credits run out, then the rest are `not_started`. |
+| `label` | A short name for the list. |
+| `webhook_url` | A public URL that gets the finished batch as one `POST`. The body is the batch as [Get a batch](/api-reference/batches/get) returns it. It is signed like every Valendata delivery: see [Verify the signature](/api-reference/webhooks/overview#verify-the-signature). It is sent once, when the batch ends. |
+
+| Status | Why |
+| --- | --- |
+| `402` | You cannot pay for one run, or your balance covers less than half the estimate and `allow_partial` is not set. `detail.affordable_inputs` says how many it covers. |
+| `409` | 5 of your batches are already running. Wait for one to end. |
+| `422` | An input does not fit the skill. |
+
+Each input is an ordinary run and is charged like one. Check the price first with [Estimate a batch](/api-reference/batches/estimate). Send an `Idempotency-Key` so a retry does not start a second list. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+
+What batches are: [Run one skill over many inputs](/guides/run-a-skill#run-one-skill-over-many-inputs).
+
+Needs `skills:invoke`. MCP tool: `run_skill_batch`.

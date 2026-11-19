@@ -3,7 +3,7 @@ title: "Improve a skill"
 description: "Tell a skill in plain English what to fix or add. It relearns, a short check run tests it, and the new version goes live only if it is better."
 ---
 
-You can change a skill the way you would coach a person. There are four kinds of improvement:
+You can change a skill the way you would coach a person. There are five kinds of improvement:
 
 | Mode | Use it when | What to write |
 | --- | --- | --- |
@@ -11,6 +11,7 @@ You can change a skill the way you would coach a person. There are four kinds of
 | **Add fields** (`add_fields`) | You want more fields, for example "also capture the star rating and review count". | The fields you want. Required. |
 | **Re-learn detail steps** (`relearn_details`) | The site changed, or fields from each result's details page come back empty. | A note. Optional. |
 | **Re-record the steps** (`relearn_steps`) | A step no longer works, or a run returns no rows. The steps to the results are recorded again, the old ones as a guide. | A note on how to reach the results. Optional. |
+| **Rebuild the fields** (`rebuild`) | The skill returns wrong values: two prices in one field, a copy of another field, or the same label on every row. Every output field is built again from the site, each one proven on two or more inputs or shown not to be on the site. A new version goes live only when every field is proven. Only the owner can start it, and it is not charged. | Nothing. |
 
 Start one from:
 
@@ -83,8 +84,8 @@ A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) h
 
 | Mode | What it does |
 | --- | --- |
-| `fix` | Calls the skill's API address once, fresh, and maps the named fields again on its answer, using your hint. If the first mapping does not help, it tries once more, told why. |
-| `add_fields` | Compares your request with the skill's fields, as for any skill, then maps the new fields from the same API. A field the list's records do not hold is looked for in the API's call for one record, and read from one more call per row when it is there ([list plus detail](/guides/create-a-skill#list-plus-detail)); `details.detail` names the call. A field neither holds is not added: it is listed in `details.not_in_api`. A new field that only a few records hold is left out too, listed in `details.thin` with how many, such as `"1/10"`. No field is ever filled from another value that only looks like it. |
+| `fix` | Maps the named fields again on the API's answer, using your hint. |
+| `add_fields` | Maps the new fields from the same API, including from each record's own data when the list leaves them out. A field the API does not hold is not added: it is listed in `details.not_in_api`. A new field that only a few records hold is left out too, listed in `details.thin` with how many, such as `"1/10"`. No field is ever filled from another value that only looks like it. |
 | `relearn_steps`, `relearn_details` | Looks for the site's open API again, for the skill's task, start page, inputs, and fields. A new API that checks out replaces the old one when it is no worse. |
 
 If the skill's API address is gone (it answers "not found", asks for a key, or no longer returns a list), any mode looks for the site's API again. If the API only failed for a moment, nothing is changed and the improvement says to try again.
@@ -95,11 +96,11 @@ Every change is checked by calling the old and the new version for real. One tha
 
 ## Compare, pin, or roll back
 
-Every improvement and every automatic repair is a new [version](/concepts/keeping-skills-working#versions). You can:
+Every improvement and every automatic repair is a new [version](/concepts/keeping-skills-working#versions). From code, you can:
 
 - [List versions](/api-reference/versions/list) and [compare two versions](/api-reference/versions/diff).
 - [Restore a version](/api-reference/versions/restore). The restore is saved as a new version.
-- [Pin a version](/api-reference/versions/pin) so runs keep using it while you investigate. Automatic repairs are then saved as candidates.
+- [Pin a version](/api-reference/versions/pin) so runs keep using it while you investigate.
 
 [`GET /v1/skills/{slug}/improvements`](/api-reference/improvements/list) lists every change, by anyone, from the app, the API, or an assistant.
 

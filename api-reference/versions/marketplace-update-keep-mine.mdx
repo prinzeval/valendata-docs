@@ -1,0 +1,11 @@
+---
+title: "Keep your version after a clash"
+description: "After an update clashed with your changes, keep your own version."
+openapi: "POST /v1/skills/{slug}/marketplace-update/keep-mine"
+---
+
+Use it when [Check for a marketplace update](/api-reference/versions/marketplace-update-check) says `reason: "clash"`. The update that clashed is set aside and not offered again. The original's next tested version is offered as usual.
+
+The answer is the update check as it is now. In the app, this is **Keep mine** in the skill's **Versions** tab.
+
+Owner or workspace editor. Needs `skills:write`.

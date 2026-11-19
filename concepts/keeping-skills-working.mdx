@@ -1,6 +1,6 @@
 ---
 title: "Keeping skills working"
-description: "Websites change. Valendata versions every skill, works out why a run failed, repairs only what can be repaired, proves each repair, and runs each skill on the fastest tier that works."
+description: "Websites change. Valendata versions every skill, works out why a run failed, repairs only what can be repaired, checks each repair, and runs each skill on the fastest tier that works."
 ---
 
 A skill saves the steps to take on a website and how to read the results. Websites change their layout, and steps that worked yesterday can break today. Valendata is built so that a skill either keeps returning correct rows or tells you clearly why it cannot. It never returns made-up data.
@@ -9,9 +9,9 @@ This page explains the four parts that make that work: versions, triage, repairs
 
 ## Versions
 
-Every change to a skill's steps is saved as a new, numbered **version**. That includes the first recording, each automatic repair, each fast path, each edit you make, and each restore. A version records:
+Every change to a skill's steps is saved as a new, numbered **version**. That includes the first recording, each automatic repair, each faster way to read the site, each edit you make, and each restore. A version records:
 
-- **Why it was made**: for example `initial`, `heal_fp`, `heal_ai`, `fetch`, `edit`, or `restore`.
+- **Why it was made**: the first recording, an automatic repair, a faster way to read the site, an edit of yours, or a restore. The API returns it as `reason`.
 - **The run that caused it**, if there was one.
 - **The full steps at that point.** It is a complete copy, not just the changes, so an old version can always be replayed exactly.
 
@@ -43,10 +43,7 @@ This order matters. Repairing a skill never fixes a site that is down, a sign-in
 
 ## Repairs
 
-Only `element_changed` and `extraction_drift` failures are repaired. Valendata tries the cheapest fix first:
-
-1. **Quick fix.** Valendata first finds the changed element on the new page by itself. This does not use an AI model, and it adds almost no time to the run. If it succeeds, the result reports `heal_kind: "fp"`.
-2. **AI repair.** If the code fix cannot find a confident match, an AI agent works out the step on the changed page. If it succeeds, the result reports `heal_kind: "ai"`. Only one repair runs on a skill at a time, and each skill has a small daily limit on AI repairs. A skill that needs rescuing many times a day is flagged as broken, not hidden.
+Only `element_changed` and `extraction_drift` failures are repaired. A repair starts when one of your runs breaks, and it is charged like any run. When a run was repaired, its result says so in `heal_kind`.
 
 ### Every repair is proven
 
@@ -55,7 +52,7 @@ A repair is accepted only if the rows it produces pass these checks:
 - Rows exist.
 - The contracted fields are not all empty.
 - Every row has every field in the skill's output contract.
-- The result is not clearly worse than any of the skill's last five good runs. A good run with the same inputs is compared on row count and fields. A good run with other inputs is compared on the fields both share: a field that run filled on most rows must not come back nearly empty. This uses what those runs already stored. No extra run is made.
+- The result is not clearly worse than the skill's recent good runs: no fewer rows for the same inputs, and no field that used to be filled coming back nearly empty.
 
 A repair that fails these checks is thrown away, and the run reports the failure honestly. A repair that passes becomes a new version. You can review it, compare it, and roll it back.
 
@@ -73,25 +70,19 @@ These show in the run's `diagnosis` as `quality_flags` (`repeated_rows`, `pagina
 
 ## Talk to a skill
 
-Each skill has its own chat at the top of its page. Say what is wrong or what you want in plain words, such as "the last run missed the phone numbers" or "also get the price". The skill reads its runs, steps, and versions, then fixes itself when it can: it re-learns a step or a field, changes its browser or proxy, restores a version that worked, or asks you to sign in. Each repair is checked with a short run, and the result is posted to the chat. Repairs are charged like any run. New fields you ask for are charged as an [improvement](/guides/improve-a-skill).
+Each skill has its own chat at the top of its page. Say what is wrong or what you want in plain words, such as "the last run missed the phone numbers" or "also get the price". The skill looks at its own runs and versions and fixes itself when it can. When only you can fix it, such as signing in again, it tells you. Each repair is checked before it is kept, and the result is posted to the chat. Repairs are charged like any run. New fields you ask for are charged as an [improvement](/guides/improve-a-skill).
 
 From code, use [Talk to a skill](/api-reference/improvements/talk). An AI assistant uses the `talk_to_skill` tool.
 
 ### A skill built on an open API
 
-A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so its repairs work on the API. When one of its runs fails (the API answers "not found", changes shape, or asks for a key) or comes back with fields missing or wrong, the skill starts one repair on its own, charged like any run:
-
-1. It calls the same API address fresh and maps the fields again on the answer.
-2. If that address is gone, it looks for the site's API again and rebuilds the skill on what it finds.
-3. If no other open API turns up, it tells you in the skill's chat and offers to record the skill in a browser. Nothing is recorded until you say yes.
-
-Each skill has a small daily limit on these automatic repairs. In its chat, the skill offers only what fits an API: no browser, proxy, or sign-in settings. What each repair mode does is in [Skills built on an open API](/guides/improve-a-skill#skills-built-on-an-open-api).
+A skill built on the site's [open API](/guides/create-a-skill#open-apis-first) has no browser steps, so its repairs work on the API. When one of its runs fails or comes back with fields missing or wrong, the skill repairs itself on the API, charged like any run. If the site no longer has an open API that fits, it tells you in the skill's chat and offers to record the skill in a browser. Nothing is recorded until you say yes. What each repair mode does is in [Skills built on an open API](/guides/improve-a-skill#skills-built-on-an-open-api).
 
 ## Cookie and consent banners
 
-When a skill runs in a cloud browser, Valendata clears cookie and consent banners after each page load. It recognizes common consent tools (OneTrust, Cookiebot, Didomi, Quantcast, TrustArc and others), Google's "Before you continue" page, and other cookie pop-ups in several languages. It clicks the site's own button. By default this is "Reject all" or "Only necessary", and "Accept" if there is no reject button. This uses no AI model.
+In the cloud browser, cookie and consent banners are closed for you after each page loads. Valendata clicks the site's own button: "Reject all" or "Only necessary" when there is one, else "Accept".
 
-A recorded click on a consent button, such as "Accept all", is optional. If the banner is not there, the step is skipped. It does not fail the run or start a repair. Your own Chrome is never changed: banners are only cleared in the cloud browser.
+A recorded click on a consent button, such as "Accept all", is skipped when the banner is not there. It does not fail the run. Your own Chrome is never changed.
 
 ## Speed tiers
 
@@ -105,13 +96,9 @@ Every skill runs on one of three tiers:
 
 When a skill is made, Valendata tries the fastest tier and uses it only once it gives the same rows as the skill's normal run, on more than one search. The message that says the skill is ready names its tier. Some sites have no faster way; their skills stay on Tier 3.
 
-A skill stays on its tier. If that tier keeps failing, the skill moves down one tier and its runs keep working. Valendata then works on the faster tier in the background and moves the skill back up once that tier is proven again. Every move is listed in the skill's **Speed** tab, under **What happened**.
+A skill stays on its tier. When its faster read does not work on a run, the same run still returns rows the slower way, so the run does not fail for that. Every change of tier is listed in the skill's **Speed** tab, under **What happened**.
 
-You can also try a faster tier yourself, or choose the tier a skill runs on, from the **Speed** tab, [the API](/api-reference/skills/try-speed) or an AI assistant. A tier must work before you can choose it.
-
-Every skill can use Tier 1, whatever browser it is set to. On a skill set to your Chrome, Tier 1 reads without a browser; when that read does not work, the same run reads through your Chrome. A skill that signs in to a site stays in its browser.
-
-Every skill keeps its recorded browser steps underneath its faster tiers, including a skill that reads the site's own data. When a faster read fails or comes back with less than the steps returned, the same run uses the steps.
+You can also try a faster tier yourself, or choose the tier a skill runs on, from the **Speed** tab, [the API](/api-reference/skills/try-speed) or an AI assistant. A tier must work before you can choose it. A skill that signs in to a site stays in its browser.
 
 A faster tier never sends your cookies. A tier that needs no browser costs no browser time.
 

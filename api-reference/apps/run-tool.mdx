@@ -6,12 +6,17 @@ openapi: "POST /v1/apps/{app}/tools/{tool}/run"
 
 Send the tool's inputs in `inputs`, by the names [List an app's tools](/api-reference/apps/list-tools) gives. `data` is the app's answer, as the app gave it.
 
-A `read` tool needs `apps:read`. A `write` tool needs `apps:write` and acts in your real account: the email is sent, the event is created. Send an `Idempotency-Key` so a retry after a timeout does not send it twice. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
+With several accounts on the app, `connection_id` says which one runs it: an `id` from [List an app's connections](/api-reference/apps/list-connections). With one account you can leave it out. It is never guessed.
+
+A `read` tool needs `apps:read`. A `write` tool needs `apps:write` and acts in your real account: the email is sent, the event is created. Send an `Idempotency-Key` so a retry after a timeout does not send it twice. The key is kept per connection, so the same key on two connections is two requests. See [Idempotency](/api-reference/pagination-and-idempotency#idempotency).
 
 | Status | Why |
 | --- | --- |
 | `404` | The app has no such tool. `detail` points to its tool list. |
-| `409` `app_not_connected` | You have not connected the app, or its connection expired. `detail.connect_url` connects it. |
+| `404` `connection_not_found` | `connection_id` is not one of your connections on this app. |
+| `409` `app_not_connected` | You have not connected the app. `detail.connect_url` connects it. |
+| `409` `connection_required` | Several of your accounts on the app work and `connection_id` is missing. `detail.connections` lists them. Nothing ran. |
+| `409` `connection_expired` | That account's sign-in lapsed. `detail.reconnect_url` signs it in again under the same id. |
 | `422` | The body is not valid. |
 | `502` | The app refused the call, for example a missing or wrong input. `detail` gives the app's reason. |
 

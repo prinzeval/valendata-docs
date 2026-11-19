@@ -1,0 +1,13 @@
+---
+title: "List an app's connections"
+description: "Your accounts on one app, such as several Instagram pages or YouTube channels."
+openapi: "GET /v1/apps/{app}/connections"
+---
+
+You can connect several accounts on one app. In the app, open **Integrations**, then the app, then **Connect another account**. The accounts you already connected stay.
+
+Each connection, newest first, has its `id`, `username` (the handle without the @, the channel handle on YouTube, the address on Gmail, or `null` when the app does not say), and `status`: `active` when it works, `expired` when its sign-in lapsed and it needs reconnecting.
+
+Pass an `id` as `connection_id` to [Run an app tool](/api-reference/apps/run-tool) to use that account. Page with `limit` and `cursor`.
+
+Needs `apps:read`. MCP tool: `list_app_connections`.

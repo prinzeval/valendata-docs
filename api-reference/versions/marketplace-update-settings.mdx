@@ -1,0 +1,13 @@
+---
+title: "Set automatic marketplace updates"
+description: "Turn automatic updates from the original on or off for your copy."
+openapi: "PUT /v1/skills/{slug}/marketplace-update/settings"
+---
+
+`{"auto_update": false}` stops your copy taking updates by itself. Updates then wait until you [take them](/api-reference/versions/marketplace-update-take). `{"auto_update": true}` turns it back on. It is on by default.
+
+With it on, your copy takes each newly tested version of the original by itself, merged the same way as taking it by hand. A clash is kept as an unapplied version and never written over your changes.
+
+In the app, this is the **Auto-update** switch in the skill's **Versions** tab. How updates reach a copy: [Updates from the original](/guides/use-the-marketplace#updates-from-the-original).
+
+Owner or workspace editor. Needs `skills:write`. MCP tool: `update_from_marketplace` with `auto_update`.

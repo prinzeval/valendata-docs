@@ -138,4 +138,7 @@ curl -X POST https://api.valendata.com/v1/import/apify \
 ```
 
 - If the actor already runs on Valendata, the answer has `kind: "alias"` and the equivalent calls, with your input translated. Nothing is created.
+- If you already have a skill for it, the answer has `kind: "skill"` and its slug.
 - Otherwise a skill is created from the actor's public description, with its output fields as the new skill's columns. The answer has `kind: "creation"` and a `status_url` to poll, as with [creating a skill](/guides/create-a-skill), and it costs the same. Pass `start_url` when the input names no page.
+
+Every field and answer: [Import an Apify actor](/api-reference/skills/import-apify).

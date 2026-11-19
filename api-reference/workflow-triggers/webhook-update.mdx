@@ -1,0 +1,12 @@
+---
+title: "Update a workflow webhook"
+description: "Turn a workflow's webhook off or on, or require a signature."
+openapi: "PATCH /v1/workflows/{slug}/webhook"
+---
+
+Send only what you want to change:
+
+- `enabled`: `false` turns it off, and its URL answers `404` and starts nothing. `true` turns it back on.
+- `require_signature`: `true` refuses any POST without a valid signature. See [Signing](/guides/start-from-a-webhook#signing).
+
+Needs `workflows:write`, plus `workflows:invoke` to turn it on.

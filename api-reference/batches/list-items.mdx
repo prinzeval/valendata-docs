@@ -1,0 +1,20 @@
+---
+title: "List a batch's inputs"
+description: "Each input of a batch in list order, with its status, rows, and run."
+openapi: "GET /v1/batches/{batch_id}/items"
+---
+
+Each item has:
+
+| Field | What it is |
+| --- | --- |
+| `index` | Its position in the list you sent. |
+| `inputs` | The input set. |
+| `status` | `pending`, `running`, `success`, `partial`, `failed`, `cancelled`, or `not_started`. |
+| `rows` | How many rows its run returned. |
+| `error` | What went wrong, when it failed. |
+| `run_id` | Its run. Read it with [Get a run](/api-reference/runs/get). |
+
+`status` keeps one status, for example `failed` to see what went wrong. Page with `limit` (1–100) and `cursor`.
+
+Needs `runs:read`.

@@ -1,0 +1,10 @@
+---
+title: "Rotate a workflow webhook"
+description: "Give a workflow's webhook a new URL or a new signing secret."
+openapi: "POST /v1/workflows/{slug}/webhook/rotate"
+---
+
+- `{"rotate": "url"}` gives it a new URL. The old one stops working at once. Use it when the URL leaked.
+- `{"rotate": "secret"}` gives it a new signing secret. The old one is still accepted for 24 hours, until `previous_secret_valid_until`, so you can update the sender.
+
+The answer is the webhook with its new `url` or `signing_secret`. Needs `workflows:write`.

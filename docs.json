@@ -50,6 +50,7 @@
               "concepts/connected-apps",
               "concepts/follow-ups",
               "concepts/background-jobs",
+              "concepts/long-jobs",
               "concepts/notes",
               "concepts/workspaces",
               "concepts/credits"
@@ -127,9 +128,12 @@
               "api-reference/skills/clone",
               "api-reference/skills/update",
               "api-reference/skills/delete",
+              "api-reference/skills/delete-unused-archived",
+              "api-reference/skills/import-apify",
               "api-reference/skills/health",
               "api-reference/skills/speed",
               "api-reference/skills/try-speed",
+              "api-reference/skills/get-speed-trial",
               "api-reference/skills/use-speed"
             ]
           },
@@ -167,6 +171,7 @@
             "group": "Runs",
             "icon": "play",
             "pages": [
+              "api-reference/runs/list",
               "api-reference/runs/run-skill",
               "api-reference/runs/start-skill-run",
               "api-reference/runs/list-skill-runs",
@@ -176,7 +181,22 @@
               "api-reference/runs/get",
               "api-reference/runs/get-changes",
               "api-reference/runs/cancel",
+              "api-reference/runs/resume",
               "api-reference/runs/send-code"
+            ]
+          },
+          {
+            "group": "Batches",
+            "icon": "list-check",
+            "pages": [
+              "api-reference/batches/estimate",
+              "api-reference/batches/start",
+              "api-reference/batches/list",
+              "api-reference/batches/get",
+              "api-reference/batches/list-items",
+              "api-reference/batches/get-rows",
+              "api-reference/batches/get-rows-csv",
+              "api-reference/batches/cancel"
             ]
           },
           {
@@ -188,7 +208,10 @@
               "api-reference/versions/restore",
               "api-reference/versions/pin",
               "api-reference/versions/marketplace-update-check",
-              "api-reference/versions/marketplace-update-take"
+              "api-reference/versions/marketplace-update-take",
+              "api-reference/versions/marketplace-update-keep-mine",
+              "api-reference/versions/marketplace-update-use-theirs",
+              "api-reference/versions/marketplace-update-settings"
             ]
           },
           {
@@ -199,7 +222,8 @@
               "api-reference/improvements/get",
               "api-reference/improvements/list",
               "api-reference/improvements/talk",
-              "api-reference/improvements/chat"
+              "api-reference/improvements/chat",
+              "api-reference/improvements/stop"
             ]
           },
           {
@@ -225,7 +249,34 @@
               "api-reference/workflows/get",
               "api-reference/workflows/clone",
               "api-reference/workflows/update",
-              "api-reference/workflows/delete"
+              "api-reference/workflows/delete",
+              "api-reference/workflows/chat",
+              "api-reference/workflows/talk",
+              "api-reference/workflows/stop-doctor"
+            ]
+          },
+          {
+            "group": "Workflow versions",
+            "pages": [
+              "api-reference/workflow-versions/list",
+              "api-reference/workflow-versions/diff",
+              "api-reference/workflow-versions/restore"
+            ]
+          },
+          {
+            "group": "Workflow triggers",
+            "icon": "bolt-lightning",
+            "pages": [
+              "api-reference/workflow-triggers/webhook-create",
+              "api-reference/workflow-triggers/webhook-get",
+              "api-reference/workflow-triggers/webhook-update",
+              "api-reference/workflow-triggers/webhook-rotate",
+              "api-reference/workflow-triggers/webhook-deliveries",
+              "api-reference/workflow-triggers/webhook-delete",
+              "api-reference/workflow-triggers/app-event-set",
+              "api-reference/workflow-triggers/app-event-get",
+              "api-reference/workflow-triggers/app-event-update",
+              "api-reference/workflow-triggers/app-event-delete"
             ]
           },
           {
@@ -237,6 +288,7 @@
               "api-reference/logins/get",
               "api-reference/logins/update",
               "api-reference/logins/delete",
+              "api-reference/logins/list-profiles",
               "api-reference/logins/get-question",
               "api-reference/logins/answer-question",
               "api-reference/logins/send-code"
@@ -250,6 +302,8 @@
               "api-reference/apps/list-connected",
               "api-reference/apps/get",
               "api-reference/apps/disconnect",
+              "api-reference/apps/list-connections",
+              "api-reference/apps/disconnect-connection",
               "api-reference/apps/list-tools",
               "api-reference/apps/run-tool"
             ]

@@ -1,0 +1,11 @@
+---
+title: "Stop a skill's doctor"
+description: "Stop every look, repair, and check run the skill's doctor has going."
+openapi: "POST /v1/skills/{slug}/doctor/stop"
+---
+
+Everything the doctor is doing on the skill ends now: its looks, its repairs, and their check runs. Nothing new starts until you ask, and the chat says so. Your own runs are left alone; stop those with [Cancel a run](/api-reference/runs/cancel).
+
+The answer is the chat, as [Read a skill's chat](/api-reference/improvements/chat) shows it. Sending `stop` alone to [Talk to a skill](/api-reference/improvements/talk) does the same.
+
+Only the skill's owner or an editor in its workspace. Needs `skills:write`. MCP tool: `stop_skill_doctor`, with `skill`. In the app, it is **Stop** in the skill's chat.

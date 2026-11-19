@@ -4,7 +4,7 @@ description: "How skills are doing on one website right now: proven, failing, or
 api: "GET https://api.valendata.com/v1/sites/{domain}"
 ---
 
-Check a site before you build a skill for it, or after a run on it fails. No key needed.
+Check a site before you build a skill for it, or after a run on it fails. No key needed. What the answers mean, and how to ask us to fix a site, is in [When a site does not work](/guides/when-a-site-does-not-work).
 
 <ParamField path="domain" type="string" required>
   The site, such as `airbnb.com`. A full address works too, such as `https://www.airbnb.com/rooms/123`; only its domain is used. `www.`, `m.`, and other subdomains are dropped, so `newyork.craigslist.org` is `craigslist.org`.
@@ -15,9 +15,7 @@ Check a site before you build a skill for it, or after a run on it fails. No key
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  - `proven`: skills keep working here. See [Proven sites](/guides/when-a-site-does-not-work#proven-sites).
-  - `failing`: skills on this site struggle right now, and we are working on it.
-  - `unproven`: not enough runs yet to say. Create a skill for it, and once it keeps working for people it becomes proven.
+  `proven`, `failing`, or `unproven`. What each means is in [Check one site](/guides/when-a-site-does-not-work#check-one-site).
 </ResponseField>
 
 <ResponseField name="skills" type="integer | null">
@@ -44,7 +42,7 @@ Check a site before you build a skill for it, or after a run on it fails. No key
   The open [site request](/api-reference/sites/create-request) for this site: its `id`, `votes` (how many people asked), and `status`. It shows once at least 3 people have asked, so one person's ask is never pointed to. `null` until then.
 </ResponseField>
 
-`skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless the site is `proven` or `failing`. A site is shown only when a skill on it is public or made by the Valendata team, or when at least 3 people use it, so one person's private runs are never pointed to.
+`skills`, `users`, `runs_30d`, `success_rate`, and `last_success_at` are `null` unless the site is `proven` or `failing`. Which sites are shown is in [Check one site](/guides/when-a-site-does-not-work#check-one-site).
 
 MCP tool: `site_status`, with `url_or_domain`.
 

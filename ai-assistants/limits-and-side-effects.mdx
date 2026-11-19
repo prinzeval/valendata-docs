@@ -13,26 +13,28 @@ description: "What each MCP tool changes, what it costs, and how many runs an AI
 | `cancel_run` | Stops a run you started, and what a workflow run is running inside. Rows already produced are kept. Credits already used stay charged. | No |
 | `create_skill` | Creates a skill in a browser (the cloud, or your Chrome) and adds it to your account as private. If its check run does not pass, it is kept as a draft to fix with `improve_skill`. | Yes |
 | `improve_skill` | Adds a new version. Old versions are kept. A version that does not test better is kept as a candidate, not made live. | Yes |
-| `talk_to_skill` | Can change the skill: re-learn a step or a field, change its browser or proxy, or restore a version that worked. Each change is a new version; old versions are kept. | Repairs are charged like any run. New fields you ask for are charged as an improvement. |
-| `update_from_marketplace` | Only checks by default. With `apply: true`, merges the marketplace's newer version into your copy as a new version; your own changes are kept, and the version before stays restorable. | No |
+| `talk_to_skill` | Can change the skill to fix what you described, or restore a version that worked. Each change is a new version; old versions are kept. | Repairs are charged like any run. New fields you ask for are charged as an improvement. |
+| `update_from_marketplace` | Only checks by default. With `apply: true`, merges the marketplace's newer version into your copy as a new version; your own changes are kept, and the version before stays restorable. `auto_update` turns automatic updates for the copy on or off. | No |
 | `request_site` | Adds your vote to a request to make a site work. You get an email when it is fixed. | No |
 | `update_skill` | Changes the skill's settings, inputs, or output fields. A change to its steps becomes a new version; old versions stay restorable. | No |
-| `update_workflow` | Changes the workflow. The state before is kept as a version you can restore in the app. | No |
-| `create_workflow` | Adds a workflow. Does not run it. | No |
+| `update_workflow` | Changes the workflow. The state before is kept as a version you can restore in the app. An `app_trigger` makes events in a connected app start runs. | Not by itself; each run an app event starts does |
+| `create_workflow` | Adds a workflow. With `steps` it is only saved. With `task` it is built from your skills and tested once. | With `task`, what the build and its test run use |
 | `clone_skill` | Adds a private copy of a marketplace skill to your own. Does not run it. | No |
 | `clone_workflow` | Adds a private copy of a marketplace workflow to your own. With `schedule` it runs on that schedule; with `preview: true` a small run starts now. | Only the preview and the scheduled runs |
 | `delete_skill` | Deletes a skill you own and stops its schedule. Its runs stay in history. Refused while a workflow uses it, unless `force` is true. | No |
+| `delete_unused_archived_skills` | Deletes, for good, every archived skill you own that nothing uses. Skills still in use, live skills, drafts, and runs are kept. With `dry_run: true` it only says what would go. | No |
 | `delete_workflow` | Deletes a workflow you own and stops its schedule. Its runs stay in history. | No |
 | `schedule_skill`, `schedule_workflow`, `update_schedule` | Adds or changes a schedule. Each scheduled run then spends the owner's credits. | Not by itself |
 | `delete_schedule` | Turns a schedule off and forgets its settings. | No |
 | `save_knowledge` | Saves a fact. Overwrites the fact with the same `key`. | No |
 | `read_from_app` | No. Reads from your own connected app, such as your emails. | Yes, 0.1 credit per call |
 | `act_in_app` | Acts in your own connected app: sends, creates, changes, or deletes something there. It cannot be undone from Valendata. | Yes, 0.5 credit per call |
-| `disconnect_app` | Removes your connection to an app. Nothing can use it until you connect it again. | No |
+| `disconnect_app` | Removes your connection to an app, or with `connection_id` only that account. Nothing can use it until you connect it again. | No |
 | `create_followup` | Adds a follow-up: Valendata watches the place until the deadline (at most 72 hours; up to 25 waiting at once). Reads only; never sends or changes anything. | Only for a place in a connected app: the app-call price per check. See [Follow-ups](/concepts/follow-ups#credits). |
 | `cancel_followup` | Ends a waiting follow-up. Checks already made stay charged. | No |
 | `start_jobs` | Starts up to 6 skill or workflow runs in the background, each as a job, the same as `run_skill` and `run_workflow` would (a workflow's steps can write to sheets or send requests). See [Background jobs](/concepts/background-jobs). | Yes, what each run costs |
-| `cancel_job` | Stops a background job and the run it drives, or every open job in a batch. Rows already found are kept. Credits already used stay charged. | No |
+| `run_skill_batch` | Starts one run of a skill per input in the list, a few at a time, in the background. No tool stops it; use `POST /v1/batches/{batch_id}/cancel`. Rows already found are kept. | Yes, each input like a single run |
+| `cancel_job` | Stops a background job and the run it drives, or every open job in a job group. Rows already found are kept. Credits already used stay charged. | No |
 | `create_note` | Adds a note to your **Notes** page. | No |
 | `update_note` | Changes a note. A new `body` replaces the old one, which is not kept. | No |
 | `delete_note` | Deletes a note for good. | No |
@@ -50,7 +52,7 @@ Assistant calls are limited by how many runs can be in progress at once, per Val
 | What runs | In progress at once |
 | --- | --- |
 | Runs that need a cloud browser | 6 |
-| Runs a skill's fast path answers without a browser | 20 |
+| Runs that need no browser | 20 |
 
 There is also a shared limit across all accounts. When a limit is reached, the tool returns at once with the error `capacity_full` and `retry_after_s` (about 30 seconds for browser runs, 2 for fast runs). On clients that support MCP tasks, a skill run waits in a queue instead, for up to one hour. A run that never starts is not charged.
 

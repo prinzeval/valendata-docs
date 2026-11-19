@@ -55,24 +55,11 @@ A key can only do what its scopes allow. An AI assistant connected with OAuth ge
 
 The `/v1` routes that change, delete, or schedule a skill take API keys; an AI assistant reaches them through the MCP tools, with `skills:write`. An assistant only sees the MCP tools its scopes allow; see [Which tools the assistant sees](/ai-assistants/mcp-tools#which-tools-the-assistant-sees).
 
-A new key gets `skills:read`, `skills:invoke`, and `runs:read` unless you pick others. A key made before scopes existed has every scope. A key can also be limited to some skills or workflows. See [API keys](/account/api-keys#limit-a-key-to-some-skills-or-workflows).
+A new key gets these nine scopes unless you pick others: `skills:read`, `skills:invoke`, `skills:write`, `workflows:read`, `workflows:invoke`, `workflows:write`, `runs:read`, `account:read`, and `web:read`. They make, run, and read skills and workflows, read your credits, and use the universal web API. Connected apps, knowledge, logins, follow-ups, notes, webhooks, and jobs stay opt-in. A key made before scopes existed has every scope. A key can also be limited to some skills or workflows. See [API keys](/account/api-keys#limit-a-key-to-some-skills-or-workflows).
 
 ## When it fails
 
-| Status | Why |
-| --- | --- |
-| `401` | The key is missing, malformed, revoked, or expired. `code` is `unauthorized`. |
-| `403` | The key is valid but lacks a scope, or is limited to other skills or workflows. `code` is `permission_denied`; `detail` names what is missing. |
-
-```json
-{
-  "detail": "This API key is missing the 'skills:invoke' scope. Create a key with 'skills:invoke' in Settings → API keys.",
-  "code": "permission_denied",
-  "type": "permission_error",
-  "request_id": "3f9a1c2b7d4e"
-}
-```
+A missing, bad, revoked, or expired key gets `401`. A key without the scope it needs, or limited to other skills or workflows, gets `403`, and `detail` names what is missing. Both are explained, with examples, in [Errors and limits](/api-reference/errors#status-codes).
 
 Every request made with a key counts against that key's rate limit, and the response says how much is left. See [Rate limits](/api-reference/errors#rate-limits).
 
-All other errors are on [Errors and limits](/api-reference/errors).

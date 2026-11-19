@@ -1,0 +1,9 @@
+---
+title: "Restore a workflow version"
+description: "Make an earlier version of a workflow live again."
+openapi: "POST /v1/workflows/{slug}/versions/{n}/restore"
+---
+
+The workflow as it is now is kept as a version first, so you can undo a restore the same way. `live_version` is the new live number. `changed` is `false` when version `n` was already live; nothing changes then.
+
+Only the owner or an editor in the workflow's workspace. Needs `workflows:write`. MCP tool: `restore_workflow_version`, with `slug` and `version`.

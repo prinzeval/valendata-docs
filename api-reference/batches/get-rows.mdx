@@ -1,0 +1,11 @@
+---
+title: "Get a batch's rows"
+description: "Every row the batch has collected, as one result, in list order."
+openapi: "GET /v1/batches/{batch_id}/rows"
+---
+
+Each row starts with `_input_index` (the position of the input it came from) and `_input` (that input), then the skill's own fields.
+
+Page with `limit` (1–1,000, default 100) and `cursor`. `total_rows` counts them all. While the batch runs, later pages fill as inputs finish.
+
+For one file instead, use [Download a batch's rows as CSV](/api-reference/batches/get-rows-csv). Needs `runs:read`.

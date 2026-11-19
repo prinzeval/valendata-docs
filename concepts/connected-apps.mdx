@@ -25,13 +25,21 @@ All of them use the same connections. Connect Gmail once and every one of them c
 
 The `connect_url` is a page on Valendata, such as `https://app.valendata.com/connect/gmail`. It does not expire and works on any device. You must be signed in to Valendata to use it, so a connection is always made by you, never by a key or an assistant on its own.
 
-Valendata never sees your password for the app. The sign-in the app issues is held, encrypted, by Composio, the service that connects the apps, and used only for tasks you start. See the [Privacy Policy](https://www.valendata.com/privacy-policy).
+Valendata never sees your password for the app. The sign-in the app issues is held encrypted by the service Valendata uses to connect apps, and used only for tasks you start. See the [Privacy Policy](https://www.valendata.com/privacy-policy).
 
 `connectable: false` means the app's sign-in is not set up on Valendata yet, so it cannot be connected today.
+
+### Several accounts on one app
+
+You can connect more than one account on an app, such as several Instagram pages. In **Integrations**, open the app and click **Connect another account**. Each account has its own id. When several work, a call must name one with `connection_id`; a call that names none is refused, never guessed. See [List an app's connections](/api-reference/apps/list-connections).
 
 ### Expired connections
 
 A connection can stop working, for example when you change your password or the app ends the sign-in. It then shows as `expired`. Connect it again the same way; your workflows pick it up on their next run.
+
+## Start a workflow on an app event
+
+A workflow can start each time something happens in one of your apps, such as a new email in Gmail. See [Start a workflow on an app event](/api-reference/workflow-triggers/app-event-set).
 
 ## Read and write
 

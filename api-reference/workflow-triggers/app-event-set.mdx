@@ -1,0 +1,18 @@
+---
+title: "Start a workflow on an app event"
+description: "Start a workflow each time something happens in one of your connected apps, such as a new email in Gmail."
+openapi: "PUT /v1/workflows/{slug}/app-trigger"
+---
+
+Send the `app` (its id, such as `gmail`), the `trigger` (the event's id, such as `GMAIL_NEW_GMAIL_MESSAGE`), and the event's `config`. A workflow has one app event, and setting a new one replaces the old one.
+
+Each event starts one run. What the app sent arrives as the input `event`, so a step reads `{{inputs.event.subject}}`. `event_source` says which app and event it was, and when it came. The same event is never run twice. Each run uses your [credits](/concepts/credits) like any run. When a run cannot start, for example because the account is out of credits, `last_error` on [Get a workflow's app event](/api-reference/workflow-triggers/app-event-get) says why.
+
+In the app, open the workflow in the builder, press **⌘K** (or **Ctrl+K**), choose the **Triggers** tab, then **App events**. It lists each app's events and their settings.
+
+| Status | Why |
+| --- | --- |
+| `409` `app_not_connected` | The app is not connected. `detail.connect_url` connects it. See [Connected apps](/concepts/connected-apps). |
+| `422` | The event or one of its settings is wrong. |
+
+Only the workflow's owner can set it, because the events come from the owner's account. Needs `workflows:write` and `workflows:invoke`. MCP tool: `update_workflow` with `app_trigger`.

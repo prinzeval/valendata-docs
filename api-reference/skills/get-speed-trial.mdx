@@ -1,0 +1,21 @@
+---
+title: "Get a speed trial"
+description: "Read one speed trial: still running, or how it ended and why."
+openapi: "GET /v1/skills/{slug}/speed/trials/{trial_id}"
+---
+
+Use the `status_url` that [Try a faster tier](/api-reference/skills/try-speed) returned. While the trial runs, `status` is `running`. When it ends, `status` says how:
+
+| `status` | Means |
+| --- | --- |
+| `passed` | The faster tier gave the same rows. The skill now runs on it. `seconds` and `before_seconds` are the measured times. |
+| `failed` | The faster tier gave other rows. The skill stays on the tier it uses. |
+| `unproven` | The trial could not decide, for example a wall or a problem on our side. It can be tried again. |
+| `inconclusive` | Not enough proof yet. `message` says what is missing. |
+| `server_differs` | The site shows our server other content, such as another country's. |
+
+`message` says what happened in plain words, the same words as the skill's **Speed** tab. `stopped` is `true` when the trial was stopped before it finished.
+
+The latest trial and the five before it are kept. An older id answers `404`. Only the skill's owner and its workspace can read a trial.
+
+To be told when it ends instead of reading it again, see [Hearing when a long job is done](/concepts/long-jobs).

@@ -1,0 +1,9 @@
+---
+title: "Stop a workflow's doctor"
+description: "Stop what the workflow's doctor is doing now."
+openapi: "POST /v1/workflows/{slug}/doctor/stop"
+---
+
+No further step runs. The changes it already made are kept; [restore an earlier version](/api-reference/workflow-versions/restore) to undo them. The answer is the chat and an `answer` saying whether anything was running. Stopping when nothing runs changes nothing.
+
+Only the owner or an editor in the workflow's workspace. Needs `workflows:write`. MCP tool: `stop_workflow_doctor`, with `slug`. In the app, it is **Stop** in the Brain chat.

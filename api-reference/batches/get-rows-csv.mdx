@@ -1,0 +1,9 @@
+---
+title: "Download a batch's rows as CSV"
+description: "Every row of a batch as one CSV file."
+openapi: "GET /v1/batches/{batch_id}/rows.csv"
+---
+
+The columns are `_input_index`, `_input`, then the skill's fields. `_input` is the input's value when the skill takes one input, and the inputs as JSON when it takes several.
+
+To page through the rows as JSON, use [Get a batch's rows](/api-reference/batches/get-rows). Needs `runs:read`.

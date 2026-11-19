@@ -1,0 +1,14 @@
+---
+title: "List batches"
+description: "Your batches, newest first, each with its progress."
+openapi: "GET /v1/batches"
+---
+
+Each item is a batch as [Get a batch](/api-reference/batches/get) shows it.
+
+- `skill` keeps one skill's batches (its slug).
+- `open=true` keeps the ones still `queued` or `running`.
+
+Page with `limit` (1–100) and `cursor`. See [Pagination](/api-reference/pagination-and-idempotency).
+
+Needs `runs:read`. MCP tool: `list_batches`.

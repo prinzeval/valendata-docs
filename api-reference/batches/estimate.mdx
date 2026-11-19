@@ -1,0 +1,21 @@
+---
+title: "Estimate a batch"
+description: "See what a list of inputs would cost before you run it. Nothing starts and nothing is charged."
+openapi: "POST /v1/skills/{slug}/batches/estimate"
+---
+
+Send the same body as [Start a batch](/api-reference/batches/start). Every input is checked, and a bad one answers `422` with each problem named by its position, as a start would.
+
+The answer:
+
+| Field | What it is |
+| --- | --- |
+| `credits_per_input` | What one input is expected to cost. `basis` says where it comes from: `typical_of_recent_runs` (the skill's typical recent run) or `base_price` (the skill's base price, when it has no recent runs). |
+| `estimated_credits` | `credits_per_input` times the number of inputs. |
+| `balance` | Your credit balance now. |
+| `affordable_inputs`, `affordable` | About how many inputs your balance covers, and whether it covers them all. |
+| `concurrency`, `max_concurrency` | How many inputs would run at once, and the most your account allows for this skill. |
+
+What batches are and their limits: [Run one skill over many inputs](/guides/run-a-skill#run-one-skill-over-many-inputs).
+
+Needs `skills:invoke`.

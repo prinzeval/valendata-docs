@@ -1,0 +1,16 @@
+---
+title: "Compare two workflow versions"
+description: "See which steps, connections, and fields changed between two versions of a workflow."
+openapi: "GET /v1/workflows/{slug}/versions/{a}/diff/{b}"
+---
+
+`a` and `b` are version numbers from [List workflow versions](/api-reference/workflow-versions/list). Either can be the live version.
+
+Returns:
+
+- `fields`: each changed field, with `before` and `after`.
+- `steps`: steps `added`, `removed`, and `changed`. A changed step lists the fields that differ.
+- `connections_changed`: `true` when the steps were wired differently.
+- `summary`: the changes in one line.
+
+Needs `workflows:read`. MCP tool: `compare_workflow_versions`, with `slug`, `a`, and `b`.

@@ -1,0 +1,9 @@
+---
+title: "Remove a workflow's app event"
+description: "Stop starting a workflow on its app event."
+openapi: "DELETE /v1/workflows/{slug}/app-trigger"
+---
+
+The workflow, its runs, and the app connection stay. To stop it for a while instead, [pause it](/api-reference/workflow-triggers/app-event-update).
+
+`404` when the workflow has no app event. Needs `workflows:write`. MCP tool: `update_workflow` with `app_trigger: null`.
