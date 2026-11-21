@@ -42,7 +42,7 @@ PDFs are turned into text. `metadata.tier` says how the page was read:
 
 ## Scrape a page
 
-`POST /v2/scrape` with `url` and `formats`. The answer is `{success, data}`, where `data` holds `markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`, `actions`, `metadata`, and `warning` (only the ones you asked for, plus `metadata`).
+`POST /v2/scrape` with `url` and `formats`. The answer is `{success, data}`, where `data` holds `markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`, `contacts`, `matches`, `actions`, `metadata`, and `warning` (only the ones you asked for, plus `metadata`).
 
 ### Formats
 
@@ -56,6 +56,8 @@ PDFs are turned into text. `metadata.tier` says how the page was read:
 | `screenshot` | A screenshot. Send `"screenshot"`, or `{"type": "screenshot", "fullPage": true}` for the whole page. |
 | `summary` | A short summary written by an AI model. |
 | `{"type": "json", "schema": ..., "prompt": ...}` | Data in the shape of your schema, read by an AI model. On `/v1`, send `"json"` and put `schema`, `prompt`, and `systemPrompt` in `jsonOptions`. |
+| `contacts` | The page's emails, phone numbers, and social profiles: `{"emails": [...], "phones": [...], "socials": [{"network", "url"}]}`. Emails include `mailto:` links, protected addresses, and spelled-out ones like `name [at] site [dot] com`. Phones come back in international form. Works on PDFs too. |
+| `{"type": "matches", "patterns": [...]}` | What your regular expressions match on the page's text and links: `{"<pattern>": ["value", ...]}`. A pattern with one group returns that group. Up to 10 patterns. |
 
 These formats are not supported yet and return a clear `400`: `branding`, `changeTracking`, `attributes`, `question`, `highlights`, `audio`, `video`, `product`, `menu`, `rawBase64`.
 
@@ -129,6 +131,19 @@ The `pdf` action is not supported yet and returns `400`.
 
 `GET /v2/crawl/{id}` answers with `status` (`scraping`, `completed`, `failed`, or `cancelled`), `total`, `completed`, `creditsUsed`, `expiresAt`, `createdAt`, `completedAt`, `next`, and `data` (the pages). Results come in parts of about 10 MB. `next` is the full URL of the next part. Results are kept for 24 hours.
 
+With the `contacts` or `matches` format in `scrapeOptions`, the answer also has `found`: everything across the whole crawl, each value once, with the pages it was on.
+
+```json
+{
+  "found": {
+    "emails": [{"value": "hello@site.com", "pages": ["https://site.com/contact", "https://site.com/about"]}],
+    "phones": [{"value": "+44 20 7946 0958", "pages": ["https://site.com/contact"]}],
+    "socials": [{"network": "linkedin", "url": "https://linkedin.com/company/site", "pages": ["https://site.com/"]}],
+    "matches": {"order #(\\d+)": [{"value": "12345", "pages": ["https://site.com/orders"]}]}
+  }
+}
+```
+
 | Call | What it does |
 | --- | --- |
 | `DELETE /v2/crawl/{id}` | Cancel it. `409` if it already finished. |
@@ -141,6 +156,7 @@ Good to know:
 - One crawl reads at most 10,000 pages (100 on the free plan).
 - When your account runs out of credits, the crawl stops early. It ends as `completed`, with a warning.
 - A crawl picks up where it left off after a server restart, without charging again for pages already read.
+- A crawl also finds a site's pages that nothing links to, such as a booking or contact page. With `contacts`, it checks the usual contact pages too.
 
 ## Map a site
 
