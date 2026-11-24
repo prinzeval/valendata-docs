@@ -42,7 +42,7 @@ PDFs are turned into text. `metadata.tier` says how the page was read:
 
 ## Scrape a page
 
-`POST /v2/scrape` with `url` and `formats`. The answer is `{success, data}`, where `data` holds `markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`, `contacts`, `matches`, `actions`, `metadata`, and `warning` (only the ones you asked for, plus `metadata`).
+`POST /v2/scrape` with `url` and `formats`. The answer is `{success, data}`, where `data` holds `markdown`, `html`, `rawHtml`, `links`, `images`, `screenshot`, `summary`, `json`, `contacts`, `matches`, `answer`, `highlights`, `branding`, `changeTracking`, `attributes`, `actions`, `metadata`, and `warning` (only the ones you asked for, plus `metadata`).
 
 ### Formats
 
@@ -58,8 +58,13 @@ PDFs are turned into text. `metadata.tier` says how the page was read:
 | `{"type": "json", "schema": ..., "prompt": ...}` | Data in the shape of your schema, read by an AI model. On `/v1`, send `"json"` and put `schema`, `prompt`, and `systemPrompt` in `jsonOptions`. |
 | `contacts` | The page's emails, phone numbers, and social profiles: `{"emails": [...], "phones": [...], "socials": [{"network", "url"}]}`. Emails include `mailto:` links, protected addresses, and spelled-out ones like `name [at] site [dot] com`. Phones come back in international form. Works on PDFs too. |
 | `{"type": "matches", "patterns": [...]}` | What your regular expressions match on the page's text and links: `{"<pattern>": ["value", ...]}`. A pattern with one group returns that group. Up to 10 patterns. |
+| `{"type": "question", "question": "..."}` | `answer`: a short answer taken only from the page, or `The page doesn't say.` On `/v1`, send `"question"` and a top-level `question`. |
+| `{"type": "highlights", "query": "...", "count": 5}` | `highlights`: the page's most relevant passages, word for word, best first: `[{"text", "score"}]`. Without `query`, its most informative passages. `count` is 1–50 (default 5). On `/v1`, send `"highlights"` and `highlightsOptions`. |
+| `branding` | `branding`: `name`, `logo`, `favicon`, `ogImage`, `themeColor`, `colorScheme`, `colors` (`primary`, `secondary`, `accent`, `background`, `text`, `link`), `fonts` (`[{"family"}]`), `typography`, `images`, and `socialLinks`. A value the page doesn't give is `null`. |
+| `{"type": "changeTracking", "tag": "..."}` | `changeTracking`: `changeStatus` (`new`, `same`, `changed`, or `removed`) compared with your previous scrape of the same URL, `previousScrapeAt`, `visibility`, and on a change `diff.text` (a unified diff). `tag` keeps a separate history. The page is read fresh unless you send `maxAge`. On `/v1`, send `"changeTracking"` and `changeTrackingOptions`. |
+| `{"type": "attributes", "selectors": [{"selector": "a.product", "attribute": "href"}]}` | `attributes`: `[{"selector", "attribute", "values": [...]}]`, each matching element's value in page order. Up to 20 selectors. On `/v1`, send `"attributes"` and `attributesOptions`. |
 
-These formats are not supported yet and return a clear `400`: `branding`, `changeTracking`, `attributes`, `question`, `highlights`, `audio`, `video`, `product`, `menu`, `rawBase64`.
+These formats are not supported yet and return a clear `400`: `query`, `audio`, `video`, `product`, `menu`, `rawBase64`.
 
 ### Options
 
@@ -201,6 +206,8 @@ It answers at once with `{success, id}`. `GET /v2/extract/{id}` answers with `{s
 
 `GET /v2/team/credit-usage` answers with `{success, data: {remainingCredits, planCredits, billingPeriodStart, billingPeriodEnd}}`. It needs `web:read` or `account:read`.
 
+`GET /v2/activity` lists the account's web API calls, newest first, from the API, the playground and MCP (the playground's **Logs** page). Filter with `kind` (`scrape`, `map`, `search`, `crawl`, `batch_scrape`, `extract`), page with `limit` (1–200, default 50) and `before` (the `next` value of the previous answer). Each call has `kind`, `target` (the address or the query), `source` (`api`, `playground`, `mcp`), `ok`, `statusCode`, `error`, `credits`, `durationMs`, `jobId` and `jobStatus` for jobs, a small `summary` (title, items, links, results, pages) and `createdAt`. Calls are kept 30 days. It needs `web:read` or `account:read`; the MCP tool is `list_web_calls`.
+
 ## Webhooks
 
 Crawls, batch scrapes, and extracts take a `webhook`: a URL, or `{url, headers, metadata, events}`. `events` can hold `started`, `page`, `completed`, and `failed`.
@@ -217,7 +224,11 @@ Each delivery is a `POST` with `{success, type, id, data, metadata, error}`, whe
 | A page that needed the cloud browser | 0.5 | \$0.005 |
 | A page read by an unblocking service (`tier` `unblock`) | 0.5, plus that service's charge for the reply, which depends on how hard the site is to read | \$0.005, plus the reply |
 | A page from the cache | 0.1 | \$0.001 |
-| `json` or `summary`, per page | +0.3, plus the AI model's tokens | +\$0.003, plus tokens |
+| `json`, `summary` or `question`, per page (once, however many of them), the AI included | +0.4 (a JSON page over plain HTTP is 0.5 in all) | +\$0.004 |
+| A `json` list past its first 50 items | +0.5 for each further 50 items | +\$0.005 per 50 |
+| `highlights` without a `query` on a long page (the AI ranks it) | +0.4, the AI included | +\$0.004 |
+| A page read in your own Chrome (the extension, when your account allows it) | 0.1, as a plain page | \$0.001 |
+| `branding`, `changeTracking`, `attributes`, `highlights` with a `query` | the page price only | the page price only |
 | A search | 0.2, plus the page price for each result you scrape | \$0.002, plus pages |
 | A map | 0.1 | \$0.001 |
 
