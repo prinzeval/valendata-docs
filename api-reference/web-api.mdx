@@ -214,6 +214,16 @@ Crawls, batch scrapes, and extracts take a `webhook`: a URL, or `{url, headers, 
 
 Each delivery is a `POST` with `{success, type, id, data, metadata, error}`, where `type` is for example `crawl.page`. It is signed with `X-Valendata-Timestamp` and `X-Valendata-Signature`, like every Valendata webhook. See [Verify the signature](/api-reference/webhooks/overview#verify-the-signature). The URL must be a public address.
 
+## Browser choice
+
+`browser` (optional, default `"auto"`) picks which browser reads a page that needs one:
+
+- `"auto"`: your own Chrome when you allowed Valendata to use it and the Valendata extension is connected, otherwise the cloud browser.
+- `"cloud"`: always the cloud browser, never your Chrome.
+- `"extension"`: always your own Chrome through the Valendata extension. A page read there is charged as a plain page (0.1 credit).
+
+A page that needs no browser is read without one either way. It is accepted on scrape, batch scrape, map, search (when it reads result pages), crawl and extract, at the top level, under `valendata`, or inside `scrapeOptions`. With `"extension"`, a Chrome that is not connected answers `409 extension_not_connected`, and one you have not allowed answers `409 chrome_not_allowed`; nothing is charged. `"extension"` cannot be combined with `actions`, a `screenshot` format or `mobile` (`400`). The MCP tools `scrape_url`, `crawl_site`, `map_site`, `search_web` and `extract_data` take the same `browser` argument.
+
 ## Pricing
 
 1 credit is \$0.01. Every call is charged, even when the site answers badly. A call refused before anything is sent is free. See [Credits](/concepts/credits).

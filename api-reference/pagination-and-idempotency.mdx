@@ -65,3 +65,12 @@ curl -X POST https://api.valendata.com/v1/skills/austin-dentists/runs \
 ```
 
 AI assistants pass the same thing as the `idempotency_key` tool argument.
+
+## Test runs and duplicate protection for workflows
+
+**Test mode.** Add `"mode": "test"` to the body of `POST /v1/workflows/{slug}/run` or `/runs` to make a single test run with a live key (a test key makes every run a test run). Skill steps answer with their latest stored result or the skill's saved sample (no browser, no skill run); every other step runs normally. Connected-app and file writes are previewed only, exports are skipped, and HTTP POST/PUT/PATCH/DELETE steps are not sent. A test run is free. The answer carries `"test": true` and the header `Valendata-Mode: test`. Test runs never repair skills and never change skill or workflow stats or samples.
+
+**Duplicate protection.** Calling `/run` or `/runs` again with the same inputs for the same workflow within 120 seconds of starting a live run returns that run instead of a new one, marked `"idempotent_replay": true`. If it is still running, `/run` waits on it as usual; if it finished, you get its result. A failed or cancelled run is not returned, so a retry after a failure starts fresh. Different inputs, or a call after the window, start a new run. Test runs are never matched to live runs. A call with an `Idempotency-Key` follows that key instead. `GET /v1/workflows/{slug}` shows the window in `run_modes.duplicate_window_seconds`.
+
+**Long workflows.** A workflow that takes minutes should not keep a web page waiting: call `/runs` (it answers at once with `run_id` and `status_url`), then read the result from `status_url` or receive it on your `webhook_url`.
+

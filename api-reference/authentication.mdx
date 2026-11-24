@@ -23,6 +23,12 @@ export VALENDATA_API_KEY="vd_sk_YOUR_API_KEY"
 
 Reading a public skill (`GET /v1/skills/{slug}` and its health), [searching the marketplace](/api-reference/marketplace/search), and checking a site ([List proven sites](/api-reference/sites/list-proven), [Get a site](/api-reference/sites/get)) need no key.
 
+## Test keys
+
+Create a key with **Test key** switched on (or `"mode": "test"` on `POST /api/keys`) to get a test key. Test keys start with `vd_test_`; live keys keep `vd_sk_`. Your key list shows each key's mode.
+
+Every workflow run made with a test key, over the API or MCP, is a test run: skill steps don't run and each answers with its latest stored result or the skill's saved sample, while every other step (code, transform, condition, API response, JWT) runs normally, so the reply has its real shape. Nothing is sent or written outside, and the run is free. Build your app on a test key, then swap in a live key at launch. Webhook-triggered runs are never test runs.
+
 ## Scopes
 
 A key can only do what its scopes allow. An AI assistant connected with OAuth gets the scopes you tick on the consent screen; some scopes come with others, some are opt-in under **Optional extra access** (never granted by default), and some can only be put on an API key (see the last column).
